@@ -69,7 +69,7 @@
       return tr;
     }) : [(() => { const tr = document.createElement('tr'); tr.innerHTML = '<td colspan="4">Noch keine Veröffentlichung</td>'; return tr; })()]));
 
-    $('updated').textContent = `Stand ${new Date().toLocaleString('de-CH')} · GitHub live, Webseite ${new Date(stats.generated).toLocaleTimeString('de-CH')}`;
+    $('updated').textContent = `Stand ${new Date().toLocaleString('de-CH')} · GitHub live` + (stats.generated ? `, Webseite ${new Date(stats.generated).toLocaleTimeString('de-CH')}` : '');
   }
 
   function drawChart(series) {
@@ -107,11 +107,19 @@
     $('status').hidden = true;
     $('refresh').disabled = true;
     try {
-      const [releases, stats] = await Promise.all([
+      const [gh, site] = await Promise.allSettled([
         getJSON(`https://api.github.com/repos/${REPO}/releases?per_page=100`),
         getJSON('https://get.neurofly.app/stats'),
       ]);
-      render(releases, stats);
+      if (gh.status === 'rejected') throw gh.reason;
+      // Without the website counter, GitHub's totals still show; the split waits for the counter.
+      const stats = site.status === 'fulfilled' ? site.value : { website: [], github: [], generated: null };
+      render(gh.value, stats);
+      if (site.status === 'rejected') {
+        $('status').textContent = 'Der Webseiten-Zähler (get.neurofly.app) ist von hier aus gerade nicht erreichbar. '
+          + 'Angezeigt sind GitHubs Zahlen; „über die Webseite“ fehlt deshalb.';
+        $('status').hidden = false;
+      }
     } catch (e) {
       $('status').textContent = `Zahlen konnten nicht geladen werden: ${e.message}.`;
       $('status').hidden = false;
