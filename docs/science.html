@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<title>Methods — NeuroFly</title>
+<meta name="description" content="How NeuroFly is built: connectome data sources, the leaky integrate-and-fire network, sensory transduction, the brain–nerve-cord interface, the body model, reproducibility and known limitations.">
+<link rel="canonical" href="https://neurofly.app/science.html">
+<meta property="og:title" content="Methods — NeuroFly">
+<meta property="og:description" content="Data sources, neuron model, senses, motor system, closed loop, reproducibility and limitations.">
+<meta property="og:image" content="https://neurofly.app/img/studio-circuit.jpg">
+<meta name="theme-color" content="#0c1311">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/neurofly-favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="brand/neurofly-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="NeuroFly home"><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="77" height="28"></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="science.html" aria-current="page">Science</a>
+      <a href="evidence.html">Evidence</a>
+      <a href="vision.html">Vision</a>
+      <a href="ethics.html">Ethics</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="index.html#get" data-track="nav-get">Get NeuroFly</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="page-head">
+  <div class="wrap">
+    <span class="kicker">Methods · release 2.0.0</span>
+    <h1>How NeuroFly is built</h1>
+    <p class="lead">A closed loop from world to senses to brain to nerve cord to body and back, running on measured
+      connectome wiring. This page lists every data source, every model component and its parameters, and what the
+      model cannot do.</p>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>1 · The closed loop</h2>
+      <p>Sensing, neural updates, motor output, body mechanics and sensory feedback advance together on one fixed clock
+        (120 Hz; 8–9 neural steps of 1 ms per tick; five 600 Hz mechanics sub-steps). Nothing in the loop depends on the
+        display frame rate, so a run is the same on a fast and a slow computer.</p>
+    </div>
+    <figure class="diagram" aria-labelledby="fig-loop">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="Closed-loop architecture diagram">
+        <defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7b8a84"/></marker></defs>
+        <rect class="box" x="10" y="140" width="150" height="96" rx="10"/>
+        <text class="t" x="85" y="176" text-anchor="middle">World</text>
+        <text class="s" x="85" y="198" text-anchor="middle">terrarium, stimuli,</text>
+        <text class="s" x="85" y="216" text-anchor="middle">temperature, food</text>
+
+        <rect class="box modelled" x="200" y="140" width="160" height="96" rx="10"/>
+        <text class="t" x="280" y="176" text-anchor="middle">Senses</text>
+        <text class="s" x="280" y="198" text-anchor="middle">transduction into</text>
+        <text class="s" x="280" y="216" text-anchor="middle">real sensory neurons</text>
+
+        <rect class="box measured" x="400" y="110" width="200" height="156" rx="10"/>
+        <text class="t" x="500" y="146" text-anchor="middle">Brain</text>
+        <text class="s" x="500" y="168" text-anchor="middle">FlyWire FAFB v783</text>
+        <text class="s" x="500" y="188" text-anchor="middle">7,270 neurons</text>
+        <text class="s" x="500" y="208" text-anchor="middle">784,219 connections</text>
+        <text class="s" x="500" y="236" text-anchor="middle">wiring measured,</text>
+        <text class="s" x="500" y="252" text-anchor="middle">LIF dynamics modelled</text>
+
+        <rect class="box modelled" x="640" y="20" width="160" height="80" rx="10"/>
+        <text class="t" x="720" y="54" text-anchor="middle">Interface</text>
+        <text class="s" x="720" y="76" text-anchor="middle">same-type DN / AN rates</text>
+
+        <rect class="box measured" x="640" y="140" width="160" height="96" rx="10"/>
+        <text class="t" x="720" y="176" text-anchor="middle">Nerve cord</text>
+        <text class="s" x="720" y="198" text-anchor="middle">MaleCNS v1.0</text>
+        <text class="s" x="720" y="216" text-anchor="middle">1,045 neurons</text>
+
+        <rect class="box modelled" x="840" y="140" width="150" height="96" rx="10"/>
+        <text class="t" x="915" y="176" text-anchor="middle">Body</text>
+        <text class="s" x="915" y="198" text-anchor="middle">6 legs, wings,</text>
+        <text class="s" x="915" y="216" text-anchor="middle">proboscis, contact</text>
+
+        <path class="arrow" d="M160 188 H196"/>
+        <path class="arrow" d="M360 188 H396"/>
+        <path class="arrow" d="M600 150 C 620 120, 620 80, 638 64"/>
+        <path class="arrow" d="M720 100 V136"/>
+        <path class="arrow" d="M800 188 H836"/>
+        <path class="arrow feedback" d="M915 236 V300 H720 V240"/>
+        <path class="arrow feedback" d="M700 140 C 660 110, 640 110, 604 124"/>
+        <path class="arrow feedback" d="M915 300 V340 H85 V240"/>
+        <text class="s" x="820" y="292" text-anchor="middle">joint angles, load, contact</text>
+        <text class="s" x="520" y="360" text-anchor="middle">the fly’s own rendered view, body position, touch — back into the senses</text>
+        <text class="s" x="610" y="112" text-anchor="end">ascending</text>
+      </svg>
+      <figcaption id="fig-loop"><b>Figure 2.</b> Architecture. Green: measured wiring used as published. Blue: model components.
+        Dashed: feedback. Descending commands leave the brain through identified descending neurons; the nerve cord’s
+        ascending neurons report back into the brain.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>2 · Data sources</h2>
+      <p>All connectivity is taken from published connectome releases. Cell identities are the releases’ own annotations;
+        side, leg and function assignments are never inferred from IDs or connectivity alone.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec">
+        <thead><tr><th>Component</th><th>Source</th><th class="num">Neurons</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td>Core brain circuit</td><td>FlyWire FAFB v783, adult female brain<small>Dorkenwald et al. 2024; Schlegel et al. 2024</small></td><td class="num">6,338</td>
+            <td>338 identified command and sensory neurons (looming detectors LC4/LPLC2, giant fiber, steering, walking, backward-walking, grooming and flight descending neurons, Johnston’s-organ neurons) plus their 6,000 strongest synaptic partners; 703,381 signed connections</td></tr>
+          <tr><td>Thermosensory extension</td><td>same dataset</td><td class="num">68</td>
+            <td>all 7 hot and 9 cold receptor neurons of the brain and the 52 relay neurons on their strongest two-synapse paths into the circuit; +4,749 connections</td></tr>
+          <tr><td>Taste and grooming extension</td><td>same dataset, full unthresholded connection table</td><td class="num">864</td>
+            <td>129 sugar/water and 65 bitter gustatory receptor neurons, 204 JO-F antennal mechanosensors, 42 DNg12 head-grooming descending neurons, 56 proboscis and ingestion motor neurons, 368 relays; +76,089 connections</td></tr>
+          <tr><td>Nerve cord</td><td>MaleCNS v1.0, adult male<small>Berg et al. 2025</small></td><td class="num">1,045</td>
+            <td>16 descending, 622 premotor and connecting interneurons, 220 motor, 153 sensory and 34 ascending neurons; 17,224 directed connections with 708,689 synaptic contacts; explicit leg and side annotations</td></tr>
+          <tr><td>Anatomy explorer</td><td>BANC v888 (female), MaleCNS v1.0 (male), FAFB v783 (female)</td><td class="num">3 × 6,000</td>
+            <td>separately browsable anatomical subsets with cell search, inputs/outputs, shortest paths and 48 native skeletons; not part of the running simulation</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:14px">A “connection” is one record per neuron pair and brain region, weighted by the number of synapses
+      measured there and signed by the predicted transmitter: acetylcholine excitatory; GABA and glutamate inhibitory;
+      dopamine, serotonin and octopamine entered at half weight as a simplification of their modulatory action.</p>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap cols-2" style="align-items:center">
+    <figure class="media-figure">
+      <div class="frame">
+        <video muted loop playsinline preload="none" poster="media/loop-pulses.jpg" data-src="media/loop-pulses.mp4" data-autoplay
+          aria-label="The BANC connectome of one female fly, brain and nerve cord, with light pulses travelling along selected connections"></video>
+      </div>
+      <figcaption><b>One animal.</b> BANC v888: brain and nerve cord of one female fly (Bates et al. 2026, CC BY 4.0), 5,934 mapped cells
+        and a selection of their contacts, rendered by NeuroFly. Light pulses are illustrative, not recorded activity.</figcaption>
+    </figure>
+    <div class="prose">
+      <span class="kicker">Next model stage</span>
+      <h2>One animal, brain and nerve cord</h2>
+      <p>Today’s running model joins a female brain (FlyWire) to a male nerve cord (MaleCNS) through a modelled interface, because
+        until recently no single animal had both mapped. The BANC connectome now provides brain and nerve cord of one female fly,
+        and the MaleCNS release does the same for a male.</p>
+      <p>NeuroFly 2.0 already lets you browse both as anatomy — cell types, inputs and outputs, shortest paths and native skeletons.
+        Moving the simulation onto one specimen replaces the cross-animal interface with measured synapses, from the descending
+        command neurons down to the motor neurons of each leg.</p>
+      <p><a href="vision.html">Roadmap →</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap cols-2">
+    <div class="prose">
+      <h2>3 · Neuron model</h2>
+      <p>Each brain neuron is a leaky integrate-and-fire unit, the standard reduced model of computational neuroscience
+        and the model class used for the whole-brain FlyWire simulation of Shiu et al. (2024).</p>
+      <ul>
+        <li>Membrane time constant 20 ms, threshold normalised to 1, absolute refractory period 2 ms, time step 1 ms.</li>
+        <li>Synaptic efficacy 0.0002 of threshold per synapse in the core circuit, with a 4 ms delay for inhibitory synapses
+          (feedforward inhibition races excitation, as in the fly’s escape circuit).</li>
+        <li>The appended taste and grooming pathways run at 0.0062 of threshold per synapse — the peak postsynaptic
+          potential of the Shiu et al. model — with their recurrent connections at 60% of that strength.</li>
+        <li>Low tonic background drive with seeded noise keeps the network in a realistic, mostly quiet regime; the giant
+          fiber is silent at rest.</li>
+        <li>Electrical coupling from the looming detectors onto the giant fiber is represented by a gain on those inputs.</li>
+      </ul>
+      <p>Neuron-specific membrane properties, receptor kinetics and neuromodulation are not in the connectome and are
+        therefore not claimed; see Limitations.</p>
+    </div>
+    <div class="prose">
+      <h2>4 · Senses</h2>
+      <p>Every stimulus reaches only the real sensory neurons that transduce it. The transduction itself is a model.</p>
+      <ul>
+        <li><b>Vision.</b> The fly’s own eye is rendered from her position; a centre–surround stage computes looming and motion
+          signals that drive the LC4 and LPLC2 looming-detector populations, left and right.</li>
+        <li><b>Hearing, wind and touch.</b> Johnston’s-organ neurons: JO-A/B for near-field sound, JO-C/D/E for wind and air
+          flow, JO-F for antennal deflection by particles.</li>
+        <li><b>Temperature.</b> The 7 hot and 9 cold receptor neurons, driven by rate of change and by deviation from 24–26 °C.</li>
+        <li><b>Taste.</b> Sugar/water and bitter gustatory receptor neurons of the labellum.</li>
+        <li><b>Proprioception.</b> Joint and contact feedback enters the nerve-cord model; its ascending neurons report to the brain.</li>
+      </ul>
+      <p>Odour has no receptor neurons in this subgraph and therefore drives nothing.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>5 · From neurons to behaviour</h2>
+      <p>Behaviour is read out from identified descending neurons whose function has been established experimentally.
+        The body rules that turn their firing into movement are model components and are labelled as such in the application.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec">
+        <thead><tr><th>Neurons</th><th>FlyWire type</th><th>Behaviour</th><th>Experimental basis</th></tr></thead>
+        <tbody>
+          <tr><td>Giant fiber</td><td>DNp01</td><td>escape takeoff</td><td>von Reyn et al. 2014</td></tr>
+          <tr><td>Looming detectors</td><td>LC4, LPLC2</td><td>drive the giant fiber; darting</td><td>von Reyn et al. 2017; Ache et al. 2019</td></tr>
+          <tr><td>Walking command</td><td>DNp09</td><td>forward walking, speed</td><td>Bidaye et al. 2020</td></tr>
+          <tr><td>Steering</td><td>DNa01, DNa02</td><td>left/right turning</td><td>Rayshubskiy et al. 2025</td></tr>
+          <tr><td>Moonwalker</td><td>MDN</td><td>backward walking</td><td>Bidaye et al. 2014</td></tr>
+          <tr><td>Grooming commands</td><td>DNg11; DNg12</td><td>front-leg rubbing; head sweeps</td><td>Guo, Zhang &amp; Simpson 2022; Hampel et al. 2020</td></tr>
+          <tr><td>Proboscis motor neurons</td><td>MN9 and others</td><td>proboscis extension, feeding</td><td>Shiu et al. 2024</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:14px">Brain and nerve cord come from two different animals; no synapses between them exist in the data.
+      They are joined by a modelled interface that passes population firing rates between descending neurons of the same
+      type and side, and back from the nerve cord’s ascending neurons. Leg order is RF, LF, RM, LM, RH, LH throughout.</p>
+    <div class="cols-2" style="margin-top:28px">
+      <div class="prose">
+        <h3>How the legs step</h3>
+        <p>The extracted nerve-cord circuit contains the premotor and motor neurons of all six legs, but not the interneurons that
+          make legs step rhythmically: driven by the walking command alone, its motor neurons fire tonically and the legs twitch.
+          Since release 2.1, NeuroFly adds modelled, leg-local stepping rules in the tradition of Walknet (Cruse 1990; Dürr, Schmitz
+          &amp; Cruse 2004) and the rule-based controller of NeuroMechFly v2 (Wang-Chen et al. 2024): each leg switches from
+          stance to swing at its rear extreme position and back at its front one, sensed from the leg; neighbouring legs do not
+          lift off together; DNp09 sets speed, MDN reverses direction, and a left–right difference in DNa01/DNa02 shortens the
+          inner strides and, in sharp turns, makes the inner legs step backward.</p>
+      </div>
+      <div class="prose">
+        <h3>Where the rules act — and what they do not do</h3>
+        <p>The rules never move a muscle directly. They drive 96 of the cord’s 622 premotor cells, chosen by measuring in the
+          model which cells move which joint; the measured wiring carries the rhythm on to the 220 leg motor neurons. Cut the
+          cord’s synapses and she stands still. The result is an alternating, tripod-like gait at about two steps per second,
+          with a slight drift to the right because the retained wiring drives the six legs unequally. Real flies step five to
+          fifteen times per second: this is qualitatively fly-like walking, not calibrated walking.</p>
+      </div>
+    </div>
+    <figure class="plain-figure">
+      <img src="img/footfall.svg" alt="Footfall pattern of the simulated fly over 2.5 seconds: ground contact of each of the six legs, grouped into the two tripods; the legs step irregularly and the two groups alternate only loosely" width="760" height="244" loading="lazy" decoding="async">
+      <figcaption><b>Footfall pattern, as simulated.</b> Ground contact of each leg over 2.5 s of walking (release 2.1, walking command
+        DNp09 at 30 Hz, nerve cord and body only). Rows are grouped into the two tripods that alternate in a real fly’s fast gait. In
+        the model the stepping is irregular and the tripods alternate only loosely; this is shown as it is, not smoothed.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap cols-2">
+    <div class="prose">
+      <h2>6 · Measured versus modelled</h2>
+      <div class="table-wrap">
+        <table class="spec">
+          <tbody>
+            <tr><td>Neurons, positions, cell types</td><td><span class="tag measured">Measured</span></td></tr>
+            <tr><td>Synaptic connections and counts</td><td><span class="tag measured">Measured</span></td></tr>
+            <tr><td>Transmitter identity</td><td><span class="tag measured">Predicted from EM</span></td></tr>
+            <tr><td>Membrane and synaptic dynamics</td><td><span class="tag modelled">Modelled</span></td></tr>
+            <tr><td>Sensory transduction</td><td><span class="tag modelled">Modelled</span></td></tr>
+            <tr><td>Brain–nerve-cord interface</td><td><span class="tag modelled">Modelled</span></td></tr>
+            <tr><td>Muscles, joints, body mechanics</td><td><span class="tag modelled">Modelled</span></td></tr>
+            <tr><td>Rules from commands to movement</td><td><span class="tag modelled">Modelled</span></td></tr>
+            <tr><td>Stepping rules and the premotor cells they drive</td><td><span class="tag modelled">Modelled</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="prose">
+      <h2>7 · Reproducibility</h2>
+      <ul>
+        <li><b>Seeds.</b> Neural noise and every behavioural choice draw from seeded generators; the same seed and the same
+          inputs give the same run. The automated tests check this.</li>
+        <li><b>Fingerprints.</b> Each run records the SHA-256 hash of every data file it loaded and the model version.</li>
+        <li><b>Manifests.</b> Recordings carry the environment, all interventions (silencing, activation, pharmacology) with
+          timestamps, and any simulation time lost to computer overload.</li>
+        <li><b>Export.</b> 20 Hz CSV of all population rates, inputs and body state; per-trial tables for every experiment.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="limitations">
+  <div class="wrap prose">
+    <h2>8 · Limitations</h2>
+    <p>These limits are part of the method. They define what NeuroFly’s results can and cannot support.</p>
+    <ul>
+      <li>The running brain is a <b>subset</b> of the FlyWire connectome (7,270 of about 139,000 neurons), selected around
+        identified sensory and command neurons. Cells outside the subset contribute nothing.</li>
+      <li>Brain and nerve cord come from <b>different animals</b> (female brain, male nerve cord), joined by a modelled interface.</li>
+      <li>All neurons share one <b>generic model</b>; cell-type-specific membrane properties, gap junctions (except one lumped gain),
+        neuromodulation and receptor kinetics are not represented.</li>
+      <li>The appended taste and grooming pathways are cut out of a recurrent brain; driven far beyond the range the simulated
+        world produces, their relay loops can sustain activity that the full brain would presumably prevent.</li>
+      <li>Learning is limited to an optional, bounded plasticity experiment; the model does <b>not</b> reproduce habituation or
+        associative learning (see Evidence).</li>
+      <li>The body is a kinematic–dynamic model, not a calibrated biomechanical fly; walking is not claimed to be biologically calibrated. The stepping rules that make the legs step are modelled, not
+        part of the connectome; the gait runs at about two steps per second and drifts slightly to the right.</li>
+      <li>Pharmacology is a gain on transmitter classes. It is not a model of any specific drug, its dose, uptake or metabolism.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block alt" id="references">
+  <div class="wrap prose">
+    <h2>References</h2>
+    <ol class="refs">
+      <li>Dorkenwald S, et al. Neuronal wiring diagram of an adult brain. <i>Nature</i> 634, 124–138 (2024). <a href="https://doi.org/10.1038/s41586-024-07558-y">doi:10.1038/s41586-024-07558-y</a></li>
+      <li>Schlegel P, et al. Whole-brain annotation and multi-connectome cell typing of <i>Drosophila</i>. <i>Nature</i> 634, 139–152 (2024). <a href="https://doi.org/10.1038/s41586-024-07686-5">doi:10.1038/s41586-024-07686-5</a></li>
+      <li>Shiu PK, et al. A <i>Drosophila</i> computational brain model reveals sensorimotor processing. <i>Nature</i> 634, 210–219 (2024). <a href="https://doi.org/10.1038/s41586-024-07763-9">doi:10.1038/s41586-024-07763-9</a></li>
+      <li>Berg S, et al. Sexual dimorphism in the complete connectome of the <i>Drosophila</i> male central nervous system. bioRxiv (2025). <a href="https://doi.org/10.1101/2025.10.09.680999">doi:10.1101/2025.10.09.680999</a></li>
+      <li>Bates AS, et al. Distributed control circuits across a brain-and-cord connectome. <i>Nature</i> 656, 957–970 (2026). <a href="https://doi.org/10.1038/s41586-026-10735-w">doi:10.1038/s41586-026-10735-w</a></li>
+      <li>von Reyn CR, et al. A spike-timing mechanism for action selection. <i>Nat Neurosci</i> 17, 962–970 (2014). <a href="https://doi.org/10.1038/nn.3741">doi:10.1038/nn.3741</a></li>
+      <li>von Reyn CR, et al. Feature integration drives probabilistic behavior in the <i>Drosophila</i> escape response. <i>Neuron</i> 94, 1190–1204 (2017). <a href="https://doi.org/10.1016/j.neuron.2017.05.036">doi:10.1016/j.neuron.2017.05.036</a></li>
+      <li>Ache JM, et al. Neural basis for looming size and velocity encoding in the <i>Drosophila</i> giant fiber escape pathway. <i>Curr Biol</i> 29, 1073–1081 (2019). <a href="https://doi.org/10.1016/j.cub.2019.01.079">doi:10.1016/j.cub.2019.01.079</a></li>
+      <li>Bidaye SS, et al. Neuronal control of <i>Drosophila</i> walking direction. <i>Science</i> 344, 97–101 (2014). <a href="https://doi.org/10.1126/science.1249964">doi:10.1126/science.1249964</a></li>
+      <li>Bidaye SS, et al. Two brain pathways initiate distinct forward walking programs in <i>Drosophila</i>. <i>Neuron</i> 108, 469–485 (2020). <a href="https://doi.org/10.1016/j.neuron.2020.07.032">doi:10.1016/j.neuron.2020.07.032</a></li>
+      <li>Rayshubskiy A, et al. Neural circuit mechanisms for steering control in walking <i>Drosophila</i>. <i>eLife</i> 13, RP102230 (2025). <a href="https://doi.org/10.7554/eLife.102230">doi:10.7554/eLife.102230</a></li>
+      <li>Cruse H. What mechanisms coordinate leg movement in walking arthropods? <i>Trends Neurosci</i> 13, 15–21 (1990). <a href="https://doi.org/10.1016/0166-2236(90)90057-H">doi:10.1016/0166-2236(90)90057-H</a></li>
+      <li>Dürr V, Schmitz J, Cruse H. Behaviour-based modelling of hexapod locomotion: linking biology and technical application. <i>Arthropod Struct Dev</i> 33, 237–250 (2004). <a href="https://doi.org/10.1016/j.asd.2004.05.004">doi:10.1016/j.asd.2004.05.004</a></li>
+      <li>Wang-Chen S, et al. NeuroMechFly v2: simulating embodied sensorimotor control in adult <i>Drosophila</i>. <i>Nat Methods</i> 21, 2353–2362 (2024). <a href="https://doi.org/10.1038/s41592-024-02497-y">doi:10.1038/s41592-024-02497-y</a></li>
+      <li>Guo L, Zhang N, Simpson JH. Descending neurons coordinate anterior grooming behavior in <i>Drosophila</i>. <i>Curr Biol</i> 32, 823–833 (2022). <a href="https://doi.org/10.1016/j.cub.2021.12.055">doi:10.1016/j.cub.2021.12.055</a></li>
+      <li>Hampel S, et al. Distinct subpopulations of mechanosensory chordotonal organ neurons elicit grooming of the fruit fly antennae. <i>eLife</i> 9, e59976 (2020). <a href="https://doi.org/10.7554/eLife.59976">doi:10.7554/eLife.59976</a></li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="72" height="26"><p>An in-silico fruit fly built on measured connectomes. An independent research and teaching project from Zurich.</p>
+        <ul class="social" aria-label="NeuroFly on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroFly on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroFly on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+      <div><h4>Project</h4><ul><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
+    </div>
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+      NeuroFly is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
+      measured; neural dynamics, senses, body and behaviour are models, and NeuroFly makes no claim that the model feels anything.
+      © 2026 NeuroFly.</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

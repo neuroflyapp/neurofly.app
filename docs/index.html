@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<title>NeuroFly — an in-silico fruit fly built on measured connectomes</title>
+<meta name="description" content="NeuroFly simulates a fruit fly in closed loop on the measured wiring of its nervous system: 7,270 FlyWire brain neurons, 1,045 MaleCNS nerve-cord neurons, a modelled body, and every behaviour traceable to the neurons that caused it.">
+<link rel="canonical" href="https://neurofly.app/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://neurofly.app/">
+<meta property="og:title" content="NeuroFly — an in-silico fruit fly built on measured connectomes">
+<meta property="og:description" content="A closed-loop fruit fly model on real connectome data. Measured wiring, explicit models, traceable causes, reproducible experiments.">
+<meta property="og:image" content="https://neurofly.app/img/studio-live.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0c1311">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/neurofly-favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="brand/neurofly-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="assets/site.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "NeuroFly",
+  "applicationCategory": "ScienceApplication",
+  "operatingSystem": "Windows 10, Windows 11",
+  "softwareVersion": "2.1.0",
+  "url": "https://neurofly.app/",
+  "description": "Closed-loop simulation of Drosophila melanogaster on measured connectome data (FlyWire FAFB v783 brain, MaleCNS v1.0 nerve cord).",
+  "isAccessibleForFree": true,
+  "downloadUrl": "https://github.com/neuroflyapp/neurofly/releases/download/v2.1.0/NeuroFly-2.1.0-win-x64.zip",
+  "fileSize": "178 MB",
+  "license": "https://polyformproject.org/licenses/noncommercial/1.0.0",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NeuroFly",
+    "url": "https://neurofly.app/",
+    "email": "contact@neurofly.app",
+    "sameAs": [
+      "https://www.instagram.com/neurofly.app/",
+      "https://www.tiktok.com/@neurofly",
+      "https://x.com/NeuroFlyApp",
+      "https://github.com/neuroflyapp"
+    ]
+  },
+  "citation": [
+    "https://doi.org/10.1038/s41586-024-07558-y",
+    "https://doi.org/10.1038/s41586-024-07686-5",
+    "https://doi.org/10.1101/2025.10.09.680999"
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="NeuroFly home"><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="77" height="28"></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="science.html">Science</a>
+      <a href="evidence.html">Evidence</a>
+      <a href="vision.html">Vision</a>
+      <a href="ethics.html">Ethics</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="#get" data-track="nav-get">Get NeuroFly</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="hero-film">
+  <video class="hero-video" muted loop playsinline preload="none" poster="media/hero-poster.jpg"
+    data-hero data-src-large="media/hero-1080.mp4" data-src-small="media/hero-720.mp4" aria-hidden="true"></video>
+  <div class="hero-shade" aria-hidden="true"></div>
+  <div class="wrap hero-copy">
+    <span class="kicker">In-silico neuroscience · <i>Drosophila melanogaster</i></span>
+    <h1>A fruit fly, simulated from the measured wiring of its nervous system.</h1>
+    <p class="lead">NeuroFly runs 7,270 brain neurons from the FlyWire connectome and 1,045 nerve-cord neurons from MaleCNS in
+      closed loop with a modelled body. She walks, grooms, tastes and escapes, and for every action you can see which neurons
+      caused it. What is measured and what is modelled is always stated.</p>
+    <div class="actions">
+      <a class="btn primary" href="science.html">Read the methods</a>
+      <a class="btn secondary" href="evidence.html">See the evidence</a>
+    </div>
+    <p class="hero-meta">Windows · free · no account, no advertising</p>
+  </div>
+  <p class="hero-note">Film: NeuroFly’s simulated brain, every neuron at its measured FlyWire position. Each flash is a spike
+    from a real model run; midway, a looming stimulus makes the giant fiber fire. Model activity, not a recording from a fly.</p>
+</div>
+<div class="facts-band">
+  <div class="wrap">
+    <div class="facts" aria-label="Key figures">
+      <div class="fact"><b>7,270</b><span>brain neurons from the adult female FlyWire connectome</span><span class="src">FAFB v783 · measured</span></div>
+      <div class="fact"><b>784,219</b><span>signed connections, weighted by measured synapse counts</span><span class="src">pair × neuropil · measured</span></div>
+      <div class="fact"><b>1,045</b><span>nerve-cord neurons driving six legs</span><span class="src">MaleCNS v1.0 · measured</span></div>
+      <div class="fact"><b>1 ms</b><span>neural time step; sensing, brain, body and feedback close at 120 Hz</span><span class="src">model</span></div>
+      <div class="fact"><b>28</b><span>automated test suites, all passing for release 2.1</span><span class="src">verification</span></div>
+    </div>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <figure class="shot">
+      <img src="img/studio-live.jpg" alt="The NeuroFly workspace: the fly in her terrarium in the centre, the 7,270 simulated neurons at their measured positions on the right, live firing-rate traces below, and on the right an explanation of her last action" width="1484" height="861">
+      <figcaption><b>Figure 1.</b> NeuroFly 2.0. Centre: the fly in her terrarium. Right: the simulated brain at the neurons’
+        measured positions, and the causal chain behind her most recent action — here a takeoff, traced from the looming
+        stimulus through the visual looming detectors LC4/LPLC2 to the giant fiber (DNp01). Bottom: firing rates of
+        identified neuron populations.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">What NeuroFly is</span>
+      <h2>The wiring is measured. Everything else is a stated model.</h2>
+      <p>A connectome records which neuron connects to which, and how strongly. It does not record how the cells behave
+        in time. NeuroFly keeps the two apart: the wiring is used exactly as published, and whatever the connectome does
+        not contain is a documented model component, labelled as such in the application.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6.8 7.2 10.6 16.4M17.2 7.2 13.4 16.4M7 6h10"/></svg>
+        <p><span class="tag measured">Measured</span></p>
+        <h3>Anatomy from electron microscopy</h3>
+        <p>Neurons, their positions, cell types and synaptic connections come from peer-reviewed connectome
+          releases. Nothing is tuned by hand to make a behaviour look right.</p>
+      </div>
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 12h3l2-7 3 14 2.5-9 1.5 4h6"/></svg>
+        <p><span class="tag modelled">Modelled</span></p>
+        <h3>Dynamics, senses and body as stated models</h3>
+        <p>Leaky integrate-and-fire neurons, sensory transduction, a jointed body and its contact with the ground.
+          Each is documented with its parameters and its limits.</p>
+      </div>
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6h10M4 12h16M4 18h7"/><circle cx="17" cy="6" r="2.5"/><circle cx="14" cy="18" r="2.5"/></svg>
+        <p><span class="tag measured">Traced</span></p>
+        <h3>Every action has a traceable cause</h3>
+        <p>When the fly takes off, grooms or feeds, NeuroFly shows which input changed, which sensory neurons it
+          reached, and which synapses drove the deciding neurons — from recorded spikes, not from a story.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Evidence at a glance</span>
+      <h2>Does it behave like a fly for the right reasons?</h2>
+      <p>Classic findings from fly neuroscience, re-run as controlled in-silico experiments with the statistics shown.
+        Where the model does not reproduce a finding, the Evidence page says so.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><h4>Looming escape</h4><p><b>An abrupt loom triggers takeoff through the giant fiber</b> — 50% threshold at loom
+        intensity 0.14, 100% from 0.16, none at 0.12 and below. Silencing LC4 cuts giant-fiber spikes by 94%; silencing LC4
+        and LPLC2 together abolishes the escape.</p></div>
+      <div class="card"><h4>Mechanosensory specificity</h4><p><b>Wind does not trigger escape</b> — 0/12 takeoffs, as in real flies,
+        which stop rather than flee in wind. Only the auditory Johnston’s-organ neurons are wired to the giant fiber; that sound
+        of equal strength drives it (12/12) is a prediction of the wiring.</p></div>
+      <div class="card"><h4>Taste decisions</h4><p><b>Sugar drives proboscis extension; bitter vetoes it</b> — 88% extension at sugar 0.75
+        alone, 0% once bitter is added (Fisher p = 0.0014), from the measured gustatory pathways.</p></div>
+      <div class="card"><h4>Self-care</h4><p><b>Dust on the antennae triggers head grooming</b> — 100% at full dust, 0% with the JO-F
+        mechanosensors or the DNg12 command neurons silenced (Fisher p &lt; 0.001).</p></div>
+      <div class="card"><h4>In-silico pharmacology</h4><p><b>Inhibition acts as a dose–response on escape</b> — scaling all
+        inhibitory synapses suppresses takeoff from 100% to 0%, half-maximal at 1.52× normal strength. A transmitter-class
+        experiment, not a drug model.</p></div>
+      <div class="card"><h4>Honest limits</h4><p><b>Not every finding is reproduced</b> — habituation, associative learning,
+        thermal preference and three of ten activation phenotypes are not yet. They are listed with their data, because they
+        define the next model work.</p></div>
+    </div>
+    <p style="margin-top:24px"><a href="evidence.html">All ten benchmark experiments, figures, data and the verification suite →</a></p>
+  </div>
+</section>
+
+<section class="reels-band" id="reels">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">The connectome in motion</span>
+      <h2>One animal, from brain to nerve cord</h2>
+      <p>Five short films of the BANC connectome — a complete brain-and-cord wiring diagram of a single female fly, and the
+        dataset of NeuroFly’s next model stage. Select one to watch it with its original soundtrack.</p>
+    </div>
+    <div class="reels">
+      <button class="reel" type="button" data-reel="media/reel-01.mp4" data-title="One fly. One network." aria-label="Play: One fly. One network. A selected view of one female brain-and-cord connectome.">
+        <img src="media/reel-01.jpg" alt="" width="540" height="960" loading="lazy" decoding="async">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></span>
+      </button>
+      <button class="reel" type="button" data-reel="media/reel-02.mp4" data-title="See the links light up." aria-label="Play: See the links light up. Visualised pulses on measured structural connections.">
+        <img src="media/reel-02.jpg" alt="" width="540" height="960" loading="lazy" decoding="async">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></span>
+      </button>
+      <button class="reel" type="button" data-reel="media/reel-03.mp4" data-title="From brain to body." aria-label="Play: From brain to body. Mapped descending cells and motor pathways.">
+        <img src="media/reel-03.jpg" alt="" width="540" height="960" loading="lazy" decoding="async">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></span>
+      </button>
+      <button class="reel" type="button" data-reel="media/reel-04.mp4" data-title="Every contact counts." aria-label="Play: Every contact counts. A selected view of mapped cells and contact links.">
+        <img src="media/reel-04.jpg" alt="" width="540" height="960" loading="lazy" decoding="async">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></span>
+      </button>
+      <button class="reel" type="button" data-reel="media/reel-05.mp4" data-title="Could wiring become life?" aria-label="Play: Could wiring become life? The open question behind NeuroFly.">
+        <img src="media/reel-05.jpg" alt="" width="540" height="960" loading="lazy" decoding="async">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></span>
+      </button>
+    </div>
+    <p class="reels-note">Connectome: BANC v888, Bates, Phelps, Kim et al., <i>Nature</i> 656 (2026),
+      <a href="https://doi.org/10.1038/s41586-026-10735-w">doi:10.1038/s41586-026-10735-w</a>; data
+      <a href="https://doi.org/10.7910/DVN/7WTH1N">doi:10.7910/DVN/7WTH1N</a>, CC BY 4.0. Visualisation by NeuroFly: a selection of
+      mapped cells and contact links; light pulses illustrate model activity and are not recorded neural firing. Original soundtrack.</p>
+    <div class="follow">
+      <p><b>Follow the work.</b> New films and progress from the model, as it grows.</p>
+      <ul class="follow-links" aria-label="NeuroFly on social media">
+        <li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" data-track="social-instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg><span>Instagram</span><small>@neurofly.app</small></a></li>
+        <li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" data-track="social-tiktok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg><span>TikTok</span><small>@neurofly</small></a></li>
+        <li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" data-track="social-x"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X</span><small>@NeuroFlyApp</small></a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<dialog class="reel-dialog" id="reel-dialog" aria-label="Film">
+  <div class="box">
+    <video controls playsinline preload="none"></video>
+    <div class="bar"><span class="title"></span><button class="close" type="button">Close</button></div>
+  </div>
+</dialog>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Use</span>
+      <h2>What it is for</h2>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>Research: hypotheses before the wet lab</h3>
+        <p>Silence or activate any identified cell type, change transmitter-class gains, and measure the behavioural
+          consequence in hundreds of seeded trials — a fast way to ask which cells a circuit needs before designing the
+          genetic experiment.</p>
+      </div>
+      <div class="card">
+        <h3>Teaching: circuits you can take apart</h3>
+        <p>Students see sensation become decision become movement, neuron by neuron, and can test each step
+          themselves. Ten guided experiments ship with their literature and statistics.</p>
+      </div>
+      <div class="card">
+        <h3>Methods: a testbed for connectome models</h3>
+        <p>Every run records its seeds, model version and the SHA-256 fingerprint of each data file, and exports as
+          CSV. Results can be reproduced exactly and compared across model variants.</p>
+      </div>
+      <div class="card">
+        <h3>Towards replacement of animal experiments <span class="tag planned">Vision</span></h3>
+        <p>Our long-term aim is a digital fly accurate enough to answer some questions that today require animals —
+          including early-stage screening of neuroactive compounds. What that requires, and how far we are, is set out openly.
+          <a href="vision.html">Vision &amp; roadmap</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Inside the application</span>
+      <h2>A laboratory, not an animation</h2>
+    </div>
+    <div class="grid two">
+      <figure class="shot"><img src="img/studio-circuit.jpg" alt="Circuit workspace: identified neuron populations with their live firing rates and buttons to silence or activate each" width="1484" height="861" loading="lazy">
+        <figcaption><b>Virtual genetics.</b> Silence or activate any identified population — LC4, LPLC2, the giant fiber, DNa01/02 —
+          or any FlyWire cell type, and watch the consequence.</figcaption></figure>
+      <figure class="shot"><img src="img/studio-lab.jpg" alt="Experiments workspace: guided protocols with their literature references and a run button" width="1484" height="861" loading="lazy">
+        <figcaption><b>Guided experiments.</b> Ten protocols from the fly literature run on a separate virtual fly, with
+          statistics and the published finding side by side.</figcaption></figure>
+      <figure class="shot"><img src="img/studio-sentience.jpg" alt="Sentience workspace: the eight evidence-based criteria, what is known about real flies and what the model contains" width="1484" height="861" loading="lazy">
+        <figcaption><b>Sentience criteria.</b> The eight criteria of Birch et al. (2021), the rating for real adult flies
+          (Gibbons et al. 2022), and what the model does and does not contain — scope, never a score.</figcaption></figure>
+      <figure class="shot"><img src="img/studio-specimens.jpg" alt="Specimens workspace: female BANC and male MaleCNS connectomes as separately selectable anatomy sources" width="1484" height="861" loading="lazy">
+        <figcaption><b>Two sexes, separate specimens.</b> The female BANC and male MaleCNS connectomes, brain and nerve cord,
+          as browsable anatomy — the basis for the next, single-specimen model.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap cols-2">
+    <div>
+      <span class="kicker">Vision</span>
+      <h2>A fly that exists only as data — and the question of what it would take for it to feel.</h2>
+    </div>
+    <div class="prose">
+      <p>Complete connectomes of the adult fly brain and of its whole central nervous system have been published
+        within the last two years. For the first time, an entire animal nervous system can be simulated on its
+        measured wiring. NeuroFly is built to follow that path step by step: one specimen, cell-type physiology,
+        a calibrated body, validated behaviour.</p>
+      <p>Whether a simulated nervous system could ever have experiences is an open scientific question. We treat it
+        as one: with published criteria, testable components and no claims beyond the evidence.</p>
+      <p><a href="vision.html">Read the vision and roadmap →</a> · <a href="ethics.html">Our ethical commitments →</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="get">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Get NeuroFly</span>
+      <h2>Release 2.1 for Windows</h2>
+      <p>Free, without advertising, for Windows 10 and 11 (64-bit). Because the FlyWire brain data carries a non-commercial
+        licence, NeuroFly is and remains free of charge. By downloading you accept the <a href="software-terms.html">software
+        terms</a>.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Windows, portable</h3>
+        <p>NeuroFly 2.1.0 as a ZIP of about 170 MB. Unzip it anywhere and start <b>NeuroFly.exe</b>; nothing is installed and
+          nothing connects to the internet.</p>
+        <p><a class="btn primary" href="https://github.com/neuroflyapp/neurofly/releases/download/v2.1.0/NeuroFly-2.1.0-win-x64.zip" data-track="download-zip">Download for Windows</a></p>
+      </div>
+      <div class="card">
+        <h3>Source code</h3>
+        <p>Code, data, tests and the build script, public on GitHub under a non-commercial licence.</p>
+        <p><a class="btn secondary" href="https://github.com/neuroflyapp/neurofly" data-track="get-github">View on GitHub</a></p>
+      </div>
+      <div class="card">
+        <h3>Research and teaching</h3>
+        <p>Questions, a collaboration, or NeuroFly in a course? Write to us.</p>
+        <p><a class="btn secondary" href="contact.html" data-track="get-contact">Contact</a></p>
+      </div>
+    </div>
+    <p class="note download-meta">The build is not code-signed yet: if Windows shows “Windows protected your PC”, choose
+      <em>More info</em>, then <em>Run anyway</em>. SHA-256 of the ZIP: <code>ba6e78afd3442268411834d5fbbdb4c3917c36fcb75fefd41e7c21b3d1c83659</code> ·
+      <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a></p>
+    <p class="note intended-use">NeuroFly is a research and teaching tool. It is not validated for medical, veterinary,
+      regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance.</p>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Data</span>
+      <h2>Built on published connectomes</h2>
+      <p>NeuroFly uses public research data under its original licences, with attribution. SHA-256 fingerprints of every
+        data file are recorded in each run and listed on the <a href="evidence.html#fingerprints">Evidence</a> page.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec">
+        <thead><tr><th>Dataset</th><th>Specimen</th><th>Used for</th><th>Licence</th></tr></thead>
+        <tbody>
+          <tr><td>FlyWire FAFB v783<small>Dorkenwald et al. 2024; Schlegel et al. 2024, <i>Nature</i></small></td><td>adult female, brain</td><td>brain circuit of the running model</td><td>CC BY-NC 4.0</td></tr>
+          <tr><td>MaleCNS v1.0<small>Berg et al. 2025, bioRxiv; FlyEM, HHMI Janelia</small></td><td>adult male, brain + nerve cord</td><td>locomotor nerve cord of the running model; anatomy explorer</td><td>CC BY 4.0</td></tr>
+          <tr><td>BANC v888<small>Bates et al. 2026, <i>Nature</i></small></td><td>adult female, brain + nerve cord</td><td>anatomy explorer (not yet in the running model)</td><td>CC BY 4.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="72" height="26"><p>An in-silico fruit fly built on measured connectomes. An independent research and teaching project from Zurich.</p>
+        <ul class="social" aria-label="NeuroFly on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroFly on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroFly on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+      <div><h4>Project</h4><ul><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
+    </div>
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+      NeuroFly is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
+      measured; neural dynamics, senses, body and behaviour are models, and NeuroFly makes no claim that the model feels anything.
+      © 2026 NeuroFly.</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

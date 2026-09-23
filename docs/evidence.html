@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<title>Evidence — NeuroFly</title>
+<meta name="description" content="NeuroFly's validation against findings from real flies — ten controlled in-silico experiments with figures, statistics and data — and its verification: 28 automated test suites, seeded reproducibility and SHA-256 data fingerprints.">
+<link rel="canonical" href="https://neurofly.app/evidence.html">
+<meta property="og:title" content="Evidence — NeuroFly">
+<meta property="og:description" content="Benchmarks against real-fly findings, including what the model does not reproduce; verification suite and data fingerprints.">
+<meta property="og:image" content="https://neurofly.app/img/studio-lab.jpg">
+<meta name="theme-color" content="#0c1311">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/neurofly-favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="brand/neurofly-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="NeuroFly home"><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="77" height="28"></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="science.html">Science</a>
+      <a href="evidence.html" aria-current="page">Evidence</a>
+      <a href="vision.html">Vision</a>
+      <a href="ethics.html">Ethics</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="index.html#get" data-track="nav-get">Get NeuroFly</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="page-head">
+  <div class="wrap">
+    <span class="kicker">Evidence · release 2.1.0 · runs of 23 September 2026</span>
+    <h1>Validation and verification</h1>
+    <p class="lead">Two different questions. <b>Validation:</b> does the model reproduce what is known about real flies — and
+      for the right, circuit-level reasons? <b>Verification:</b> does the software do exactly what we say it does? Both are
+      reported here in full, including where the model fails.</p>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>How the experiments were run</h2>
+      <p>Each benchmark is one of the ten guided experiments built into NeuroFly, run in a bare arena with no instruments
+        attached, at a fixed time of day. Every trial starts from a freshly reset network and body with its own seed drawn from
+        one master seed (20260923), so the complete set can be re-run and reproduced exactly. Proportions are shown with Wilson
+        95% confidence intervals; group differences are tested with Fisher’s exact test or the Mann–Whitney U test.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec">
+        <thead><tr><th>Benchmark</th><th>Finding in real flies</th><th>Model</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Looming escape</td><td>Looming drives the giant fiber; escape probability rises with looming strength</td><td>threshold response via the giant fiber</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Looming detectors</td><td>LC4 and LPLC2 carry complementary looming features to the giant fiber</td><td>both needed; LC4 dominant</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Wind vs sound</td><td>separate Johnston’s-organ populations; wind does not trigger escape</td><td>wind: no escape; sound: escape (prediction)</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Taste decision</td><td>sugar drives proboscis extension; bitter suppresses it</td><td>graded extension, full bitter veto</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Antennal grooming</td><td>JO-F activation elicits antennal grooming; DNg12 drives head sweeps</td><td>dust-dependent; needs JO-F and DNg12</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Inhibition gates escape</td><td>giant-fiber recruitment is shaped by excitation–inhibition balance</td><td>dose–response: escape 100% → 0%, half-maximal at 1.52× inhibition</td><td><span class="tag done">Reproduced</span></td></tr>
+          <tr><td>Activation screen</td><td>ten cell types with published activation phenotypes</td><td>7 of 10 phenotypes</td><td><span class="tag progress">Partial</span></td></tr>
+          <tr><td>Habituation</td><td>the escape pathway habituates to repetition</td><td>no habituation</td><td><span class="tag planned">Not reproduced</span></td></tr>
+          <tr><td>Associative learning</td><td>mushroom-body, dopamine-gated learning</td><td>no learning</td><td><span class="tag planned">Not reproduced</span></td></tr>
+          <tr><td>Thermal preference</td><td>flies gather near 24–25 °C in a gradient</td><td>no preference</td><td><span class="tag planned">Not reproduced</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Benchmarks that reproduce</h2>
+      <p>Hover over a data point for its value, interval and sample size; every figure also has its data table.</p>
+    </div>
+    <div class="grid two">
+
+      <article class="figure-card">
+        <h3>Figure 3 · Looming escape threshold</h3>
+        <p class="q">Both eyes see a looming stimulus for 300 ms at nine intensities; does she take off?
+          <br><span class="small">von Reyn et al. 2014; Card &amp; Dickinson 2008</span></p>
+        <div class="chart" data-spec="fig-escape"></div>
+        <p class="result">All-or-none threshold at intensity <b>0.14</b> (logistic fit). 0/12 takeoffs up to 0.12, 12/12 from 0.16 upward;
+          giant-fiber latency 5 ms at the strongest stimulus. Takeoff only ever followed a giant-fiber spike.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Intensity</th><th class="n">Takeoff</th><th class="n">95% CI</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>0.04</td><td class="n">0%</td><td class="n">0–24%</td><td class="n">12</td></tr>
+            <tr><td>0.08</td><td class="n">0%</td><td class="n">0–24%</td><td class="n">12</td></tr>
+            <tr><td>0.12</td><td class="n">0%</td><td class="n">0–24%</td><td class="n">12</td></tr>
+            <tr><td>0.16 – 1.00</td><td class="n">100%</td><td class="n">76–100%</td><td class="n">12 each</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-escape">{"type":"curve","title":"Takeoff probability against looming intensity","xLabel":"Looming intensity","yLabel":"Takeoff probability","x":[0.04,0.08,0.12,0.16,0.2,0.3,0.45,0.65,1],"xTicks":[0,0.2,0.4,0.6,0.8,1],"xMin":0,"xMax":1,
+          "series":[{"label":"Takeoff","y":[0,0,0,1,1,1,1,1,1],"lo":[0,0,0,0.758,0.758,0.758,0.758,0.758,0.758],"hi":[0.242,0.242,0.242,1,1,1,1,1,1],"n":[12,12,12,12,12,12,12,12,12]}]}</script>
+      </article>
+
+      <article class="figure-card">
+        <h3>Figure 4 · Which looming detectors drive escape?</h3>
+        <p class="q">Near-threshold loom with LC4, LPLC2 or both silenced (15 trials each).
+          <br><span class="small">von Reyn et al. 2017; Ache et al. 2019</span></p>
+        <div class="chart" data-spec="fig-silence"></div>
+        <p class="result">Silencing LPLC2 reduces giant-fiber spikes by 28%, LC4 by 94%, both together abolish them (each p &lt; 0.001 vs intact,
+          Mann–Whitney). Takeoff: 100%, 100%, 100%, 0% — one remaining giant-fiber spike still launches her. Both populations
+          contribute, as in real flies.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Condition</th><th class="n">GF spikes (mean ± SEM)</th><th class="n">Takeoff</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>intact</td><td class="n">28.0 ± 0.5</td><td class="n">100%</td><td class="n">15</td></tr>
+            <tr><td>LPLC2 silenced</td><td class="n">20.2 ± 0.1</td><td class="n">100%</td><td class="n">15</td></tr>
+            <tr><td>LC4 silenced</td><td class="n">1.7 ± 0.2</td><td class="n">100%</td><td class="n">15</td></tr>
+            <tr><td>both silenced</td><td class="n">0</td><td class="n">0%</td><td class="n">15</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-silence">{"type":"bars","title":"Giant-fiber spikes per trial by condition","yLabel":"Giant-fiber spikes per trial","yFormat":"num1","categories":["intact","LPLC2\nsilenced","LC4\nsilenced","both\nsilenced"],"values":[28,20.2,1.667,0],"n":[15,15,15,15],"unit":"giant-fiber spikes"}</script>
+      </article>
+
+      <article class="figure-card">
+        <h3>Figure 5 · Wind and sound reach different neurons</h3>
+        <p class="q">Equal-strength wind, near-field sound or an air puff (both), 12 trials each.
+          <br><span class="small">Kamikouchi et al. 2009; Yorozu et al. 2009</span></p>
+        <div class="chart" data-spec="fig-jo"></div>
+        <p class="result">Wind: 0 giant-fiber spikes, 0/12 takeoffs — as in real flies, which stop rather than flee in wind. Sound: 31
+          spikes, 12/12 takeoffs (Fisher p &lt; 0.001), because only the auditory JO-A/B neurons contact the giant fiber in the
+          connectome. That sound triggers escape is a model <i>prediction</i>, not an established finding.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Stimulus</th><th class="n">GF spikes (mean ± SEM)</th><th class="n">Takeoff</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>none</td><td class="n">0</td><td class="n">0%</td><td class="n">12</td></tr>
+            <tr><td>sound</td><td class="n">31.4 ± 0.3</td><td class="n">100%</td><td class="n">12</td></tr>
+            <tr><td>wind</td><td class="n">0</td><td class="n">0%</td><td class="n">12</td></tr>
+            <tr><td>air puff</td><td class="n">33.2 ± 0.4</td><td class="n">—</td><td class="n">12</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-jo">{"type":"bars","title":"Giant-fiber spikes per trial by stimulus","yLabel":"Giant-fiber spikes per trial","yFormat":"num1","categories":["none","sound","wind","air puff"],"values":[0,31.417,0,33.167],"n":[12,12,12,12],"unit":"giant-fiber spikes"}</script>
+      </article>
+
+      <article class="figure-card">
+        <h3>Figure 6 · Sugar, bitter and the proboscis</h3>
+        <p class="q">1 s of sugar on the labellum at seven concentrations; then sugar 0.75 with rising bitter (8 trials each).
+          <br><span class="small">Shiu et al. 2024</span></p>
+        <p class="small" style="margin:0">(a) Sugar alone</p>
+        <div class="chart" data-spec="fig-taste-a"></div>
+        <p class="small" style="margin:8px 0 0">(b) Bitter added to sugar 0.75</p>
+        <div class="chart" data-spec="fig-taste-b"></div>
+        <p class="result">Proboscis extension needs sugar above ~0.63 (logistic 50% point). Bitter from 0.5 upward abolishes it:
+          88% → 0% (Fisher p = 0.0014) — the veto runs through the measured gustatory relay neurons, not through a rule.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Condition</th><th class="n">Extension</th><th class="n">95% CI</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>sugar 0 – 0.5</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8 each</td></tr>
+            <tr><td>sugar 0.75 – 1.0</td><td class="n">100%</td><td class="n">68–100%</td><td class="n">8 each</td></tr>
+            <tr><td>sugar 0.75 + bitter 0 / 0.2 / 0.35</td><td class="n">88% / 100% / 88%</td><td class="n"></td><td class="n">8 each</td></tr>
+            <tr><td>sugar 0.75 + bitter 0.5 – 1.0</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8 each</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-taste-a">{"type":"curve","title":"Proboscis extension against sugar concentration","xLabel":"Sugar concentration","yLabel":"P(extension)","height":230,"x":[0,0.2,0.3,0.4,0.5,0.75,1],"xTicks":[0,0.2,0.4,0.6,0.8,1],"xMin":0,"xMax":1,
+          "series":[{"label":"Sugar","color":"#2a78d6","y":[0,0,0,0,0,1,1],"lo":[0,0,0,0,0,0.676,0.676],"hi":[0.324,0.324,0.324,0.324,0.324,1,1],"n":[8,8,8,8,8,8,8]}]}</script>
+        <script type="application/json" id="fig-taste-b">{"type":"curve","title":"Proboscis extension against bitter concentration, sugar 0.75","xLabel":"Bitter concentration","yLabel":"P(extension)","height":230,"x":[0,0.2,0.35,0.5,0.75,1],"xTicks":[0,0.2,0.4,0.6,0.8,1],"xMin":0,"xMax":1,
+          "series":[{"label":"Bitter","color":"#eb6834","y":[0.875,1,0.875,0,0,0],"lo":[0.529,0.676,0.529,0,0,0],"hi":[0.978,1,0.978,0.324,0.324,0.324],"n":[8,8,8,8,8,8]}]}</script>
+      </article>
+
+      <article class="figure-card">
+        <h3>Figure 7 · Dust and head grooming</h3>
+        <p class="q">Six amounts of dust on the antennae for 2.5 s; then full dust with JO-F or DNg12 silenced (8 trials each).
+          <br><span class="small">Hampel et al. 2020; Guo, Zhang &amp; Simpson 2022</span></p>
+        <div class="chart" data-spec="fig-groom"></div>
+        <p class="result">Head grooming rises with dust (0% at 0.3, 63% at 0.45, 100% from 0.6). Silencing either the JO-F mechanosensors or the
+          DNg12 descending neurons abolishes it: 8/8 → 0/8 (Fisher p &lt; 0.001). The grooming stops once the dust is gone.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Condition</th><th class="n">Head grooming</th><th class="n">95% CI</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>dust 0</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8</td></tr>
+            <tr><td>dust 0.3</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8</td></tr>
+            <tr><td>dust 0.45</td><td class="n">63%</td><td class="n">31–86%</td><td class="n">8</td></tr>
+            <tr><td>dust 0.6 – 1.0</td><td class="n">100%</td><td class="n">68–100%</td><td class="n">8 each</td></tr>
+            <tr><td>dust 1.0, JO-F silenced</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8</td></tr>
+            <tr><td>dust 1.0, DNg12 silenced</td><td class="n">0%</td><td class="n">0–32%</td><td class="n">8</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-groom">{"type":"curve","title":"Head grooming against dust","xLabel":"Dust on the antennae","yLabel":"P(head grooming)","x":[0,0.3,0.45,0.6,0.8,1],"xTicks":[0,0.2,0.4,0.6,0.8,1],"xMin":0,"xMax":1,
+          "series":[{"label":"Intact","y":[0,0,0.625,1,1,1],"lo":[0,0,0.306,0.676,0.676,0.676],"hi":[0.324,0.324,0.863,1,1,1],"n":[8,8,8,8,8,8],"labelDy":-6}],
+          "markers":[{"label":"JO-F or DNg12 silenced","x":1,"y":0,"n":"8 each"}]}</script>
+      </article>
+
+      <article class="figure-card">
+        <h3>Figure 8 · Inhibition as a dose–response</h3>
+        <p class="q">A near-threshold loom (0.15) while the strength of all inhibitory synapses (GABA and glutamate class) is
+          scaled from 0.25× to 4× normal, 10 trials each.
+          <br><span class="small">von Reyn et al. 2014</span></p>
+        <div class="chart" data-spec="fig-inhibition"></div>
+        <p class="result">Escape falls from 100% to 0% as inhibition is strengthened; the half-maximal inhibitory gain is
+          <b>1.52×</b> normal (logistic fit on log gain). Giant-fiber spikes fall from 8.2 at 0.25× to 0 at 4× (slope −2.1 spikes per
+          unit gain, p &lt; 0.001): feedforward inhibition decides whether the looming signal recruits the escape neuron.</p>
+        <p class="small">A dose–response on transmitter <i>classes</i> — the kind of readout an in-silico pharmacology needs,
+          not a model of any specific drug.</p>
+        <details><summary>Data table</summary>
+          <table class="data"><thead><tr><th>Inhibitory gain</th><th class="n">Takeoff</th><th class="n">95% CI</th><th class="n">n</th></tr></thead><tbody>
+            <tr><td>0.25× – 1×</td><td class="n">100%</td><td class="n">72–100%</td><td class="n">10 each</td></tr>
+            <tr><td>1.5×</td><td class="n">40%</td><td class="n">17–69%</td><td class="n">10</td></tr>
+            <tr><td>2×</td><td class="n">10%</td><td class="n">2–40%</td><td class="n">10</td></tr>
+            <tr><td>3× – 4×</td><td class="n">0%</td><td class="n">0–28%</td><td class="n">10 each</td></tr>
+          </tbody></table></details>
+        <script type="application/json" id="fig-inhibition">{"type":"curve","title":"Takeoff probability against inhibitory synaptic gain","xLabel":"Inhibitory gain (× normal)","yLabel":"Takeoff probability","x":[0.25,0.5,1,1.5,2,3,4],"xTicks":[0,1,2,3,4],"xMin":0,"xMax":4,
+          "series":[{"label":"Takeoff","y":[1,1,1,0.4,0.1,0,0],"lo":[0.722,0.722,0.722,0.168,0.018,0,0],"hi":[1,1,1,0.687,0.404,0.278,0.278],"n":[10,10,10,10,10,10,10]}]}</script>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Activation screen: 7 of 10 phenotypes</h2>
+      <p>Each identified population is driven for 300 ms (6 trials) and the behaviour that appears beyond an unstimulated control
+        is compared with the published activation phenotype.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec">
+        <thead><tr><th>Activated</th><th>Published phenotype</th><th>Model</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Giant fiber (DNp01)</td><td>escape takeoff <small>Lima &amp; Miesenböck 2005</small></td><td>takeoff 6/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>LPLC2</td><td>escape takeoff <small>Ache et al. 2019</small></td><td>takeoff 6/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>MDN</td><td>backward walking <small>Bidaye et al. 2014</small></td><td>backward 6/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>DNg12</td><td>head grooming <small>Guo et al. 2022</small></td><td>head grooming 5/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>JO-F</td><td>antennal grooming <small>Hampel et al. 2020</small></td><td>head grooming 6/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>Sugar receptor neurons</td><td>proboscis extension <small>Shiu et al. 2024</small></td><td>extension 6/6</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>DNa01/02, right</td><td>turning right <small>Rayshubskiy et al. 2025</small></td><td>right turns 4/6 beyond DNp09-driven walking</td><td><span class="tag done">Match</span></td></tr>
+          <tr><td>DNp09</td><td>forward walking <small>Bidaye et al. 2020</small></td><td>walking 6/6 — but equally in the unstimulated control</td><td><span class="tag planned">Mismatch</span></td></tr>
+          <tr><td>DNg11</td><td>front-leg rubbing <small>Guo et al. 2022</small></td><td>leg rubbing 6/6 — but 5/6 in the control</td><td><span class="tag planned">Mismatch</span></td></tr>
+          <tr><td>DNa01/02, left</td><td>turning left <small>Rayshubskiy et al. 2025</small></td><td>no turning; backward walking</td><td><span class="tag planned">Mismatch</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:14px">Since release 2.1 the legs step: modelled stepping rules drive premotor cells of the measured
+      nerve cord, whose wiring carries the rhythm to the leg motor neurons. Right turns now reproduce; left turns do not yet, because
+      the cord drives the six legs unequally and walking drifts to the right. Walking and leg rubbing occur, but in the 1-s window
+      no more often than in the unstimulated control. These commands pass through the modelled brain–nerve-cord interface, the
+      stepping rules and the body — the least constrained part of the model, and where the next model work has to go.</p>
+  </div>
+</section>
+
+<section class="block alt" id="not-reproduced">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>What the model does not reproduce</h2>
+      <p>Negative results are part of the evidence. These three findings from real flies are not reproduced by NeuroFly 2.1.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Habituation</h3><p>Real flies’ giant-fiber pathway habituates to repeated stimulation (Engel &amp; Wu 1996). In 20 repetitions
+        the model’s response did not decline; with the optional plasticity rule it increased (sensitisation; slope +0.53 spikes per
+        repetition, p &lt; 0.001). The synaptic depression that likely underlies habituation is not modelled.</p></div>
+      <div class="card"><h3>Associative learning</h3><p>Fly learning is dopamine-gated in the mushroom body (e.g. Ueno et al. 2017). The generic
+        timing rule available in NeuroFly produced no learning (index 0.07 paired vs 0.04 reversed, p = 0.11). The mushroom body is not
+        part of the running circuit.</p></div>
+      <div class="card"><h3>Thermal preference</h3><p>Real flies gather near 24–25 °C in a gradient (Sayeed &amp; Benzer 1996). The model spent no
+        more time in the comfort zone than in a flat arena (69% vs 72%, p = 1.0). Warmth avoidance depends on internal thermosensors
+        (Hamada et al. 2008) that are not in the circuit.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="verification">
+  <div class="wrap cols-2">
+    <div class="prose">
+      <h2>Verification</h2>
+      <p>28 automated test suites run the real model — no mocks — and must all pass before a release. Release 2.1.0: all pass.
+        A further end-to-end test starts the complete application and checks every workspace.</p>
+      <p>Among the invariants they enforce:</p>
+      <ul>
+        <li>The giant fiber is silent over 4 s of rest and fires within about 10 ms of an abrupt loom.</li>
+        <li>Wind produces essentially no giant-fiber spikes; sound of the same strength produces hundreds — from the wiring alone.</li>
+        <li>Temperature reaches only the thermoreceptor neurons, never the visual looming detectors.</li>
+        <li>The nerve cord’s ascending neurons measurably change brain activity when the locomotor circuit is driven — the feedback path is connected, not merely present.</li>
+        <li>The taste and grooming pathways respond in a graded way and fall silent after the stimulus.</li>
+        <li>The stepping rules walk the nerve cord in an alternating gait — and the legs stop when the cord’s synapses or the legs’ sense of position are cut.</li>
+        <li>Two runs with the same seed are identical; statistics match textbook values.</li>
+        <li>The display can never change what the fly’s own eye receives.</li>
+      </ul>
+    </div>
+    <div class="prose" id="fingerprints">
+      <h2>Data fingerprints</h2>
+      <p>SHA-256 hashes of the data files shipped with release 2.1.0. NeuroFly recomputes them at start-up and writes them into
+        every recording, so any result can be tied to the exact data it came from.</p>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>File</th><th>SHA-256</th></tr></thead>
+          <tbody>
+            <tr><td>circuit.json</td><td><span class="num small">2c25cae5671eedcd11133d4e7d0fc278<br>bb43bf29780c72cd0a119073975745d7</span></td></tr>
+            <tr><td>thermo_extension.json</td><td><span class="num small">2cafb852f477d9f21433e8e3563ca9e3<br>089f44d62d43d36f2cefd4dcc630847d</span></td></tr>
+            <tr><td>sensory_extension.json</td><td><span class="num small">ef1125dbfaea25899dca21d7f1d59813<br>6ae1ad1ac4fe370d7845083eef730746</span></td></tr>
+            <tr><td>locomotor_circuit.json</td><td><span class="num small">e2060c02594f3a527c98092c5daad0c0<br>fce7c955460355e47d969b0d4f5c0ed1</span></td></tr>
+            <tr><td>rhythm_decoder.json <small>(derived from the model)</small></td><td><span class="num small">171c8a22896ddb9866d4f7918ff66b6f<br>e484bb5ff60d872e8e7f7227316c8cd4</span></td></tr>
+            <tr><td>circuit_annotations.json</td><td><span class="num small">00967643eb9a0b5e908c10941949af98<br>27206c9da5a7c7978b1620636ad8ad24</span></td></tr>
+            <tr><td>brain_points.json</td><td><span class="num small">0b26b67d1faa2d380c057c501408b632<br>7e03fb85c4c9dabc987a5933cc92f5da</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap cols-2">
+    <div class="prose">
+      <h2>Status of this evidence</h2>
+      <p>These results have not yet been peer-reviewed. They are produced by the software itself, from published data, and can be
+        re-run by anyone with the application. We welcome scrutiny: if you find an error — in the data handling, the statistics,
+        the literature, or the interpretation — please tell us.</p>
+      <p><a class="btn secondary" href="contact.html#suggest" data-track="evidence-report">Report a scientific error</a></p>
+    </div>
+    <div class="prose">
+      <h2>How to cite</h2>
+      <div class="cite-box">NeuroFly (2026). An in-silico fruit fly on measured connectomes.
+Version 2.0.0. https://neurofly.app
+
+Please also cite the datasets it uses:
+FlyWire: Dorkenwald et al. 2024; Schlegel et al. 2024 (Nature 634).
+MaleCNS: Berg et al. 2025 (bioRxiv 2025.10.09.680999).</div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap prose">
+    <h2>References</h2>
+    <ol class="refs">
+      <li>Ache JM, et al. Neural basis for looming size and velocity encoding in the <i>Drosophila</i> giant fiber escape pathway. <i>Curr Biol</i> 29, 1073–1081 (2019). <a href="https://doi.org/10.1016/j.cub.2019.01.079">doi:10.1016/j.cub.2019.01.079</a></li>
+      <li>Bidaye SS, et al. Neuronal control of <i>Drosophila</i> walking direction. <i>Science</i> 344, 97–101 (2014). <a href="https://doi.org/10.1126/science.1249964">doi:10.1126/science.1249964</a></li>
+      <li>Bidaye SS, et al. Two brain pathways initiate distinct forward walking programs in <i>Drosophila</i>. <i>Neuron</i> 108, 469–485 (2020). <a href="https://doi.org/10.1016/j.neuron.2020.07.032">doi:10.1016/j.neuron.2020.07.032</a></li>
+      <li>Card G, Dickinson MH. Visually mediated motor planning in the escape response of <i>Drosophila</i>. <i>Curr Biol</i> 18, 1300–1307 (2008). <a href="https://doi.org/10.1016/j.cub.2008.07.094">doi:10.1016/j.cub.2008.07.094</a></li>
+      <li>Engel JE, Wu C-F. Altered habituation of an identified escape circuit in <i>Drosophila</i> memory mutants. <i>J Neurosci</i> 16, 3486–3499 (1996). <a href="https://doi.org/10.1523/JNEUROSCI.16-10-03486.1996">doi:10.1523/JNEUROSCI.16-10-03486.1996</a></li>
+      <li>Guo L, Zhang N, Simpson JH. Descending neurons coordinate anterior grooming behavior in <i>Drosophila</i>. <i>Curr Biol</i> 32, 823–833 (2022). <a href="https://doi.org/10.1016/j.cub.2021.12.055">doi:10.1016/j.cub.2021.12.055</a></li>
+      <li>Hamada FN, et al. An internal thermal sensor controlling temperature preference in <i>Drosophila</i>. <i>Nature</i> 454, 217–220 (2008). <a href="https://doi.org/10.1038/nature07001">doi:10.1038/nature07001</a></li>
+      <li>Hampel S, et al. Distinct subpopulations of mechanosensory chordotonal organ neurons elicit grooming of the fruit fly antennae. <i>eLife</i> 9, e59976 (2020). <a href="https://doi.org/10.7554/eLife.59976">doi:10.7554/eLife.59976</a></li>
+      <li>Kamikouchi A, et al. The neural basis of <i>Drosophila</i> gravity-sensing and hearing. <i>Nature</i> 458, 165–171 (2009). <a href="https://doi.org/10.1038/nature07810">doi:10.1038/nature07810</a></li>
+      <li>Lima SQ, Miesenböck G. Remote control of behavior through genetically targeted photostimulation of neurons. <i>Cell</i> 121, 141–152 (2005). <a href="https://doi.org/10.1016/j.cell.2005.02.004">doi:10.1016/j.cell.2005.02.004</a></li>
+      <li>Rayshubskiy A, et al. Neural circuit mechanisms for steering control in walking <i>Drosophila</i>. <i>eLife</i> 13, RP102230 (2025). <a href="https://doi.org/10.7554/eLife.102230">doi:10.7554/eLife.102230</a></li>
+      <li>Sayeed O, Benzer S. Behavioral genetics of thermosensation and hygrosensation in <i>Drosophila</i>. <i>PNAS</i> 93, 6079–6084 (1996). <a href="https://doi.org/10.1073/pnas.93.12.6079">doi:10.1073/pnas.93.12.6079</a></li>
+      <li>Shiu PK, et al. A <i>Drosophila</i> computational brain model reveals sensorimotor processing. <i>Nature</i> 634, 210–219 (2024). <a href="https://doi.org/10.1038/s41586-024-07763-9">doi:10.1038/s41586-024-07763-9</a></li>
+      <li>Ueno K, et al. Coincident postsynaptic activity gates presynaptic dopamine release to induce plasticity in <i>Drosophila</i> mushroom bodies. <i>eLife</i> 6, e21076 (2017). <a href="https://doi.org/10.7554/eLife.21076">doi:10.7554/eLife.21076</a></li>
+      <li>von Reyn CR, et al. A spike-timing mechanism for action selection. <i>Nat Neurosci</i> 17, 962–970 (2014). <a href="https://doi.org/10.1038/nn.3741">doi:10.1038/nn.3741</a></li>
+      <li>von Reyn CR, et al. Feature integration drives probabilistic behavior in the <i>Drosophila</i> escape response. <i>Neuron</i> 94, 1190–1204 (2017). <a href="https://doi.org/10.1016/j.neuron.2017.05.036">doi:10.1016/j.neuron.2017.05.036</a></li>
+      <li>Yorozu S, et al. Distinct sensory representations of wind and near-field sound in the <i>Drosophila</i> brain. <i>Nature</i> 458, 201–205 (2009). <a href="https://doi.org/10.1038/nature07843">doi:10.1038/nature07843</a></li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="72" height="26"><p>An in-silico fruit fly built on measured connectomes. An independent research and teaching project from Zurich.</p>
+        <ul class="social" aria-label="NeuroFly on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroFly on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroFly on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+      <div><h4>Project</h4><ul><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
+    </div>
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+      NeuroFly is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
+      measured; neural dynamics, senses, body and behaviour are models, and NeuroFly makes no claim that the model feels anything.
+      © 2026 NeuroFly.</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

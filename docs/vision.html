@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<title>Vision &amp; roadmap — NeuroFly</title>
+<meta name="description" content="NeuroFly's long-term aim: a digital fly accurate enough to replace some animal experiments, including early drug screening — and a rigorous research programme on what it would take for a simulated nervous system to be sentient.">
+<link rel="canonical" href="https://neurofly.app/vision.html">
+<meta property="og:title" content="Vision &amp; roadmap — NeuroFly">
+<meta property="og:description" content="Towards a validated digital fly: replacement of animal experiments, in-silico pharmacology, and the sentience question — with an honest roadmap.">
+<meta property="og:image" content="https://neurofly.app/img/studio-specimens.jpg">
+<meta name="theme-color" content="#0c1311">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/neurofly-favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="brand/neurofly-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="NeuroFly home"><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="77" height="28"></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="science.html">Science</a>
+      <a href="evidence.html">Evidence</a>
+      <a href="vision.html" aria-current="page">Vision</a>
+      <a href="ethics.html">Ethics</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="index.html#get" data-track="nav-get">Get NeuroFly</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="page-head dark">
+  <div class="wrap head-grid">
+    <div>
+      <span class="kicker">Vision &amp; roadmap</span>
+      <h1>A complete fly, as data.</h1>
+      <p class="lead">Our aim is a digital fruit fly so faithful to the animal that research can ask it questions that today
+        require living flies — and that the hardest question of all, whether such a system could feel, can be examined on
+        evidence rather than opinion.</p>
+    </div>
+    <figure class="media-figure">
+      <div class="frame">
+        <video muted loop playsinline preload="none" poster="media/loop-cns.jpg" data-src="media/loop-cns.mp4" data-autoplay
+          aria-label="The complete central nervous system of one female fly, seen whole: brain above, nerve cord below"></video>
+      </div>
+      <figcaption>BANC v888, one female fly (CC BY 4.0), rendered by NeuroFly; pulses illustrative.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap cols-2">
+    <div>
+      <span class="kicker">Why now</span>
+      <h2>For the first time, an entire nervous system has been mapped synapse by synapse.</h2>
+    </div>
+    <div class="prose">
+      <p>In 2024 the FlyWire consortium published the complete wiring diagram of an adult fly brain — about 139,000 neurons and
+        more than 50 million synapses — and a whole-brain model built on it predicted sensorimotor pathways that were then
+        confirmed in living flies (Dorkenwald et al. 2024; Shiu et al. 2024). Since then, complete connectomes of the brain
+        <i>and</i> nerve cord of a female and a male fly have followed (Bates et al. 2026; Berg et al. 2025).</p>
+      <p>The fruit fly is also one of biology’s most important model organisms: most human disease genes have a fly counterpart,
+        and flies are used to screen compounds and study drug action on the nervous system (Pandey &amp; Nichols 2011).
+        An animal that is both completely mapped and central to biomedical research is the natural first candidate for a
+        faithful digital counterpart.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Use case</span>
+      <h2>Replace, reduce, refine — starting with neuroactive compounds</h2>
+      <p>The 3Rs principle asks research to replace animal experiments where possible, reduce the number of animals, and refine
+        procedures (Russell &amp; Burch 1959). Regulators increasingly accept non-animal methods: in the United States the FDA
+        Modernization Act 2.0 (2022) replaced the statutory requirement for animal tests of new drugs with “nonclinical tests”,
+        explicitly including computer models. A validated digital fly
+        could take part of this path for questions about the nervous system.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><h4>Step 1</h4><h3>Target to cells</h3><p>Which identified neurons carry the receptor a compound acts on — from cell-type
+        transcriptomes mapped onto connectome cell types.</p></div>
+      <div class="card"><h4>Step 2</h4><h3>Receptor to physiology</h3><p>How receptor occupancy changes each cell’s membrane and synapses, with
+        measured dose–response relations and their uncertainty.</p></div>
+      <div class="card"><h4>Step 3</h4><h3>Dose to exposure</h3><p>How much reaches the nervous system, and when — uptake, distribution and
+        clearance in the fly.</p></div>
+      <div class="card"><h4>Step 4</h4><h3>Circuit to behaviour</h3><p>Simulate the whole animal and read out behaviour — escape, walking,
+        feeding, sleep — in thousands of seeded trials.</p></div>
+      <div class="card"><h4>Step 5</h4><h3>Blinded validation</h3><p>Predict, before the experiment, the effect of compounds whose real
+        effect on flies is published or measured by others; publish the hit rate.</p></div>
+    </div>
+    <div class="callout warn">
+      <h3>Where we are today</h3>
+      <p>NeuroFly 2.0 can change the strength of whole transmitter classes (excitatory, inhibitory, dopamine, serotonin,
+        octopamine) and measure the behavioural consequence as a dose–response curve — for example, strengthening
+        inhibitory synapses suppresses the escape response with a half-maximal effect at 1.52× (Evidence, Figure 8). It contains no
+        model of any specific drug, dose, uptake or metabolism, and it makes no drug predictions. Steps 1 to 5 are the work ahead.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap cols-2">
+    <div>
+      <span class="kicker">The sentience question</span>
+      <h2>What would it take for a simulated nervous system to feel?</h2>
+      <p class="small" style="margin-top:14px">Research programme, not a claim.</p>
+    </div>
+    <div class="prose">
+      <p>Whether insects are sentient is now studied with explicit criteria. The framework of Birch and colleagues (2021) lists
+        eight neural and behavioural criteria; applied to insects, adult flies meet six of them with high or very high confidence
+        (Gibbons et al. 2022). The 2024 New York Declaration on Animal Consciousness states that there is at least a realistic
+        possibility of conscious experience in insects.</p>
+      <p>A simulation is different from an animal: meeting a behavioural criterion in software does not show that anything is felt.
+        But the criteria can still be examined one by one — which circuits implement them, which the model already contains, which
+        are missing. NeuroFly’s Sentience workspace does exactly this and deliberately reports scope, never a score.</p>
+      <p><b>Our long-term goal</b> is a digital fly whose functional organisation is complete enough that the scientific case for or
+        against its sentience can be made on the same kind of evidence as for the animal itself. We pursue that goal in the open,
+        with the precautions described on the <a href="ethics.html">Ethics</a> page, and we will never present a simulation as
+        sentient without evidence that would convince independent researchers.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Roadmap</span>
+      <h2>From a connectome-constrained model to a validated digital fly</h2>
+      <p>Each stage has a test that decides whether it is done. Stages are not dated; they are complete when the evidence is.</p>
+    </div>
+    <ol class="roadmap">
+      <li class="done"><h3>1 · Closed loop on measured wiring <span class="tag done">Done · 2.0</span></h3>
+        <p>7,270 FlyWire brain neurons, 1,045 MaleCNS nerve-cord neurons, senses routed to their real receptor neurons, a body,
+          feedback, and a fixed 120 Hz loop.</p></li>
+      <li class="done"><h3>2 · Traceable causes and virtual experiments <span class="tag done">Done · 2.0</span></h3>
+        <p>Causal chains for every action, silencing and activation of any cell type, transmitter-class pharmacology, ten guided
+          experiments with statistics, seeded reproducibility.</p></li>
+      <li class="progress"><h3>3 · One animal, both sexes <span class="tag progress">In progress</span></h3>
+        <p>Brain and nerve cord from the same specimen — BANC (female) and MaleCNS (male) — instead of today’s two-animal model.
+          The anatomy of both is already browsable in NeuroFly 2.0.</p>
+        <p class="needs">Done when: a single-specimen model runs end to end and passes the current benchmarks.</p></li>
+      <li><h3>4 · Whole-brain scale <span class="tag planned">Planned</span></h3>
+        <p>From 7,270 neurons towards the complete central nervous system, which requires a faster simulation engine.</p>
+        <p class="needs">Done when: whole-brain runs in real time on a workstation with unchanged results on the benchmarks.</p></li>
+      <li><h3>5 · Cell-type physiology, neuromodulation and learning <span class="tag planned">Planned</span></h3>
+        <p>Cell-type-specific membrane properties, dopamine, serotonin and octopamine as modulators, and mushroom-body learning.</p>
+        <p class="needs">Done when: habituation, associative learning and thermal preference are reproduced.</p></li>
+      <li><h3>6 · Calibrated body and behaviour <span class="tag planned">Planned</span></h3>
+        <p>A biomechanical body and quantitative comparison with recorded fly behaviour.</p>
+        <p class="needs">Done when: walking, grooming and escape kinematics fall within the measured variability of real flies.</p></li>
+      <li><h3>7 · Pharmacology module <span class="tag planned">Planned</span></h3>
+        <p>Receptor-level compound action, exposure over time, and dose–response benchmarking against published fly assays.</p>
+        <p class="needs">Done when: blinded predictions for held-out compounds are published with their hit rate.</p></li>
+      <li><h3>8 · Independent scrutiny <span class="tag planned">Planned</span></h3>
+        <p>Preprint, public code and data pipeline, external replication of the benchmark results.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap prose">
+    <h2>References</h2>
+    <ol class="refs">
+      <li>Bates AS, et al. Distributed control circuits across a brain-and-cord connectome. <i>Nature</i> 656, 957–970 (2026). <a href="https://doi.org/10.1038/s41586-026-10735-w">doi:10.1038/s41586-026-10735-w</a></li>
+      <li>Berg S, et al. Sexual dimorphism in the complete connectome of the <i>Drosophila</i> male central nervous system. bioRxiv (2025). <a href="https://doi.org/10.1101/2025.10.09.680999">doi:10.1101/2025.10.09.680999</a></li>
+      <li>Birch J. Animal sentience and the precautionary principle. <i>Animal Sentience</i> 2(16) (2017). <a href="https://doi.org/10.51291/2377-7478.1200">doi:10.51291/2377-7478.1200</a></li>
+      <li>Birch J, Burn C, Schnell A, Browning H, Crump A. Review of the evidence of sentience in cephalopod molluscs and decapod crustaceans. LSE Consulting (2021). <a href="https://www.lse.ac.uk/business/consulting/reports/review-of-the-evidence-of-sentiences-in-cephalopod-molluscs-and-decapod-crustaceans">lse.ac.uk</a></li>
+      <li>Dorkenwald S, et al. Neuronal wiring diagram of an adult brain. <i>Nature</i> 634, 124–138 (2024). <a href="https://doi.org/10.1038/s41586-024-07558-y">doi:10.1038/s41586-024-07558-y</a></li>
+      <li>FDA Modernization Act 2.0, S.5002, 117th Congress (2022). <a href="https://www.congress.gov/bill/117th-congress/senate-bill/5002/text">congress.gov</a></li>
+      <li>Gibbons M, Crump A, Barrett M, Sarlak S, Birch J, Chittka L. Can insects feel pain? A review of the neural and behavioural evidence. <i>Adv Insect Physiol</i> 63, 155–229 (2022). <a href="https://doi.org/10.1016/bs.aiip.2022.10.001">doi:10.1016/bs.aiip.2022.10.001</a></li>
+      <li>New York Declaration on Animal Consciousness (2024). <a href="https://sites.google.com/nyu.edu/nydeclaration">sites.google.com/nyu.edu/nydeclaration</a></li>
+      <li>Pandey UB, Nichols CD. Human disease models in <i>Drosophila melanogaster</i> and the role of the fly in therapeutic drug discovery. <i>Pharmacol Rev</i> 63, 411–436 (2011). <a href="https://doi.org/10.1124/pr.110.003293">doi:10.1124/pr.110.003293</a></li>
+      <li>Russell WMS, Burch RL. <i>The Principles of Humane Experimental Technique.</i> Methuen, London (1959).</li>
+      <li>Shiu PK, et al. A <i>Drosophila</i> computational brain model reveals sensorimotor processing. <i>Nature</i> 634, 210–219 (2024). <a href="https://doi.org/10.1038/s41586-024-07763-9">doi:10.1038/s41586-024-07763-9</a></li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div><img src="brand/neurofly-logo-dark.svg" alt="NeuroFly" width="72" height="26"><p>An in-silico fruit fly built on measured connectomes. An independent research and teaching project from Zurich.</p>
+        <ul class="social" aria-label="NeuroFly on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroFly on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroFly on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroFly on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+      <div><h4>Project</h4><ul><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
+    </div>
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+      NeuroFly is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
+      measured; neural dynamics, senses, body and behaviour are models, and NeuroFly makes no claim that the model feels anything.
+      © 2026 NeuroFly.</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

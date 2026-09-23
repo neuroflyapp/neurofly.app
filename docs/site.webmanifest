@@ -1,0 +1,14 @@
+{
+  "name": "NeuroFly",
+  "short_name": "NeuroFly",
+  "description": "An in-silico fruit fly built on measured connectomes.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fbfbf9",
+  "theme_color": "#0c1311",
+  "icons": [
+    { "src": "brand/neurofly-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "brand/neurofly-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "brand/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

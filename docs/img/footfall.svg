@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 238" role="img" aria-labelledby="ff-title ff-desc" font-family="Segoe UI, system-ui, -apple-system, Helvetica, Arial, sans-serif">
+<title id="ff-title">Footfall pattern of the simulated fly</title>
+<desc id="ff-desc">Ground contact of each of the six legs over 2.5 seconds of walking in a NeuroFly simulation run. Filled bars mark ground contact. The rows are grouped into the two tripods of a fly's alternating gait: right front, left middle and right hind above, left front, right middle and left hind below. In the model the legs step irregularly and the two groups alternate only loosely.</desc>
+<rect width="760" height="238" fill="#ffffff"/>
+<text x="120" y="43.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">RF</tspan>  Right front</text>
+<rect x="132" y="30" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="132.0" y="30" width="8.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="148.3" y="30" width="4.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="176.9" y="30" width="12.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="193.2" y="30" width="65.3" height="18" rx="3" fill="#0b7a47"/>
+<rect x="287.0" y="30" width="6.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="319.7" y="30" width="85.7" height="18" rx="3" fill="#0b7a47"/>
+<rect x="417.6" y="30" width="22.4" height="18" rx="3" fill="#0b7a47"/>
+<rect x="525.7" y="30" width="36.7" height="18" rx="3" fill="#0b7a47"/>
+<rect x="601.2" y="30" width="51.0" height="18" rx="3" fill="#0b7a47"/>
+<rect x="701.2" y="30" width="24.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="742.0" y="30" width="2.0" height="18" rx="3" fill="#0b7a47"/>
+<text x="120" y="69.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">LM</tspan>  Left middle</text>
+<rect x="132" y="56" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="134.0" y="56" width="2.0" height="18" rx="3" fill="#0b7a47"/>
+<rect x="181.0" y="56" width="6.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="189.1" y="56" width="26.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="219.7" y="56" width="42.8" height="18" rx="3" fill="#0b7a47"/>
+<rect x="323.8" y="56" width="126.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="466.6" y="56" width="8.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="489.0" y="56" width="16.3" height="18" rx="3" fill="#0b7a47"/>
+<rect x="507.4" y="56" width="26.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="542.0" y="56" width="12.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="580.8" y="56" width="12.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="607.3" y="56" width="42.8" height="18" rx="3" fill="#0b7a47"/>
+<rect x="668.5" y="56" width="6.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="691.0" y="56" width="20.4" height="18" rx="3" fill="#0b7a47"/>
+<rect x="719.5" y="56" width="24.5" height="18" rx="3" fill="#0b7a47"/>
+<text x="120" y="95.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">RH</tspan>  Right hind</text>
+<rect x="132" y="82" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="132.0" y="82" width="14.3" height="18" rx="3" fill="#0b7a47"/>
+<rect x="150.4" y="82" width="55.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="209.5" y="82" width="10.2" height="18" rx="3" fill="#0b7a47"/>
+<rect x="225.8" y="82" width="2.0" height="18" rx="3" fill="#0b7a47"/>
+<rect x="252.4" y="82" width="140.8" height="18" rx="3" fill="#0b7a47"/>
+<rect x="397.2" y="82" width="57.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="458.4" y="82" width="20.4" height="18" rx="3" fill="#0b7a47"/>
+<rect x="493.1" y="82" width="26.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="560.4" y="82" width="16.3" height="18" rx="3" fill="#0b7a47"/>
+<rect x="584.9" y="82" width="30.6" height="18" rx="3" fill="#0b7a47"/>
+<rect x="619.6" y="82" width="55.1" height="18" rx="3" fill="#0b7a47"/>
+<rect x="680.8" y="82" width="26.5" height="18" rx="3" fill="#0b7a47"/>
+<rect x="709.3" y="82" width="20.4" height="18" rx="3" fill="#0b7a47"/>
+<rect x="733.8" y="82" width="10.2" height="18" rx="3" fill="#0b7a47"/>
+<text x="120" y="133.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">LF</tspan>  Left front</text>
+<rect x="132" y="120" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="170.8" y="120" width="22.4" height="18" rx="3" fill="#2a78d6"/>
+<rect x="280.9" y="120" width="49.0" height="18" rx="3" fill="#2a78d6"/>
+<rect x="395.2" y="120" width="16.3" height="18" rx="3" fill="#2a78d6"/>
+<rect x="470.6" y="120" width="6.1" height="18" rx="3" fill="#2a78d6"/>
+<rect x="495.1" y="120" width="8.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="529.8" y="120" width="32.6" height="18" rx="3" fill="#2a78d6"/>
+<rect x="595.1" y="120" width="10.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="656.3" y="120" width="26.5" height="18" rx="3" fill="#2a78d6"/>
+<rect x="711.4" y="120" width="6.1" height="18" rx="3" fill="#2a78d6"/>
+<text x="120" y="159.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">RM</tspan>  Right middle</text>
+<rect x="132" y="146" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="132.0" y="146" width="12.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="156.5" y="146" width="6.1" height="18" rx="3" fill="#2a78d6"/>
+<rect x="183.0" y="146" width="20.4" height="18" rx="3" fill="#2a78d6"/>
+<rect x="217.7" y="146" width="10.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="262.6" y="146" width="46.9" height="18" rx="3" fill="#2a78d6"/>
+<rect x="319.7" y="146" width="49.0" height="18" rx="3" fill="#2a78d6"/>
+<rect x="403.3" y="146" width="10.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="417.6" y="146" width="49.0" height="18" rx="3" fill="#2a78d6"/>
+<rect x="474.7" y="146" width="59.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="540.0" y="146" width="55.1" height="18" rx="3" fill="#2a78d6"/>
+<rect x="607.3" y="146" width="6.1" height="18" rx="3" fill="#2a78d6"/>
+<rect x="633.8" y="146" width="63.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="703.2" y="146" width="32.6" height="18" rx="3" fill="#2a78d6"/>
+<text x="120" y="185.5" text-anchor="end" font-size="13" fill="#3c4a45"><tspan font-weight="650" fill="#15201c">LH</tspan>  Left hind</text>
+<rect x="132" y="172" width="612" height="18" rx="3" fill="#f3f4f0"/>
+<rect x="140.2" y="172" width="46.9" height="18" rx="3" fill="#2a78d6"/>
+<rect x="199.3" y="172" width="24.5" height="18" rx="3" fill="#2a78d6"/>
+<rect x="252.4" y="172" width="124.4" height="18" rx="3" fill="#2a78d6"/>
+<rect x="427.8" y="172" width="122.4" height="18" rx="3" fill="#2a78d6"/>
+<rect x="556.3" y="172" width="6.1" height="18" rx="3" fill="#2a78d6"/>
+<rect x="564.5" y="172" width="16.3" height="18" rx="3" fill="#2a78d6"/>
+<rect x="589.0" y="172" width="8.2" height="18" rx="3" fill="#2a78d6"/>
+<rect x="619.6" y="172" width="34.7" height="18" rx="3" fill="#2a78d6"/>
+<rect x="660.4" y="172" width="36.7" height="18" rx="3" fill="#2a78d6"/>
+<rect x="715.4" y="172" width="28.6" height="18" rx="3" fill="#2a78d6"/>
+<line x1="132" x2="744" y1="202" y2="202" stroke="#b9c1ba"/>
+<line x1="132" x2="132" y1="202" y2="207" stroke="#b9c1ba"/><text x="132" y="222" text-anchor="middle" font-size="12" fill="#62716b">0.0 s</text>
+<line x1="254.4" x2="254.4" y1="202" y2="207" stroke="#b9c1ba"/><text x="254.4" y="222" text-anchor="middle" font-size="12" fill="#62716b">0.5 s</text>
+<line x1="376.8" x2="376.8" y1="202" y2="207" stroke="#b9c1ba"/><text x="376.8" y="222" text-anchor="middle" font-size="12" fill="#62716b">1.0 s</text>
+<line x1="499.2" x2="499.2" y1="202" y2="207" stroke="#b9c1ba"/><text x="499.2" y="222" text-anchor="middle" font-size="12" fill="#62716b">1.5 s</text>
+<line x1="621.6" x2="621.6" y1="202" y2="207" stroke="#b9c1ba"/><text x="621.6" y="222" text-anchor="middle" font-size="12" fill="#62716b">2.0 s</text>
+<line x1="744" x2="744" y1="202" y2="207" stroke="#b9c1ba"/><text x="744" y="222" text-anchor="middle" font-size="12" fill="#62716b">2.5 s</text>
+<text x="120" y="16" text-anchor="end" font-size="11.5" fill="#62716b" letter-spacing=".06em">TRIPOD A</text>
+<text x="120" y="112" text-anchor="end" font-size="11.5" fill="#62716b" letter-spacing=".06em">TRIPOD B</text>
+</svg>
