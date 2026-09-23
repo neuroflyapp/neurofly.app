@@ -530,8 +530,10 @@ page('legal.html', 'Legal', 'Imprint, privacy notice, cookies, terms, and licenc
 for path in sorted(DOCS.glob('*.html')):
     s = path.read_text(encoding='utf-8')
     s = re.sub(r'\n<script src="https://app\.rybbit\.io/api/script\.js\?siteId=[0-9a-f]+" defer></script>', '', s)
+    # The internal download dashboard also reads the two download counters.
+    csp = CSP.replace("connect-src 'self' https://app.rybbit.io", "connect-src 'self' https://get.neurofly.app https://api.github.com")         if path.name == 'download-stats.html' else CSP
     s = re.sub(r'<meta http-equiv="Content-Security-Policy" content="[^"]*">',
-               f'<meta http-equiv="Content-Security-Policy" content="{CSP}">', s)
+               f'<meta http-equiv="Content-Security-Policy" content="{csp}">', s)
     s = re.sub(r'<footer class="site-footer">.*?</footer>', FOOTER, s, flags=re.S)
     path.write_text(s, encoding='utf-8')
 print('legal pages built;', len(list(DOCS.glob('*.html'))), 'pages updated')
