@@ -181,10 +181,12 @@ privacy = f"""
         <dt>Purpose and basis</dt><dd>Answering you, as for the forms.</dd>
         <dt>Recipient</dt><dd>Apple (iCloud Mail).</dd></dl></div>
       <div class="fact-item"><h3>When you download NeuroFly</h3><dl>
-        <dt>Data</dt><dd>IP address, time, the requested file, and the browser and network details that every download carries.</dd>
-        <dt>Purpose and basis</dt><dd>Delivering the download; legitimate interest (GDPR Art. 6(1)(f)).</dd>
-        <dt>Recipient</dt><dd>GitHub (GitHub Releases), which serves the files under its own privacy statement. We see only
-          total download counts.</dd></dl></div>
+        <dt>Data</dt><dd>IP address, time, the requested file, and the browser and network details that every download carries.
+          For a download started on this website we record only the date and the file name, to count downloads; no IP address,
+          cookie or other identifier is stored for this.</dd>
+        <dt>Purpose and basis</dt><dd>Delivering the download and counting downloads; legitimate interest (GDPR Art. 6(1)(f)).</dd>
+        <dt>Recipients</dt><dd>Cloudflare, which runs our download counter at get.neurofly.app and forwards you to the file, and
+          GitHub (GitHub Releases), which serves the file under its own privacy statement.</dd></dl></div>
       <div class="fact-item"><h3>When you use NeuroFly on your computer</h3><dl>
         <dt>Data</dt><dd>Your settings, simulation runs, recordings and exports.</dd>
         <dt>Purpose</dt><dd>Running the software on your device.</dd>
@@ -246,6 +248,8 @@ privacy = f"""
       <li><b>GitHub</b> (hosting and downloads): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; GitHub also uses the
         European Commission’s standard contractual clauses.</li>
       <li><b>Apple</b> (mailbox): standard contractual clauses.</li>
+      <li><b>Cloudflare</b> (download counter): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; the
+        download counts are stored in the EU.</li>
       <li><b>Rybbit</b> (statistics, only with consent): stores statistics in the EU; for providers outside the EEA, Rybbit states
         that it uses standard contractual clauses or other recognised mechanisms.</li>
       <li><b>Airform</b> (forms): runs on infrastructure in the USA. Your message passes through it only if you use a form; you can
