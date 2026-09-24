@@ -25,7 +25,7 @@
   </section>
   <section class="dl-panel" aria-labelledby="h-days">
     <h2 id="h-days">Pro Tag</h2>
-    <p class="sub">Letzte 30 Tage, UTC. GitHub-Direktdownloads pro Tag stammen aus gespeicherten Zählerständen (stündlich, und bei jedem Öffnen dieser Seite).</p>
+    <p class="sub">Letzte 30 Tage, UTC. GitHub-Direktdownloads pro Tag stammen aus gespeicherten Zählerständen (stündlich, und bei jedem Öffnen dieser Seite); was vor dem ersten gespeicherten Stand direkt auf GitHub geladen wurde, zählt zu dessen Tag.</p>
     <div class="legend"><span><i class="sw-web"></i>Webseite</span><span><i class="sw-gh"></i>direkt auf GitHub</span></div>
     <svg class="chart" id="chart" viewBox="0 0 900 240" role="img" aria-label="Downloads pro Tag"></svg>
   </section>
@@ -50,7 +50,7 @@
 </main>`;
 
   const REPO = 'neuroflyapp/neurofly';
-  const TEST_FILE = /-0\.0\.0-/;
+  const ZIP = /^NeuroFly-\d+\.\d+\.\d+-win-x64\.zip$/;
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Number(n).toLocaleString('de-CH');
   const version = (file) => (file.match(/NeuroFly-(\d+\.\d+\.\d+)-/) || [])[1] || file;
@@ -70,8 +70,10 @@
 
   function render(releases, stats) {
     const files = [];
-    for (const r of releases) for (const a of r.assets) if (a.name.endsWith('.zip')) files.push({ file: a.name, total: a.download_count });
-    const web = stats.website.filter((row) => !TEST_FILE.test(row.file));
+    for (const r of releases) for (const a of r.assets) if (ZIP.test(a.name)) files.push({ file: a.name, total: a.download_count });
+    // Only published files count: the test path v0.0.0 and mistyped versions are not downloads.
+    const published = new Set(files.map((f) => f.file));
+    const web = stats.website.filter((row) => published.has(row.file));
     const webBy = (file) => web.filter((r) => r.file === file).reduce((s, r) => s + r.n, 0);
 
     const total = files.reduce((s, f) => s + f.total, 0);
@@ -80,28 +82,25 @@
     $('f-web').textContent = fmt(webTotal);
     $('f-gh').textContent = fmt(Math.max(0, total - webTotal));
 
-    // Per day: website counts directly; GitHub direct = growth of GitHub's total that day minus website downloads.
+    // Per day and file: direct GitHub downloads so far = GitHub's total - website downloads so far;
+    // a day's share is the growth since the previous stored total (all earlier ones land on the
+    // first stored day), so the bars add up to the totals above.
     const span = days(30);
     const today = span[span.length - 1];
     const ghDay = new Map();
-    const snaps = stats.github.filter((r) => !TEST_FILE.test(r.file));
     for (const f of files) {
-      const rows = snaps.filter((r) => r.file === f.file).sort((a, b) => a.day.localeCompare(b.day));
-      const last = new Map(rows.map((r) => [r.day, r.total]));
-      last.set(today, f.total); // live value for today
+      const totals = new Map(stats.github.filter((r) => r.file === f.file).map((r) => [r.day, r.total]));
+      totals.set(today, Math.max(totals.get(today) || 0, f.total)); // live value for today
+      const webRows = web.filter((r) => r.file === f.file);
       let prev = 0;
-      for (const d of [...last.keys()].sort()) {
-        const t = last.get(d);
-        ghDay.set(d, (ghDay.get(d) || 0) + Math.max(0, t - prev));
-        prev = t;
+      for (const d of [...totals.keys()].sort()) {
+        const direct = totals.get(d) - webRows.reduce((s, r) => s + (r.day <= d ? r.n : 0), 0);
+        if (direct > prev) { ghDay.set(d, (ghDay.get(d) || 0) + direct - prev); prev = direct; }
       }
     }
     const webDay = new Map();
     for (const r of web) webDay.set(r.day, (webDay.get(r.day) || 0) + r.n);
-    const series = span.map((d) => {
-      const w = webDay.get(d) || 0;
-      return { d, w, g: Math.max(0, (ghDay.get(d) || 0) - w) };
-    });
+    const series = span.map((d) => ({ d, w: webDay.get(d) || 0, g: ghDay.get(d) || 0 }));
     const t = series[series.length - 1];
     $('f-today').textContent = fmt(t.w + t.g);
     $('f-today-split').textContent = `Webseite ${fmt(t.w)} / GitHub ${fmt(t.g)}`;
@@ -182,7 +181,7 @@
   // fine, so each visit keeps today's snapshot current.
   function storeSnapshot(releases) {
     const files = [];
-    for (const r of releases) for (const a of r.assets) if (/^NeuroFly-\d+\.\d+\.\d+-win-x64\.zip$/.test(a.name)) files.push({ file: a.name, total: a.download_count });
+    for (const r of releases) for (const a of r.assets) if (ZIP.test(a.name)) files.push({ file: a.name, total: a.download_count });
     if (files.length) fetch('/snapshot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(files) }).catch(() => {});
   }
 
