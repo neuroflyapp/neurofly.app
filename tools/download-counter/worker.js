@@ -1,35 +1,34 @@
-// NeuroFly download counter (Cloudflare Worker, D1 binding `DB`).
+// NeuroFly download counter (Cloudflare Worker `neurofly-downloads` at get.neurofly.app,
+// D1 binding `DB`). Public: it holds no figures anyone can read.
 //
 // GET /v2.1.0  counts one website download of that release's Windows build
 //              (date and file name only: no IP address, cookie or identifier
 //              is stored) and redirects to the file on GitHub.
-// GET /stats   daily website downloads and GitHub's own download totals, as JSON.
+// GET /stats   moved: the dashboard is the separate Worker `neurofly-stats` at
+//              stats.neurofly.app, behind Cloudflare Access (stats-worker.js).
 // Cron         once an hour, records GitHub's total download count per file,
 //              so website and GitHub downloads can be told apart:
 //              GitHub page downloads = GitHub total - website downloads.
+//              GitHub usually refuses unauthenticated calls from Cloudflare's
+//              shared addresses; with a secret GITHUB_TOKEN (a fine-grained token
+//              without any permissions) they succeed. The dashboard also stores
+//              the totals whenever it is opened.
+//
+// Deployment: the dashboard editor mangles multi-line typing, so the deployed copy
+// is this file with the comment lines removed and the lines joined by spaces. Keep
+// every statement terminated and no comments inside code lines.
 //
 // Schema:
 //   CREATE TABLE downloads (day TEXT NOT NULL, file TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, file));
 //   CREATE TABLE github_totals (day TEXT NOT NULL, file TEXT NOT NULL, total INTEGER NOT NULL, PRIMARY KEY (day, file));
 
 const REPO = 'neuroflyapp/neurofly';
-// Crawlers, link previews and uptime checkers follow links without downloading anything.
 const NOT_A_DOWNLOAD = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|monitor|pingdom|uptime|lighthouse|headless|python-requests|go-http-client|okhttp/i;
-
-const json = (data) => new Response(JSON.stringify(data), {
-  headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'cache-control': 'no-store' },
-});
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname === '/stats') {
-      const [web, gh] = await env.DB.batch([
-        env.DB.prepare('SELECT day, file, n FROM downloads ORDER BY day, file'),
-        env.DB.prepare('SELECT day, file, total FROM github_totals ORDER BY day, file'),
-      ]);
-      return json({ website: web.results, github: gh.results, generated: new Date().toISOString() });
-    }
+    if (url.pathname === '/stats' || url.pathname.startsWith('/stats/')) return Response.redirect('https://stats.neurofly.app/', 301);
     const m = url.pathname.match(/^\/v(\d+\.\d+\.\d+)\/?$/);
     if (!m) return Response.redirect('https://neurofly.app/#get', 302);
     const file = `NeuroFly-${m[1]}-win-x64.zip`;
@@ -45,9 +44,9 @@ export default {
   },
 
   async scheduled(event, env) {
-    const r = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, {
-      headers: { 'user-agent': 'neurofly-download-counter', accept: 'application/vnd.github+json' },
-    });
+    const headers = { 'user-agent': 'neurofly-download-counter', accept: 'application/vnd.github+json' };
+    if (env.GITHUB_TOKEN) headers.authorization = `Bearer ${env.GITHUB_TOKEN}`;
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, { headers });
     if (!r.ok) return;
     const day = new Date().toISOString().slice(0, 10);
     const rows = [];
@@ -55,7 +54,7 @@ export default {
       for (const asset of release.assets) {
         if (!asset.name.endsWith('.zip')) continue;
         rows.push(env.DB.prepare(
-          'INSERT INTO github_totals (day, file, total) VALUES (?1, ?2, ?3) ON CONFLICT (day, file) DO UPDATE SET total = excluded.total',
+          'INSERT INTO github_totals (day, file, total) VALUES (?1, ?2, ?3) ON CONFLICT (day, file) DO UPDATE SET total = MAX(total, excluded.total)',
         ).bind(day, asset.name, asset.download_count));
       }
     }

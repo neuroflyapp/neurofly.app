@@ -1,6 +1,54 @@
-// Download dashboard (download-stats.html): GitHub's live download counts per
-// release ZIP and the website counter at get.neurofly.app/stats.
+// Download dashboard: GitHub's live download counts per release ZIP and the
+// website counter. The page is served at stats.neurofly.app by the Worker
+// `neurofly-stats`, behind Cloudflare Access; this script holds no data, it
+// builds the page, reads the figures from the same origin, and stores GitHub's
+// live totals there as today's snapshot.
 (() => {
+  document.body.innerHTML = `
+<header class="dl-head">
+  <div class="wrap bar">
+    <div>
+      <span class="kicker">Intern · nur mit Anmeldung</span>
+      <h1>Downloads</h1>
+      <div class="meta" id="updated">Lade Zahlen …</div>
+    </div>
+    <button class="btn secondary" id="refresh" type="button">Aktualisieren</button>
+  </div>
+</header>
+<main class="wrap dl-main">
+  <p class="status" id="status" hidden></p>
+  <section class="dl-facts facts" aria-label="Übersicht">
+    <div class="fact total"><b id="f-total">–</b><span>Downloads insgesamt</span><div class="src">GitHub-Zähler, live</div></div>
+    <div class="fact"><b id="f-web">–</b><span>über die Webseite</span><div class="src">get.neurofly.app</div></div>
+    <div class="fact"><b id="f-gh">–</b><span>direkt auf GitHub</span><div class="src">insgesamt − Webseite</div></div>
+    <div class="fact"><b id="f-today">–</b><span>heute (UTC)</span><div class="src" id="f-today-split">Webseite / GitHub</div></div>
+  </section>
+  <section class="dl-panel" aria-labelledby="h-days">
+    <h2 id="h-days">Pro Tag</h2>
+    <p class="sub">Letzte 30 Tage, UTC. GitHub-Direktdownloads pro Tag stammen aus gespeicherten Zählerständen (stündlich, und bei jedem Öffnen dieser Seite).</p>
+    <div class="legend"><span><i class="sw-web"></i>Webseite</span><span><i class="sw-gh"></i>direkt auf GitHub</span></div>
+    <svg class="chart" id="chart" viewBox="0 0 900 240" role="img" aria-label="Downloads pro Tag"></svg>
+  </section>
+  <section class="dl-panel" aria-labelledby="h-versions">
+    <h2 id="h-versions">Pro Version</h2>
+    <p class="sub">Windows-Build (ZIP) jeder Veröffentlichung.</p>
+    <div class="table-wrap dl-table">
+      <table class="dl">
+        <thead><tr><th>Version</th><th>Insgesamt</th><th>Webseite</th><th>GitHub direkt</th></tr></thead>
+        <tbody id="versions"><tr><td colspan="4">–</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+  <ul class="notes">
+    <li>„Insgesamt“ ist GitHubs eigener Zähler: jeder Abruf der ZIP-Datei, egal ob über die Webseite oder direkt auf
+      GitHub. GitHub zählt auch abgebrochene Downloads und automatische Abrufe.</li>
+    <li>„Webseite“ zählt jeden Klick auf den Download-Button, der einen Download startet. Suchmaschinen, Link-Vorschauen
+      und Prüfdienste werden nicht gezählt. Gespeichert werden nur Datum und Datei.</li>
+    <li>„Direkt auf GitHub“ ist die Differenz der beiden. Sie kann kurzzeitig leicht abweichen, wenn ein Download über
+      die Webseite gestartet, aber nicht abgeschlossen wurde.</li>
+  </ul>
+</main>`;
+
   const REPO = 'neuroflyapp/neurofly';
   const TEST_FILE = /-0\.0\.0-/;
   const $ = (id) => document.getElementById(id);
@@ -9,7 +57,7 @@
 
   async function getJSON(url) {
     const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`${new URL(url).host} antwortet mit ${r.status}`);
+    if (!r.ok) throw new Error(`${new URL(url, location.href).host} antwortet mit ${r.status}`);
     return r.json();
   }
 
@@ -109,14 +157,15 @@
     try {
       const [gh, site] = await Promise.allSettled([
         getJSON(`https://api.github.com/repos/${REPO}/releases?per_page=100`),
-        getJSON('https://get.neurofly.app/stats'),
+        getJSON('/data.json'),
       ]);
       if (gh.status === 'rejected') throw gh.reason;
       // Without the website counter, GitHub's totals still show; the split waits for the counter.
       const stats = site.status === 'fulfilled' ? site.value : { website: [], github: [], generated: null };
       render(gh.value, stats);
+      storeSnapshot(gh.value);
       if (site.status === 'rejected') {
-        $('status').textContent = 'Der Webseiten-Zähler (get.neurofly.app) ist von hier aus gerade nicht erreichbar. '
+        $('status').textContent = 'Die Zahlen des Webseiten-Zählers sind gerade nicht abrufbar (Anmeldung abgelaufen? Seite neu laden). '
           + 'Angezeigt sind GitHubs Zahlen; „über die Webseite“ fehlt deshalb.';
         $('status').hidden = false;
       }
@@ -126,6 +175,15 @@
     } finally {
       $('refresh').disabled = false;
     }
+  }
+
+  // GitHub usually refuses the hourly cron's unauthenticated calls from
+  // Cloudflare's shared addresses; the viewer's browser reads the same totals
+  // fine, so each visit keeps today's snapshot current.
+  function storeSnapshot(releases) {
+    const files = [];
+    for (const r of releases) for (const a of r.assets) if (/^NeuroFly-\d+\.\d+\.\d+-win-x64\.zip$/.test(a.name)) files.push({ file: a.name, total: a.download_count });
+    if (files.length) fetch('/snapshot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(files) }).catch(() => {});
   }
 
   $('refresh').addEventListener('click', load);
