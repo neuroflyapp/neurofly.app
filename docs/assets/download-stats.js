@@ -1,15 +1,16 @@
-// Download dashboard: GitHub's live download counts per release ZIP and the
-// website counter. The page is served at stats.neurofly.app by the Worker
-// `neurofly-stats`, behind Cloudflare Access; this script holds no data, it
-// builds the page, reads the figures from the same origin, and stores GitHub's
-// live totals there as today's snapshot.
+// Statistics dashboard: page views of neurofly.app (our own counter, no cookies)
+// and downloads (GitHub's live download counts per release ZIP and the website
+// counter). The page is served at stats.neurofly.app by the Worker
+// `neurofly-stats`, behind Cloudflare Access; neurofly.app/login leads there.
+// This script holds no data: it builds the page, reads the figures from the same
+// origin, and stores GitHub's live totals there as today's snapshot.
 (() => {
   document.body.innerHTML = `
 <header class="dl-head">
   <div class="wrap bar">
     <div>
       <span class="kicker">Intern · nur mit Anmeldung</span>
-      <h1>Downloads</h1>
+      <h1>Statistik</h1>
       <div class="meta" id="updated">Lade Zahlen …</div>
     </div>
     <button class="btn secondary" id="refresh" type="button">Aktualisieren</button>
@@ -17,7 +18,32 @@
 </header>
 <main class="wrap dl-main">
   <p class="status" id="status" hidden></p>
-  <section class="dl-facts facts" aria-label="Übersicht">
+
+  <h2 class="dl-section">Seitenaufrufe</h2>
+  <section class="dl-facts facts" aria-label="Seitenaufrufe, Übersicht">
+    <div class="fact total"><b id="p-today">–</b><span>heute (UTC)</span><div class="src">neurofly.app</div></div>
+    <div class="fact"><b id="p-7">–</b><span>letzte 7 Tage</span></div>
+    <div class="fact"><b id="p-30">–</b><span>letzte 30 Tage</span></div>
+    <div class="fact"><b id="p-all">–</b><span>insgesamt</span><div class="src" id="p-since">–</div></div>
+  </section>
+  <section class="dl-panel" aria-labelledby="h-views">
+    <h2 id="h-views">Aufrufe pro Tag</h2>
+    <p class="sub">Letzte 30 Tage, UTC. Jeder Aufruf einer Seite auf neurofly.app, ohne Cookies gezählt.</p>
+    <svg class="chart" id="chart-views" viewBox="0 0 900 240" role="img" aria-label="Seitenaufrufe pro Tag"></svg>
+  </section>
+  <section class="dl-panel" aria-labelledby="h-pages">
+    <h2 id="h-pages">Pro Seite</h2>
+    <p class="sub">Sortiert nach den letzten 30 Tagen.</p>
+    <div class="table-wrap dl-table">
+      <table class="dl">
+        <thead><tr><th>Seite</th><th>Heute</th><th>7 Tage</th><th>30 Tage</th><th>Insgesamt</th></tr></thead>
+        <tbody id="pages"><tr><td colspan="5">–</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <h2 class="dl-section">Downloads</h2>
+  <section class="dl-facts facts" aria-label="Downloads, Übersicht">
     <div class="fact total"><b id="f-total">–</b><span>Downloads insgesamt</span><div class="src">GitHub-Zähler, live</div></div>
     <div class="fact"><b id="f-web">–</b><span>über die Webseite</span><div class="src">get.neurofly.app</div></div>
     <div class="fact"><b id="f-gh">–</b><span>direkt auf GitHub</span><div class="src">insgesamt − Webseite</div></div>
@@ -40,9 +66,12 @@
     </div>
   </section>
   <ul class="notes">
-    <li>„Insgesamt“ ist GitHubs eigener Zähler: jeder Abruf der ZIP-Datei, egal ob über die Webseite oder direkt auf
+    <li>„Seitenaufrufe“ zählt jeden Aufruf einer Seite auf neurofly.app, unabhängig von der Cookie-Wahl: gespeichert werden nur
+      Datum und Seite, keine IP-Adresse, kein Cookie. Suchmaschinen und Bots werden nicht gezählt, ein Neuladen zählt als neuer
+      Aufruf. Einzelne Besucher unterscheidet der Zähler nicht; das kann nur Rybbit (nur mit Einwilligung).</li>
+    <li>„Downloads insgesamt“ ist GitHubs eigener Zähler: jeder Abruf der ZIP-Datei, egal ob über die Webseite oder direkt auf
       GitHub. GitHub zählt auch abgebrochene Downloads und automatische Abrufe.</li>
-    <li>„Webseite“ zählt jeden Klick auf den Download-Button, der einen Download startet. Suchmaschinen, Link-Vorschauen
+    <li>„Über die Webseite“ zählt jeden Klick auf den Download-Button, der einen Download startet. Suchmaschinen, Link-Vorschauen
       und Prüfdienste werden nicht gezählt. Gespeichert werden nur Datum und Datei.</li>
     <li>„Direkt auf GitHub“ ist die Differenz der beiden. Sie kann kurzzeitig leicht abweichen, wenn ein Download über
       die Webseite gestartet, aber nicht abgeschlossen wurde.</li>
@@ -51,9 +80,11 @@
 
   const REPO = 'neuroflyapp/neurofly';
   const ZIP = /^NeuroFly-\d+\.\d+\.\d+-win-x64\.zip$/;
+  const PAGE_ROWS = 20;
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Number(n).toLocaleString('de-CH');
   const version = (file) => (file.match(/NeuroFly-(\d+\.\d+\.\d+)-/) || [])[1] || file;
+  const dayLabel = (d) => `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4)}`;
 
   async function getJSON(url) {
     const r = await fetch(url, { cache: 'no-store' });
@@ -68,7 +99,57 @@
     return out;
   }
 
-  function render(releases, stats) {
+  function tableRow(cells) {
+    const tr = document.createElement('tr');
+    for (const v of cells) {
+      const td = document.createElement('td'); td.textContent = v; tr.append(td);
+    }
+    return tr;
+  }
+
+  function emptyRow(cols, text) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td'); td.colSpan = cols; td.textContent = text; tr.append(td);
+    return tr;
+  }
+
+  function renderViews(rows) {
+    const span = days(30);
+    const today = span[span.length - 1];
+    const week = new Set(span.slice(-7)), month = new Set(span);
+    const perDay = new Map(), perPage = new Map();
+    let total = 0, first = null;
+    for (const r of rows) {
+      perDay.set(r.day, (perDay.get(r.day) || 0) + r.n);
+      total += r.n;
+      if (!first || r.day < first) first = r.day;
+      const p = perPage.get(r.page) || { page: r.page, today: 0, week: 0, month: 0, total: 0 };
+      if (r.day === today) p.today += r.n;
+      if (week.has(r.day)) p.week += r.n;
+      if (month.has(r.day)) p.month += r.n;
+      p.total += r.n;
+      perPage.set(r.page, p);
+    }
+    const sum = (set) => [...set].reduce((s, d) => s + (perDay.get(d) || 0), 0);
+    $('p-today').textContent = fmt(perDay.get(today) || 0);
+    $('p-7').textContent = fmt(sum(week));
+    $('p-30').textContent = fmt(sum(month));
+    $('p-all').textContent = fmt(total);
+    $('p-since').textContent = first ? `seit ${dayLabel(first)}` : 'noch keine';
+    drawChart($('chart-views'), span.map((d) => ({ d, parts: [perDay.get(d) || 0] })), ['var(--accent)']);
+
+    const pages = [...perPage.values()].sort((a, b) => b.month - a.month || b.total - a.total || a.page.localeCompare(b.page));
+    const shown = pages.slice(0, PAGE_ROWS);
+    const rest = pages.slice(PAGE_ROWS);
+    const rowsOut = shown.map((p) => tableRow([p.page === '/' ? 'Startseite (/)' : p.page, fmt(p.today), fmt(p.week), fmt(p.month), fmt(p.total)]));
+    if (rest.length) {
+      const add = (k) => fmt(rest.reduce((s, p) => s + p[k], 0));
+      rowsOut.push(tableRow([`${rest.length} weitere`, add('today'), add('week'), add('month'), add('total')]));
+    }
+    $('pages').replaceChildren(...(rowsOut.length ? rowsOut : [emptyRow(5, 'Noch keine Aufrufe gezählt')]));
+  }
+
+  function renderDownloads(releases, stats) {
     const files = [];
     for (const r of releases) for (const a of r.assets) if (ZIP.test(a.name)) files.push({ file: a.name, total: a.download_count });
     // Only published files count: the test path v0.0.0 and mistyped versions are not downloads.
@@ -104,25 +185,19 @@
     const t = series[series.length - 1];
     $('f-today').textContent = fmt(t.w + t.g);
     $('f-today-split').textContent = `Webseite ${fmt(t.w)} / GitHub ${fmt(t.g)}`;
-    drawChart(series);
+    drawChart($('chart'), series.map((s) => ({ d: s.d, parts: [s.w, s.g] })), ['var(--accent)', '#9fb3aa']);
 
     const rows = files.slice().sort((a, b) => version(b.file).localeCompare(version(a.file), undefined, { numeric: true }));
     $('versions').replaceChildren(...(rows.length ? rows.map((f) => {
       const w = webBy(f.file);
-      const tr = document.createElement('tr');
-      for (const v of [version(f.file), fmt(f.total), fmt(w), fmt(Math.max(0, f.total - w))]) {
-        const td = document.createElement('td'); td.textContent = v; tr.append(td);
-      }
-      return tr;
-    }) : [(() => { const tr = document.createElement('tr'); tr.innerHTML = '<td colspan="4">Noch keine Veröffentlichung</td>'; return tr; })()]));
-
-    $('updated').textContent = `Stand ${new Date().toLocaleString('de-CH')} · GitHub live` + (stats.generated ? `, Webseite ${new Date(stats.generated).toLocaleTimeString('de-CH')}` : '');
+      return tableRow([version(f.file), fmt(f.total), fmt(w), fmt(Math.max(0, f.total - w))]);
+    }) : [emptyRow(4, 'Noch keine Veröffentlichung')]));
   }
 
-  function drawChart(series) {
-    const svg = $('chart');
+  // Stacked bars per day: parts[k] is drawn in fills[k], the first part at the bottom.
+  function drawChart(svg, series, fills) {
     const W = 900, H = 240, L = 40, R = 8, T = 12, B = 34;
-    const max = Math.max(1, ...series.map((s) => s.w + s.g));
+    const max = Math.max(1, ...series.map((s) => s.parts.reduce((a, b) => a + b, 0)));
     const step = niceStep(max);
     const top = Math.ceil(max / step) * step;
     const y = (v) => T + (H - T - B) * (1 - v / top);
@@ -136,8 +211,11 @@
     }
     series.forEach((s, i) => {
       const x = L + i * bw + bw * 0.18, w = bw * 0.64;
-      if (s.w) nodes.push(el('rect', { x, y: y(s.w), width: w, height: y(0) - y(s.w), fill: 'var(--accent)', rx: 2 }));
-      if (s.g) nodes.push(el('rect', { x, y: y(s.w + s.g), width: w, height: y(s.w) - y(s.w + s.g), fill: '#9fb3aa', rx: 2 }));
+      let base = 0;
+      s.parts.forEach((v, k) => {
+        if (v) nodes.push(el('rect', { x, y: y(base + v), width: w, height: y(base) - y(base + v), fill: fills[k], rx: 2 }));
+        base += v;
+      });
       if (i % 5 === 4 || i === series.length - 1) nodes.push(el('text', { x: L + i * bw + bw / 2, y: H - 12, 'text-anchor': 'middle' }, s.d.slice(8, 10) + '.' + s.d.slice(5, 7) + '.'));
     });
     svg.replaceChildren(...nodes);
@@ -146,32 +224,38 @@
   function niceStep(max) {
     const raw = max / 4;
     const p = 10 ** Math.floor(Math.log10(raw));
-    // Downloads are whole numbers: never a step below 1.
+    // Counts are whole numbers: never a step below 1.
     return Math.max(1, [1, 2, 5, 10].map((m) => m * p).find((s) => s >= raw) || p * 10);
   }
 
   async function load() {
     $('status').hidden = true;
     $('refresh').disabled = true;
+    const problems = [];
     try {
       const [gh, site] = await Promise.allSettled([
         getJSON(`https://api.github.com/repos/${REPO}/releases?per_page=100`),
         getJSON('/data.json'),
       ]);
-      if (gh.status === 'rejected') throw gh.reason;
-      // Without the website counter, GitHub's totals still show; the split waits for the counter.
-      const stats = site.status === 'fulfilled' ? site.value : { website: [], github: [], generated: null };
-      render(gh.value, stats);
-      storeSnapshot(gh.value);
-      if (site.status === 'rejected') {
-        $('status').textContent = 'Die Zahlen des Webseiten-Zählers sind gerade nicht abrufbar (Anmeldung abgelaufen? Seite neu laden). '
-          + 'Angezeigt sind GitHubs Zahlen; „über die Webseite“ fehlt deshalb.';
+      const stats = site.status === 'fulfilled' ? site.value : null;
+      if (stats) renderViews(stats.pageviews || []);
+      else problems.push('Die eigenen Zahlen (Seitenaufrufe, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
+      if (gh.status === 'fulfilled') {
+        // Without the counter's figures, GitHub's totals still show; the split waits for them.
+        renderDownloads(gh.value, stats || { website: [], github: [] });
+        storeSnapshot(gh.value);
+      } else {
+        problems.push(`GitHubs Download-Zahlen konnten nicht geladen werden: ${gh.reason.message}.`);
+      }
+      $('updated').textContent = `Stand ${new Date().toLocaleString('de-CH')}` + (gh.status === 'fulfilled' ? ' · GitHub live' : '')
+        + (stats?.generated ? `, eigene Zahlen ${new Date(stats.generated).toLocaleTimeString('de-CH')}` : '');
+    } catch (e) {
+      problems.push(`Zahlen konnten nicht angezeigt werden: ${e.message}.`);
+    } finally {
+      if (problems.length) {
+        $('status').textContent = problems.join(' ');
         $('status').hidden = false;
       }
-    } catch (e) {
-      $('status').textContent = `Zahlen konnten nicht geladen werden: ${e.message}.`;
-      $('status').hidden = false;
-    } finally {
       $('refresh').disabled = false;
     }
   }

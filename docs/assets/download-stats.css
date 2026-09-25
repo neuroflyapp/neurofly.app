@@ -1,10 +1,12 @@
-/* Internal download dashboard (served by the counter at get.neurofly.app/stats/, behind Cloudflare Access). */
+/* Internal statistics dashboard: page views and downloads (served at stats.neurofly.app by the Worker neurofly-stats, behind Cloudflare Access). */
 .dl-head { padding-block: 40px 28px; border-bottom: 1px solid var(--rule); }
 .dl-head .bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
 .dl-head h1 { font-size: clamp(32px, 4.4vw, 46px); margin: 6px 0 0; }
 .dl-head .meta { font-size: 14px; color: var(--muted); }
-.dl-main { padding-block: 28px 64px; display: grid; gap: 24px; }
-.dl-facts { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card); overflow: hidden; }
+.dl-main { padding-block: 28px 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.dl-section { font-size: 26px; margin: 20px 0 -6px; }
+.dl-section:first-of-type { margin-top: 0; }
+.dl-facts { margin-top: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card); overflow: hidden; }
 .dl-facts .fact b { font-variant-numeric: tabular-nums; }
 .fact.total b { color: var(--accent); }
 .dl-panel { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 22px 18px; }

@@ -1,17 +1,31 @@
-// NeuroFly site script: navigation, figures, forms, films and the statistics
-// choice. No frameworks and no cookies. Nothing from a third party loads unless
-// the visitor has allowed page statistics (see consent below).
+// NeuroFly site script: navigation, figures, forms, films, the page counter and
+// the statistics choice. No frameworks and no cookies. Our own page counter records
+// only the date and the page; nothing from a third party loads unless the visitor
+// has allowed page statistics (see consent below).
 
 // ---- configuration ------------------------------------------------------------------------------
 // formEmail: the address the forms deliver to through Airform (https://airform.io/<address>).
 //   Airform receives a normal HTML form POST; the visitor sees Airform's confirmation page.
 // contactEmail: public address shown next to the forms.
 // statistics: Rybbit page statistics, loaded only after the visitor allows it.
+// pageCounter: our own page view counter (Cloudflare Worker `neurofly-downloads`).
 const CONFIG = {
   formEmail: 'contact@neurofly.app',
   contactEmail: 'contact@neurofly.app',
   statistics: { src: 'https://app.rybbit.io/api/script.js?siteId=662701b51c45', storageKeys: ['rybbit-visitor-id', 'rybbit-user-id'] },
+  pageCounter: 'https://get.neurofly.app/view',
 };
+
+// ---- page counter ---------------------------------------------------------------------------------
+// Sends this page's path to our counter, which stores only the date and the page:
+// no IP address, cookie or identifier, and nothing is kept in the browser, so it
+// runs without consent. Only the published site counts, and a prerendered page
+// only once it is shown.
+if (location.hostname === 'neurofly.app') {
+  const countView = () => { try { navigator.sendBeacon(CONFIG.pageCounter, location.pathname); } catch { /* not counted */ } };
+  if (document.prerendering) document.addEventListener('prerenderingchange', countView, { once: true });
+  else countView();
+}
 
 // ---- navigation -----------------------------------------------------------------------------------
 const toggle = document.querySelector('.nav-toggle');

@@ -5,6 +5,10 @@ Run from the repository root:  python tools/build_legal.py
 Facts behind the wording (checked 23 September 2026; re-check before changing):
 - Hosting: GitHub Pages. GitHub logs visitor IP addresses for security and
   participates in the EU-U.S. and Swiss-U.S. Data Privacy Frameworks.
+- Page counter (since 25 September 2026): assets/site.js sends each page view
+  (the path only) to get.neurofly.app/view with navigator.sendBeacon; the
+  Cloudflare Worker stores the UTC date and the page, no IP address, cookie or
+  identifier, D1 in the EU. Nothing is stored in the browser; no consent needed.
 - Statistics: Rybbit (app.rybbit.io), loaded only after consent by
   assets/site.js. Site configuration served by Rybbit: pageviews, outbound
   links and URL parameters on; session replay, web vitals, errors, clicks,
@@ -24,8 +28,9 @@ import re
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / 'docs'
 UPDATED = '23 September 2026'
+PRIVACY_UPDATED = '25 September 2026'   # privacy notice and cookies: page counter
 
-CSP = ("default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io; "
+CSP = ("default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; "
        "img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; "
        "base-uri 'self'; object-src 'none'")
 
@@ -146,7 +151,7 @@ page('imprint.html', 'Imprint', 'Imprint of the NeuroFly website and software.',
 
 # ---- privacy notice ------------------------------------------------------------------------
 privacy = f"""
-    <p class="small">Effective {UPDATED}.</p>
+    <p class="small">Effective {PRIVACY_UPDATED}.</p>
     <p>This notice explains which personal data NeuroFly processes when you visit neurofly.app, write to us, or use the NeuroFly
       software, why, and what you can do about it. It follows the Swiss Federal Act on Data Protection (FADP) and, where it
       applies to you, the EU General Data Protection Regulation (GDPR).</p>
@@ -158,10 +163,13 @@ privacy = f"""
     <h2 id="overview">2. What we process, and why</h2>
     <div class="facts-list">
       <div class="fact-item"><h3>When you open a page</h3><dl>
-        <dt>Data</dt><dd>IP address, time, requested page, and the browser and network details that every web request carries.</dd>
-        <dt>Purpose and basis</dt><dd>Delivering the site and protecting it against abuse; legitimate interest (GDPR Art. 6(1)(f)).</dd>
-        <dt>Recipient</dt><dd>Our host, GitHub (GitHub Pages). GitHub logs and stores visitors’ IP addresses for security. We do not
-          receive these logs.</dd></dl></div>
+        <dt>Data</dt><dd>IP address, time, requested page, and the browser and network details that every web request carries.
+          To count page views, our page counter records only the date and the page you opened; no IP address, cookie or other
+          identifier is stored for this, and nothing is stored in your browser.</dd>
+        <dt>Purpose and basis</dt><dd>Delivering the site, protecting it against abuse, and counting how often each page is opened;
+          legitimate interest (GDPR Art. 6(1)(f)).</dd>
+        <dt>Recipients</dt><dd>Our host, GitHub (GitHub Pages). GitHub logs and stores visitors’ IP addresses for security. We do not
+          receive these logs. Cloudflare, which runs our page counter at get.neurofly.app.</dd></dl></div>
       <div class="fact-item"><h3>When you accept statistics</h3><dl>
         <dt>Data</dt><dd>Page address including its parameters, referring page, browser, operating system, device type, screen size,
           language, approximate location derived from the IP address, clicks on links to other sites, and a random visitor ID stored
@@ -195,8 +203,9 @@ privacy = f"""
     <p>Fields marked as required on the forms are needed to process your request; without a return address we cannot reply.</p>
 
     <h2 id="statistics">3. Page statistics</h2>
-    <p>Statistics are optional. Nothing is measured unless you choose <em>Accept all</em> in the cookie banner or switch on
-      statistics in the privacy settings; until then no statistics script is loaded.</p>
+    <p>Apart from the page count described in section 2, which records only the date and the page and stores nothing in your
+      browser, statistics are optional. Nothing more is measured unless you choose <em>Accept all</em> in the cookie banner or
+      switch on statistics in the privacy settings; until then no statistics script is loaded.</p>
     <p>If you accept, the Rybbit script loads from app.rybbit.io and records the data listed above. Rybbit states that it uses
       the IP address only briefly to derive an approximate location and does not store it. The script keeps a random visitor ID in
       your browser’s local storage (<code>rybbit-visitor-id</code>) so that a repeat visit is counted as one visitor. Session
@@ -248,8 +257,8 @@ privacy = f"""
       <li><b>GitHub</b> (hosting and downloads): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; GitHub also uses the
         European Commission’s standard contractual clauses.</li>
       <li><b>Apple</b> (mailbox): standard contractual clauses.</li>
-      <li><b>Cloudflare</b> (download counter): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; the
-        download counts are stored in the EU.</li>
+      <li><b>Cloudflare</b> (page and download counter): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework;
+        the counts are stored in the EU.</li>
       <li><b>Rybbit</b> (statistics, only with consent): stores statistics in the EU; for providers outside the EEA, Rybbit states
         that it uses standard contractual clauses or other recognised mechanisms.</li>
       <li><b>Airform</b> (forms): runs on infrastructure in the USA. Your message passes through it only if you use a form; you can
@@ -283,10 +292,11 @@ page('privacy.html', 'Privacy notice', 'How NeuroFly handles personal data on ne
 
 # ---- cookies ---------------------------------------------------------------------------------
 cookies = f"""
-    <p class="small">Effective {UPDATED}. This page adds detail to the <a href="privacy.html">privacy notice</a>.</p>
+    <p class="small">Effective {PRIVACY_UPDATED}. This page adds detail to the <a href="privacy.html">privacy notice</a>.</p>
     <h2>Cookies and similar technologies</h2>
     <p>Like most websites, neurofly.app keeps a few small entries in your browser. We store them in the browser’s local storage
-      rather than in classic HTTP cookies, but they serve the same purpose, so we call them cookies here. We use two categories:</p>
+      rather than in classic HTTP cookies, but they serve the same purpose, so we call them cookies here. Our page counter
+      (see the <a href="privacy.html#overview">privacy notice</a>) stores nothing in your browser. We use two categories:</p>
     <h3>Necessary</h3>
     <p>Needed for the website to work as you chose. Always on.</p>
     <div class="table-wrap">

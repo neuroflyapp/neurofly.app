@@ -1,9 +1,14 @@
-// NeuroFly download counter (Cloudflare Worker `neurofly-downloads` at get.neurofly.app,
-// D1 binding `DB`). Public: it holds no figures anyone can read.
+// NeuroFly download and page counter (Cloudflare Worker `neurofly-downloads` at
+// get.neurofly.app, D1 binding `DB`). Public: it holds no figures anyone can read.
 //
 // GET /v2.1.0  counts one website download of that release's Windows build
 //              (date and file name only: no IP address, cookie or identifier
 //              is stored) and redirects to the file on GitHub.
+// POST /view   counts one page view of neurofly.app: assets/site.js sends the
+//              page's path with navigator.sendBeacon. Stored are the date and
+//              the page only (no IP address, cookie or identifier; nothing is
+//              kept in the browser), so it runs without cookie consent. Only
+//              requests from neurofly.app pages count; bots do not.
 // GET /stats   moved: the dashboard is the separate Worker `neurofly-stats` at
 //              stats.neurofly.app, behind Cloudflare Access (stats-worker.js).
 // Cron         once an hour, records GitHub's total download count per file,
@@ -21,21 +26,36 @@
 // Schema:
 //   CREATE TABLE downloads (day TEXT NOT NULL, file TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, file));
 //   CREATE TABLE github_totals (day TEXT NOT NULL, file TEXT NOT NULL, total INTEGER NOT NULL, PRIMARY KEY (day, file));
+//   CREATE TABLE pageviews (day TEXT NOT NULL, page TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, page));
 
 const REPO = 'neuroflyapp/neurofly';
-const NOT_A_DOWNLOAD = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|monitor|pingdom|uptime|lighthouse|headless|python-requests|go-http-client|okhttp/i;
+const NOT_A_VISITOR = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|monitor|pingdom|uptime|lighthouse|headless|python-requests|go-http-client|okhttp/i;
+const PAGE_PATH = /^\/(?:[a-z0-9-]{1,40}(?:\.html)?)?$/;
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const agent = request.headers.get('user-agent') || '';
+    const visitor = agent !== '' && !NOT_A_VISITOR.test(agent);
+    const day = new Date().toISOString().slice(0, 10);
+    if (url.pathname === '/view') {
+      if (request.method === 'POST' && visitor && request.headers.get('origin') === 'https://neurofly.app') {
+        const path = (await request.text()).slice(0, 64);
+        if (PAGE_PATH.test(path)) {
+          const page = path.replace(/\.html$/, '').replace(/^\/index$/, '/');
+          ctx.waitUntil(env.DB.prepare(
+            'INSERT INTO pageviews (day, page, n) VALUES (?1, ?2, 1) ON CONFLICT (day, page) DO UPDATE SET n = n + 1',
+          ).bind(day, page).run());
+        }
+      }
+      return new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } });
+    }
     if (url.pathname === '/stats' || url.pathname.startsWith('/stats/')) return Response.redirect('https://stats.neurofly.app/', 301);
     const m = url.pathname.match(/^\/v(\d+\.\d+\.\d+)\/?$/);
     if (!m) return Response.redirect('https://neurofly.app/#get', 302);
     const file = `NeuroFly-${m[1]}-win-x64.zip`;
     const target = `https://github.com/${REPO}/releases/download/v${m[1]}/${file}`;
-    const agent = request.headers.get('user-agent') || '';
-    if (request.method === 'GET' && agent && !NOT_A_DOWNLOAD.test(agent)) {
-      const day = new Date().toISOString().slice(0, 10);
+    if (request.method === 'GET' && visitor) {
       ctx.waitUntil(env.DB.prepare(
         'INSERT INTO downloads (day, file, n) VALUES (?1, ?2, 1) ON CONFLICT (day, file) DO UPDATE SET n = n + 1',
       ).bind(day, file).run());
