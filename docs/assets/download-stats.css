@@ -28,3 +28,18 @@ table.dl tr:last-child td { border-bottom: 0; }
 .status { font-size: 14px; color: var(--warn); margin: 0; }
 .status[hidden] { display: none; }
 #refresh { padding: 9px 16px; font-size: 14.5px; }
+.dl-sectionbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.dl-sectionbar .dl-section { margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--card); }
+.seg button { font: 600 13.5px/1 var(--sans); border: 0; background: transparent; color: var(--ink-2); padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+@media (max-width: 420px) { .seg button { padding: 7px 9px; font-size: 12.5px; } }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.dl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 16px; }
+.dl-list h3 { font-size: 16px; margin: 0 0 10px; }
+.dl-list ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.dl-list li { position: relative; display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 5px 8px; border-radius: 6px; overflow: hidden; }
+.dl-list li i { position: absolute; inset: 0 auto 0 0; width: 100%; transform: scaleX(var(--w, 0)); transform-origin: left; background: var(--accent-wash); z-index: 0; }
+.dl-list li .k, .dl-list li .v { position: relative; z-index: 1; }
+.dl-list li .k { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dl-list li .v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dl-list li.none { color: var(--muted); font-size: 13px; }

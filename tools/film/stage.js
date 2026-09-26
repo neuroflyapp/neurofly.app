@@ -31,19 +31,23 @@ window.stage = {
     view.synapseLines.material.opacity = params.lineOpacity;
     view.resize();
     const dot = dotTexture();
-    for (const g of view.groups) {
-      const m = g.object.material;
-      if (g.tier === 'bg') { m.opacity = params.bgOpacity; m.size *= params.bgSize; }
-      else if (g.tier === 'other') { m.opacity = params.otherOpacity; m.size *= params.otherSize; }
-      else { m.opacity = params.namedOpacity; m.size *= params.namedSize; }
-      m.map = dot; m.alphaTest = 0.02; m.needsUpdate = true;
-    }
+    // All populations are ranges of one point cloud (BrainView.spritePoints):
+    // opacity through the view, size per point, one round dot texture.
+    const size = view.cloud.geometry.attributes.pSize;
+    view.groups.forEach((g, gi) => {
+      const [opacity, scale] = g.tier === 'bg' ? [params.bgOpacity, params.bgSize]
+        : g.tier === 'other' ? [params.otherOpacity, params.otherSize] : [params.namedOpacity, params.namedSize];
+      view.setGroupOpacity(gi, opacity);
+      for (let i = g.start; i < g.start + g.count; i++) size.array[i] *= scale;
+    });
+    size.needsUpdate = true;
+    view.cloud.material.map = dot; view.cloud.material.alphaTest = 0.02; view.cloud.material.needsUpdate = true;
+    // Spikes glow with the same soft dot instead of reading as flat discs.
     view.scene.traverse((o) => {
       if (o.isPoints && o !== view.highlightCloud && !o.material.map) { o.material.map = dot; o.material.needsUpdate = true; }
     });
     view.glowLines.material.transparent = true;
     view.glowLines.material.opacity = params.glowOpacity;
-    for (const node of view.flashPool) node.scale.multiplyScalar(params.flashSize);
     view.ring.material.opacity = 0.12;
     return { groups: view.groups.length, named: view.groups.filter((g) => g.tier === 'named').map((g) => `${g.key}:${g.count}`) };
   },
@@ -62,7 +66,10 @@ window.stage = {
     if (spikes?.length) view.addSpikes(spikes);
     // A giant-fiber spike keeps its glow but not the app's oversized marker
     // sphere and wireframe ring, which read as props at film scale.
-    for (const node of view.flashPool) if (node.scale.x > P.flashSize * 1.6) node.scale.setScalar(P.flashSize * 1.6);
+    const fs = view.flashPoints.geometry.attributes.pSize, cap = view.flashSize * P.flashSize * 1.6;
+    let capped = false;
+    for (let i = 0; i < fs.count; i++) if (fs.array[i] > cap) { fs.array[i] = cap; capped = true; }
+    if (capped) fs.needsUpdate = true;
     view.frame((f + 100000) * (1000 / P.fps));
     view.ring.visible = false;
     // BrainView sets camera y from its zoom; keep the framing offset on top.

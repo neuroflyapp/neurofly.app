@@ -5,10 +5,16 @@ Run from the repository root:  python tools/build_legal.py
 Facts behind the wording (checked 23 September 2026; re-check before changing):
 - Hosting: GitHub Pages. GitHub logs visitor IP addresses for security and
   participates in the EU-U.S. and Swiss-U.S. Data Privacy Frameworks.
-- Page counter (since 25 September 2026): assets/site.js sends each page view
-  (the path only) to get.neurofly.app/view with navigator.sendBeacon; the
-  Cloudflare Worker stores the UTC date and the page, no IP address, cookie or
-  identifier, D1 in the EU. Nothing is stored in the browser; no consent needed.
+- Own statistics (since 25/26 September 2026): assets/site.js sends page views,
+  referrer, campaign parameters, screen width, time on page, scroll depth and
+  clicks (downloads, films, forms, links) to get.neurofly.app/collect; the
+  Cloudflare Worker adds country/region/city, device, browser, system and
+  language from the request and stores daily totals only (D1). Visitors are told
+  apart per UTC day by a hash of a random daily salt, IP and user agent; salt and
+  hashes are deleted after the day, the IP is never stored. No cookies, nothing
+  in the browser.
+- Donations: Stripe Payment Links (TWINT, cards, Apple/Google Pay), links set in
+  assets/site.js CONFIG.donate; the support section is hidden until then.
 - Statistics: Rybbit (app.rybbit.io), loaded only after consent by
   assets/site.js. Site configuration served by Rybbit: pageviews, outbound
   links and URL parameters on; session replay, web vitals, errors, clicks,
@@ -28,7 +34,8 @@ import re
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / 'docs'
 UPDATED = '23 September 2026'
-PRIVACY_UPDATED = '25 September 2026'   # privacy notice and cookies: page counter
+PRIVACY_UPDATED = '26 September 2026'   # privacy notice and cookies: statistics, donations
+TERMS_UPDATED = '26 September 2026'     # terms of use: donations
 
 CSP = ("default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; "
        "img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; "
@@ -61,6 +68,7 @@ HEADER = """<a class="skip" href="#main">Skip to content</a>
       <a href="vision.html">Vision</a>
       <a href="ethics.html">Ethics</a>
       <a href="contact.html">Contact</a>
+      <a href="index.html#support" data-support-link hidden>Support</a>
       <a class="cta" href="index.html#get" data-track="nav-get">Get NeuroFly</a>
     </nav>
   </div>
@@ -162,14 +170,14 @@ privacy = f"""
 
     <h2 id="overview">2. What we process, and why</h2>
     <div class="facts-list">
-      <div class="fact-item"><h3>When you open a page</h3><dl>
-        <dt>Data</dt><dd>IP address, time, requested page, and the browser and network details that every web request carries.
-          To count page views, our page counter records only the date and the page you opened; no IP address, cookie or other
-          identifier is stored for this, and nothing is stored in your browser.</dd>
-        <dt>Purpose and basis</dt><dd>Delivering the site, protecting it against abuse, and counting how often each page is opened;
-          legitimate interest (GDPR Art. 6(1)(f)).</dd>
-        <dt>Recipients</dt><dd>Our host, GitHub (GitHub Pages). GitHub logs and stores visitors’ IP addresses for security. We do not
-          receive these logs. Cloudflare, which runs our page counter at get.neurofly.app.</dd></dl></div>
+      <div class="fact-item"><h3>When you visit the website</h3><dl>
+        <dt>Data</dt><dd>Technical and usage data: IP address, date and time, pages visited, referring page and campaign parameters,
+          browser, operating system, device type, screen size, language, approximate location derived from the IP address, and how
+          the pages are used (for example time on a page, scrolling, and use of downloads, films, forms and links).</dd>
+        <dt>Purpose and basis</dt><dd>Delivering, securing and improving the website and measuring its use; our legitimate interest
+          (GDPR Art. 6(1)(f)). No cookies are used for this and nothing is stored in your browser. To tell visits apart, a
+          pseudonymous value derived from the IP address and browser details is used for one day at most.</dd>
+        <dt>Recipients</dt><dd>Our hosting and infrastructure providers, GitHub (GitHub Pages) and Cloudflare.</dd></dl></div>
       <div class="fact-item"><h3>When you accept statistics</h3><dl>
         <dt>Data</dt><dd>Page address including its parameters, referring page, browser, operating system, device type, screen size,
           language, approximate location derived from the IP address, clicks on links to other sites, and a random visitor ID stored
@@ -188,6 +196,14 @@ privacy = f"""
         <dt>Data</dt><dd>Your email address, the message and anything you attach.</dd>
         <dt>Purpose and basis</dt><dd>Answering you, as for the forms.</dd>
         <dt>Recipient</dt><dd>Apple (iCloud Mail).</dd></dl></div>
+      <div class="fact-item" id="donations"><h3>When you donate</h3><dl>
+        <dt>Data</dt><dd>What you enter at checkout, such as name, email address, billing details and payment method, and the amount,
+          date and status of the donation.</dd>
+        <dt>Purpose and basis</dt><dd>Processing the donation, thanking you, bookkeeping and legal obligations; steps you ask for
+          (GDPR Art. 6(1)(b)), legal obligations (Art. 6(1)(c)) and our legitimate interest (Art. 6(1)(f)). Records are kept for
+          as long as the law requires, for accounting records generally ten years.</dd>
+        <dt>Recipients</dt><dd>Stripe, which processes the payment, partly as a controller in its own right (for example to prevent
+          fraud), and the payment method you choose (for example TWINT or your card issuer).</dd></dl></div>
       <div class="fact-item"><h3>When you download NeuroFly</h3><dl>
         <dt>Data</dt><dd>IP address, time, the requested file, and the browser and network details that every download carries.
           For a download started on this website we record only the date and the file name, to count downloads; no IP address,
@@ -203,9 +219,8 @@ privacy = f"""
     <p>Fields marked as required on the forms are needed to process your request; without a return address we cannot reply.</p>
 
     <h2 id="statistics">3. Page statistics</h2>
-    <p>Apart from the page count described in section 2, which records only the date and the page and stores nothing in your
-      browser, statistics are optional. Nothing more is measured unless you choose <em>Accept all</em> in the cookie banner or
-      switch on statistics in the privacy settings; until then no statistics script is loaded.</p>
+    <p>In addition to the measurement described in section 2, you can allow page statistics by Rybbit. Nothing from Rybbit is
+      loaded unless you choose <em>Accept all</em> in the cookie banner or switch on statistics in the privacy settings.</p>
     <p>If you accept, the Rybbit script loads from app.rybbit.io and records the data listed above. Rybbit states that it uses
       the IP address only briefly to derive an approximate location and does not store it. The script keeps a random visitor ID in
       your browser’s local storage (<code>rybbit-visitor-id</code>) so that a repeat visit is counted as one visitor. Session
@@ -257,8 +272,10 @@ privacy = f"""
       <li><b>GitHub</b> (hosting and downloads): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; GitHub also uses the
         European Commission’s standard contractual clauses.</li>
       <li><b>Apple</b> (mailbox): standard contractual clauses.</li>
-      <li><b>Cloudflare</b> (page and download counter): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework;
-        the counts are stored in the EU.</li>
+      <li><b>Cloudflare</b> (website infrastructure, statistics and download counter): certified under the EU–U.S. and the
+        Swiss–U.S. Data Privacy Framework.</li>
+      <li><b>Stripe</b> (donations): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; Stripe also uses the
+        European Commission’s standard contractual clauses.</li>
       <li><b>Rybbit</b> (statistics, only with consent): stores statistics in the EU; for providers outside the EEA, Rybbit states
         that it uses standard contractual clauses or other recognised mechanisms.</li>
       <li><b>Airform</b> (forms): runs on infrastructure in the USA. Your message passes through it only if you use a form; you can
@@ -295,8 +312,8 @@ cookies = f"""
     <p class="small">Effective {PRIVACY_UPDATED}. This page adds detail to the <a href="privacy.html">privacy notice</a>.</p>
     <h2>Cookies and similar technologies</h2>
     <p>Like most websites, neurofly.app keeps a few small entries in your browser. We store them in the browser’s local storage
-      rather than in classic HTTP cookies, but they serve the same purpose, so we call them cookies here. Our page counter
-      (see the <a href="privacy.html#overview">privacy notice</a>) stores nothing in your browser. We use two categories:</p>
+      rather than in classic HTTP cookies, but they serve the same purpose, so we call them cookies here. Our own usage
+      measurement (see the <a href="privacy.html#overview">privacy notice</a>) stores nothing in your browser. We use two categories:</p>
     <h3>Necessary</h3>
     <p>Needed for the website to work as you chose. Always on.</p>
     <div class="table-wrap">
@@ -333,7 +350,7 @@ page('cookies.html', 'Cookies', 'Which cookies and similar technologies neurofly
 
 # ---- terms of use --------------------------------------------------------------------------
 terms = f"""
-    <p class="small">Effective {UPDATED}.</p>
+    <p class="small">Effective {TERMS_UPDATED}.</p>
     <p>These terms of use (“terms”) govern your access to and use of neurofly.app and its content (the “website”), operated by
       NeuroFly, Zurich, Switzerland (“NeuroFly”, “we”, “us”; see the <a href="imprint.html">imprint</a>). By accessing or using the
       website you accept these terms. If you do not accept them, do not use the website. The NeuroFly application is governed by
@@ -409,6 +426,15 @@ terms = f"""
       provision concerned shall be replaced by a valid provision that comes closest to its intended purpose. Our failure to enforce
       a provision is not a waiver of it. We may transfer our rights and obligations under these terms. These terms are the entire
       agreement between you and us regarding the website. The English version is authoritative.</p>
+
+    <h2 id="donations">13. Donations</h2>
+    <p>Donations to NeuroFly are voluntary gifts. They are not payment for goods, services, content or rights and create no claim
+      against NeuroFly, in particular not to any feature, release, update, support or availability of the website or the software,
+      nor to a particular use of the funds; NeuroFly decides on their use at its sole discretion. NeuroFly is not a registered
+      charity: donations are not tax-deductible and no receipts for tax purposes are issued. Donations are non-refundable, except
+      where mandatory law requires otherwise or in the case of an obvious error reported to us within 14 days. Payments are
+      processed by Stripe under its own terms; NeuroFly is not responsible for the payment service. A monthly donation can be
+      ended at any time with effect for the future by writing to <a href="mailto:contact@neurofly.app">contact@neurofly.app</a>.</p>
 """
 page('terms.html', 'Terms of use', 'Terms of use of the NeuroFly website.', 'Legal', 'Terms of use', '', section(terms))
 

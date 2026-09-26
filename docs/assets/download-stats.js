@@ -1,9 +1,9 @@
-// Statistics dashboard: page views of neurofly.app (our own counter, no cookies)
-// and downloads (GitHub's live download counts per release ZIP and the website
-// counter). The page is served at stats.neurofly.app by the Worker
-// `neurofly-stats`, behind Cloudflare Access; neurofly.app/login leads there.
-// This script holds no data: it builds the page, reads the figures from the same
-// origin, and stores GitHub's live totals there as today's snapshot.
+// Statistics dashboard: visitors of neurofly.app (our own counter, no cookies:
+// daily totals only) and downloads (GitHub's live download counts per release
+// ZIP and the website counter). The page is served at stats.neurofly.app by the
+// Worker `neurofly-stats`, behind Cloudflare Access; neurofly.app/login leads
+// there. This script holds no data: it builds the page, reads the figures from
+// the same origin, and stores GitHub's live totals there as today's snapshot.
 (() => {
   document.body.innerHTML = `
 <header class="dl-head">
@@ -19,28 +19,30 @@
 <main class="wrap dl-main">
   <p class="status" id="status" hidden></p>
 
-  <h2 class="dl-section">Seitenaufrufe</h2>
-  <section class="dl-facts facts" aria-label="Seitenaufrufe, Übersicht">
-    <div class="fact total"><b id="p-today">–</b><span>heute (UTC)</span><div class="src">neurofly.app</div></div>
-    <div class="fact"><b id="p-7">–</b><span>letzte 7 Tage</span></div>
-    <div class="fact"><b id="p-30">–</b><span>letzte 30 Tage</span></div>
-    <div class="fact"><b id="p-all">–</b><span>insgesamt</span><div class="src" id="p-since">–</div></div>
-  </section>
-  <section class="dl-panel" aria-labelledby="h-views">
-    <h2 id="h-views">Aufrufe pro Tag</h2>
-    <p class="sub">Letzte 30 Tage, UTC. Jeder Aufruf einer Seite auf neurofly.app, ohne Cookies gezählt.</p>
-    <svg class="chart" id="chart-views" viewBox="0 0 900 240" role="img" aria-label="Seitenaufrufe pro Tag"></svg>
-  </section>
-  <section class="dl-panel" aria-labelledby="h-pages">
-    <h2 id="h-pages">Pro Seite</h2>
-    <p class="sub">Sortiert nach den letzten 30 Tagen.</p>
-    <div class="table-wrap dl-table">
-      <table class="dl">
-        <thead><tr><th>Seite</th><th>Heute</th><th>7 Tage</th><th>30 Tage</th><th>Insgesamt</th></tr></thead>
-        <tbody id="pages"><tr><td colspan="5">–</td></tr></tbody>
-      </table>
+  <div class="dl-sectionbar">
+    <h2 class="dl-section">Besucher</h2>
+    <div class="seg" role="group" aria-label="Zeitraum" id="period">
+      <button type="button" data-days="1">Heute</button><button type="button" data-days="7">7 Tage</button><button type="button" data-days="30">30 Tage</button><button type="button" data-days="90">90 Tage</button>
     </div>
+  </div>
+  <section class="dl-facts facts" aria-label="Besucher, Übersicht">
+    <div class="fact total"><b id="s-visitors">–</b><span>Besucher</span><div class="src" id="s-visitors-sub">–</div></div>
+    <div class="fact"><b id="s-visits">–</b><span>Besuche</span><div class="src" id="s-visits-sub">–</div></div>
+    <div class="fact"><b id="s-pv">–</b><span>Seitenaufrufe</span><div class="src" id="s-pv-sub">–</div></div>
+    <div class="fact"><b id="s-bounce">–</b><span>Absprungrate</span><div class="src" id="s-time">–</div></div>
   </section>
+  <section class="dl-panel" aria-labelledby="h-trend">
+    <h2 id="h-trend">Verlauf</h2>
+    <p class="sub" id="trend-sub">–</p>
+    <div class="legend"><span><i class="sw-gh"></i>Seitenaufrufe</span><span><i class="sw-web"></i>Besucher</span></div>
+    <svg class="chart" id="chart-views" viewBox="0 0 900 240" role="img" aria-label="Besucher und Seitenaufrufe"></svg>
+  </section>
+  <section class="dl-panel" aria-labelledby="h-hours">
+    <h2 id="h-hours">Tageszeit</h2>
+    <p class="sub">Seitenaufrufe im gewählten Zeitraum nach Uhrzeit, in der Zeitzone dieses Browsers.</p>
+    <svg class="chart" id="chart-hours" viewBox="0 0 900 200" role="img" aria-label="Seitenaufrufe nach Tageszeit"></svg>
+  </section>
+  <div class="dl-grid" id="lists"></div>
 
   <h2 class="dl-section">Downloads</h2>
   <section class="dl-facts facts" aria-label="Downloads, Übersicht">
@@ -66,9 +68,11 @@
     </div>
   </section>
   <ul class="notes">
-    <li>„Seitenaufrufe“ zählt jeden Aufruf einer Seite auf neurofly.app, unabhängig von der Cookie-Wahl: gespeichert werden nur
-      Datum und Seite, keine IP-Adresse, kein Cookie. Suchmaschinen und Bots werden nicht gezählt, ein Neuladen zählt als neuer
-      Aufruf. Einzelne Besucher unterscheidet der Zähler nicht; das kann nur Rybbit (nur mit Einwilligung).</li>
+    <li>Besucherzahlen kommen aus unserem eigenen Zähler, unabhängig von der Cookie-Wahl: gespeichert werden nur Tagessummen.
+      Besucher werden je UTC-Tag unterschieden (über einen täglich neuen, danach gelöschten Zufallswert, nie über Cookies
+      oder gespeicherte IP-Adressen); über mehrere Tage summiert, zählt ein wiederkehrender Besucher also mehrfach. Ein Besuch
+      endet nach 30 Minuten ohne Seitenaufruf; «Absprung» ist ein Besuch mit nur einer Seite. Suchmaschinen und Bots werden
+      nicht gezählt. Die ausführlichen Werte (Besucher, Herkunft, Geräte …) gibt es ab dem 25.09.2026, Seitenaufrufe seit dem 24.09.</li>
     <li>„Downloads insgesamt“ ist GitHubs eigener Zähler: jeder Abruf der ZIP-Datei, egal ob über die Webseite oder direkt auf
       GitHub. GitHub zählt auch abgebrochene Downloads und automatische Abrufe.</li>
     <li>„Über die Webseite“ zählt jeden Klick auf den Download-Button, der einen Download startet. Suchmaschinen, Link-Vorschauen
@@ -80,11 +84,32 @@
 
   const REPO = 'neuroflyapp/neurofly';
   const ZIP = /^NeuroFly-\d+\.\d+\.\d+-win-x64\.zip$/;
-  const PAGE_ROWS = 20;
+  const TOP = 10;
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Number(n).toLocaleString('de-CH');
+  const pct = (x) => `${(100 * x).toLocaleString('de-CH', { maximumFractionDigits: 0 })} %`;
   const version = (file) => (file.match(/NeuroFly-(\d+\.\d+\.\d+)-/) || [])[1] || file;
-  const dayLabel = (d) => `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4)}`;
+  const dayLabel = (d) => `${d.slice(8, 10)}.${d.slice(5, 7)}.`;
+  const duration = (ms) => { const s = Math.round(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} min` : `${s} s`; };
+  const regionNames = new Intl.DisplayNames(['de-CH'], { type: 'region' });
+  const languageNames = new Intl.DisplayNames(['de-CH'], { type: 'language' });
+  const flag = (cc) => (/^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '');
+  const country = (cc) => { try { return `${flag(cc)} ${regionNames.of(cc)}`; } catch { return cc; } };
+  const place = (k) => { const [cc, name] = k.split(' · '); return name ? `${flag(cc)} ${name}` : k; };
+  const language = (l) => { try { return l === 'unbekannt' ? l : `${languageNames.of(l)}`; } catch { return l; } };
+  const pageName = (p) => (p === '/' ? 'Startseite' : p);
+  // metric, title, label, value (count, average time, average percent)
+  const LISTS = [
+    ['pv', 'Seiten', pageName], ['entry', 'Einstiegsseiten', pageName], ['ref', 'Herkunft'],
+    ['utm_source', 'Kampagnen · Quelle'], ['utm_medium', 'Kampagnen · Medium'], ['utm_campaign', 'Kampagnen · Name'],
+    ['country', 'Länder', country], ['region', 'Regionen', place], ['city', 'Orte', place],
+    ['device', 'Geräte'], ['browser', 'Browser'], ['os', 'Betriebssysteme'], ['screen', 'Bildschirmbreite'], ['lang', 'Sprachen', language],
+    ['engaged', 'Lesezeit pro Seite', pageName, 'time'], ['scroll', 'Gelesen (Scrolltiefe) pro Seite', pageName, 'percent'],
+    ['scrolldepth', 'Scrolltiefe'], ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
+  ];
+
+  let data = null, period = 30;
+  try { period = Number(localStorage.getItem('nf-stats-period')) || 30; } catch { /* default */ }
 
   async function getJSON(url) {
     const r = await fetch(url, { cache: 'no-store' });
@@ -113,40 +138,81 @@
     return tr;
   }
 
-  function renderViews(rows) {
-    const span = days(30);
-    const today = span[span.length - 1];
-    const week = new Set(span.slice(-7)), month = new Set(span);
-    const perDay = new Map(), perPage = new Map();
-    let total = 0, first = null;
-    for (const r of rows) {
-      perDay.set(r.day, (perDay.get(r.day) || 0) + r.n);
-      total += r.n;
-      if (!first || r.day < first) first = r.day;
-      const p = perPage.get(r.page) || { page: r.page, today: 0, week: 0, month: 0, total: 0 };
-      if (r.day === today) p.today += r.n;
-      if (week.has(r.day)) p.week += r.n;
-      if (month.has(r.day)) p.month += r.n;
-      p.total += r.n;
-      perPage.set(r.page, p);
-    }
-    const sum = (set) => [...set].reduce((s, d) => s + (perDay.get(d) || 0), 0);
-    $('p-today').textContent = fmt(perDay.get(today) || 0);
-    $('p-7').textContent = fmt(sum(week));
-    $('p-30').textContent = fmt(sum(month));
-    $('p-all').textContent = fmt(total);
-    $('p-since').textContent = first ? `seit ${dayLabel(first)}` : 'noch keine';
-    drawChart($('chart-views'), span.map((d) => ({ d, parts: [perDay.get(d) || 0] })), ['var(--accent)']);
+  // Site statistics: the first counter's page views (table pageviews) count as
+  // metric 'pv' too.
+  function siteRows(stats) {
+    return [...(stats.stats || []), ...(stats.pageviews || []).map((r) => ({ day: r.day, metric: 'pv', key: r.page, n: r.n, sum: 0 }))];
+  }
 
-    const pages = [...perPage.values()].sort((a, b) => b.month - a.month || b.total - a.total || a.page.localeCompare(b.page));
-    const shown = pages.slice(0, PAGE_ROWS);
-    const rest = pages.slice(PAGE_ROWS);
-    const rowsOut = shown.map((p) => tableRow([p.page === '/' ? 'Startseite (/)' : p.page, fmt(p.today), fmt(p.week), fmt(p.month), fmt(p.total)]));
-    if (rest.length) {
-      const add = (k) => fmt(rest.reduce((s, p) => s + p[k], 0));
-      rowsOut.push(tableRow([`${rest.length} weitere`, add('today'), add('week'), add('month'), add('total')]));
+  function renderSite() {
+    if (!data) return;
+    for (const b of $('period').children) b.setAttribute('aria-pressed', String(Number(b.dataset.days) === period));
+    const span = days(period), inSpan = new Set(span);
+    const rows = data.site.filter((r) => inSpan.has(r.day));
+    const total = (metric) => rows.reduce((s, r) => s + (r.metric === metric ? r.n : 0), 0);
+    const visitors = total('visitors'), visits = total('visits'), pv = total('pv'), bounces = total('bounces');
+    const visitDays = new Set(rows.filter((r) => r.metric === 'visits').map((r) => r.day));
+    const pvWithVisits = rows.reduce((s, r) => s + (r.metric === 'pv' && visitDays.has(r.day) ? r.n : 0), 0);
+    const engaged = rows.filter((r) => r.metric === 'engaged');
+    const engagedN = engaged.reduce((s, r) => s + r.n, 0), engagedMs = engaged.reduce((s, r) => s + r.sum, 0);
+    const perDay = (x) => (period > 1 ? `Ø ${fmt(Math.round(x / period))} pro Tag` : 'heute (UTC)');
+    $('s-visitors').textContent = fmt(visitors);
+    $('s-visitors-sub').textContent = period > 1 ? `${perDay(visitors)} · je Tag eindeutig` : 'heute, eindeutig';
+    $('s-visits').textContent = fmt(visits);
+    $('s-visits-sub').textContent = visits ? `Ø ${(pvWithVisits / visits).toLocaleString('de-CH', { maximumFractionDigits: 1 })} Seiten pro Besuch` : '–';
+    $('s-pv').textContent = fmt(pv);
+    $('s-pv-sub').textContent = perDay(pv);
+    $('s-bounce').textContent = visits ? pct(bounces / visits) : '–';
+    $('s-time').textContent = engagedN ? `Ø ${duration(engagedMs / engagedN)} Lesezeit pro Seite` : 'Lesezeit: noch keine Daten';
+
+    // Trend: per day, or per hour for today.
+    const hourOf = (h) => (Number(h) - new Date().getTimezoneOffset() / 60 + 24) % 24;
+    if (period === 1) {
+      $('trend-sub').textContent = 'Heute: Seitenaufrufe nach Stunde (Zeitzone dieses Browsers); Besucher gibt es nur pro Tag.';
+      const byHour = new Array(24).fill(0);
+      for (const r of rows) if (r.metric === 'hour') byHour[hourOf(r.key)] += r.n;
+      drawChart($('chart-views'), byHour.map((v, h) => ({ parts: [v, 0], label: h % 3 === 0 ? `${String(h).padStart(2, '0')} h` : null })), ['#9fb3aa', 'var(--accent)'], { overlay: true });
+    } else {
+      $('trend-sub').textContent = `Letzte ${period} Tage, UTC. Besucher je Tag eindeutig.`;
+      const byDay = (metric) => { const m = new Map(); for (const r of rows) if (r.metric === metric) m.set(r.day, (m.get(r.day) || 0) + r.n); return m; };
+      const pvDay = byDay('pv'), visDay = byDay('visitors');
+      const every = period <= 7 ? 1 : period <= 30 ? 5 : 15;
+      drawChart($('chart-views'), span.map((d, i) => ({ parts: [pvDay.get(d) || 0, visDay.get(d) || 0],
+        label: i % every === every - 1 || i === span.length - 1 ? dayLabel(d) : null })), ['#9fb3aa', 'var(--accent)'], { overlay: true });
     }
-    $('pages').replaceChildren(...(rowsOut.length ? rowsOut : [emptyRow(5, 'Noch keine Aufrufe gezählt')]));
+    const hours = new Array(24).fill(0);
+    for (const r of rows) if (r.metric === 'hour') hours[hourOf(r.key)] += r.n;
+    drawChart($('chart-hours'), hours.map((v, h) => ({ parts: [v], label: h % 3 === 0 ? `${String(h).padStart(2, '0')}` : null })), ['var(--accent)'], { height: 200 });
+
+    $('lists').replaceChildren(...LISTS.map(([metric, title, name = (k) => k, value = 'count']) => {
+      const agg = new Map();
+      for (const r of rows) {
+        if (r.metric !== metric) continue;
+        const a = agg.get(r.key) || { n: 0, sum: 0 };
+        a.n += r.n; a.sum += r.sum;
+        agg.set(r.key, a);
+      }
+      const all = [...agg].filter(([, a]) => a.n > 0).sort((x, y) => y[1].n - x[1].n);
+      const max = Math.max(1, ...all.map(([, a]) => a.n));
+      const sumN = all.reduce((s, [, a]) => s + a.n, 0);
+      const card = document.createElement('section');
+      card.className = 'dl-panel dl-list';
+      const h = document.createElement('h3'); h.textContent = title;
+      const list = document.createElement('ol');
+      for (const [key, a] of all.slice(0, TOP)) {
+        const li = document.createElement('li');
+        const label = document.createElement('span'); label.className = 'k'; label.textContent = name(key) || '–'; label.title = key;
+        const val = document.createElement('span'); val.className = 'v';
+        val.textContent = value === 'time' ? duration(a.sum / a.n) : value === 'percent' ? `${Math.round(a.sum / a.n)} %` : `${fmt(a.n)} · ${pct(a.n / sumN)}`;
+        const bar = document.createElement('i'); bar.style.setProperty('--w', (a.n / max).toFixed(3));
+        li.append(label, val, bar);
+        list.append(li);
+      }
+      if (!all.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = 'Noch keine Daten'; list.append(li); }
+      else if (all.length > TOP) { const li = document.createElement('li'); li.className = 'none'; li.textContent = `und ${all.length - TOP} weitere`; list.append(li); }
+      card.append(h, list);
+      return card;
+    }));
   }
 
   function renderDownloads(releases, stats) {
@@ -185,7 +251,8 @@
     const t = series[series.length - 1];
     $('f-today').textContent = fmt(t.w + t.g);
     $('f-today-split').textContent = `Webseite ${fmt(t.w)} / GitHub ${fmt(t.g)}`;
-    drawChart($('chart'), series.map((s) => ({ d: s.d, parts: [s.w, s.g] })), ['var(--accent)', '#9fb3aa']);
+    drawChart($('chart'), series.map((s, i) => ({ parts: [s.w, s.g], label: i % 5 === 4 || i === series.length - 1 ? dayLabel(s.d) : null })),
+      ['var(--accent)', '#9fb3aa']);
 
     const rows = files.slice().sort((a, b) => version(b.file).localeCompare(version(a.file), undefined, { numeric: true }));
     $('versions').replaceChildren(...(rows.length ? rows.map((f) => {
@@ -194,10 +261,12 @@
     }) : [emptyRow(4, 'Noch keine Veröffentlichung')]));
   }
 
-  // Stacked bars per day: parts[k] is drawn in fills[k], the first part at the bottom.
-  function drawChart(svg, series, fills) {
-    const W = 900, H = 240, L = 40, R = 8, T = 12, B = 34;
-    const max = Math.max(1, ...series.map((s) => s.parts.reduce((a, b) => a + b, 0)));
+  // Bars per slot: parts[k] in fills[k], stacked from the bottom, or (overlay)
+  // each drawn from the baseline over the previous one.
+  function drawChart(svg, series, fills, { overlay = false, height = 240 } = {}) {
+    const W = 900, H = height, L = 40, R = 8, T = 12, B = 34;
+    const heightOf = (s) => (overlay ? Math.max(...s.parts) : s.parts.reduce((a, b) => a + b, 0));
+    const max = Math.max(1, ...series.map(heightOf));
     const step = niceStep(max);
     const top = Math.ceil(max / step) * step;
     const y = (v) => T + (H - T - B) * (1 - v / top);
@@ -213,10 +282,11 @@
       const x = L + i * bw + bw * 0.18, w = bw * 0.64;
       let base = 0;
       s.parts.forEach((v, k) => {
-        if (v) nodes.push(el('rect', { x, y: y(base + v), width: w, height: y(base) - y(base + v), fill: fills[k], rx: 2 }));
+        const from = overlay ? 0 : base;
+        if (v) nodes.push(el('rect', { x: overlay && k ? x + w * 0.2 : x, y: y(from + v), width: overlay && k ? w * 0.6 : w, height: y(from) - y(from + v), fill: fills[k], rx: 2 }));
         base += v;
       });
-      if (i % 5 === 4 || i === series.length - 1) nodes.push(el('text', { x: L + i * bw + bw / 2, y: H - 12, 'text-anchor': 'middle' }, s.d.slice(8, 10) + '.' + s.d.slice(5, 7) + '.'));
+      if (s.label) nodes.push(el('text', { x: L + i * bw + bw / 2, y: H - 12, 'text-anchor': 'middle' }, s.label));
     });
     svg.replaceChildren(...nodes);
   }
@@ -238,8 +308,8 @@
         getJSON('/data.json'),
       ]);
       const stats = site.status === 'fulfilled' ? site.value : null;
-      if (stats) renderViews(stats.pageviews || []);
-      else problems.push('Die eigenen Zahlen (Seitenaufrufe, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
+      if (stats) { data = { site: siteRows(stats) }; renderSite(); }
+      else problems.push('Die eigenen Zahlen (Besucher, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
       if (gh.status === 'fulfilled') {
         // Without the counter's figures, GitHub's totals still show; the split waits for them.
         renderDownloads(gh.value, stats || { website: [], github: [] });
@@ -269,6 +339,13 @@
     if (files.length) fetch('/snapshot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(files) }).catch(() => {});
   }
 
+  $('period').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-days]');
+    if (!b) return;
+    period = Number(b.dataset.days);
+    try { localStorage.setItem('nf-stats-period', String(period)); } catch { /* per session */ }
+    renderSite();
+  });
   $('refresh').addEventListener('click', load);
   load();
 })();

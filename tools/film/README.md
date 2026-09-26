@@ -22,3 +22,13 @@ outside git.
 
 `experimental/` holds the walking close-up stage (the app's TerrariumView fed
 with snapshots of a seeded run). It works but is not used on the site.
+
+## Sharp web versions (25 September 2026)
+
+Frames are captured as PNG (JPEG at quality 94 smeared the thin lines) into a
+lossless RGB master (`<name>-master.mkv`); `encode-web.sh` makes the site's
+versions from it: AV1 1440p/1080p, HEVC 1440p for Apple devices, H.264
+1080p/720p and the poster. `docs/assets/site.js` picks one per browser and screen.
+
+    node render.mjs --ss=2 --seconds=14 --loom=5.5 --sway=0.32 --name=hero14-1440 --w=2560 --h=1440
+    FFMPEG=/path/to/ffmpeg bash encode-web.sh out/hero14-1440-master.mkv out/hero14-1440-poster.png out/web

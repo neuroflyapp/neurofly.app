@@ -1,31 +1,82 @@
-// NeuroFly site script: navigation, figures, forms, films, the page counter and
-// the statistics choice. No frameworks and no cookies. Our own page counter records
-// only the date and the page; nothing from a third party loads unless the visitor
-// has allowed page statistics (see consent below).
+// NeuroFly site script: navigation, figures, forms, films, our own statistics and
+// the choice about third-party statistics. No frameworks and no cookies. Our own
+// statistics keep nothing in the browser; nothing from a third party loads unless
+// the visitor has allowed page statistics (see consent below).
 
 // ---- configuration ------------------------------------------------------------------------------
 // formEmail: the address the forms deliver to through Airform (https://airform.io/<address>).
 //   Airform receives a normal HTML form POST; the visitor sees Airform's confirmation page.
 // contactEmail: public address shown next to the forms.
 // statistics: Rybbit page statistics, loaded only after the visitor allows it.
-// pageCounter: our own page view counter (Cloudflare Worker `neurofly-downloads`).
+// collector: our own statistics (Cloudflare Worker `neurofly-downloads`).
 const CONFIG = {
   formEmail: 'contact@neurofly.app',
   contactEmail: 'contact@neurofly.app',
   statistics: { src: 'https://app.rybbit.io/api/script.js?siteId=662701b51c45', storageKeys: ['rybbit-visitor-id', 'rybbit-user-id'] },
-  pageCounter: 'https://get.neurofly.app/view',
+  collector: 'https://get.neurofly.app/collect',
+  // Donations: Stripe Payment Links (Stripe dashboard → Payment links), one per
+  // amount; `onceOther` is a link where the donor chooses the amount. In each
+  // link's settings, after payment redirect to https://neurofly.app/?thanks=1#support.
+  // The support section and its menu link stay hidden until a link is filled in.
+  donate: {
+    currency: 'CHF',
+    once: [
+      { amount: 10, url: '', impact: 'Fuels another round of simulation runs.' },
+      { amount: 25, url: '', impact: 'Helps render the next film from the real circuit.', suggested: true },
+      { amount: 50, url: '', impact: 'Supports a new part of the connectome.' },
+      { amount: 100, url: '', impact: 'Backs a whole release — free for everyone.' },
+    ],
+    onceOther: '',
+    monthly: [
+      { amount: 5, url: '', impact: 'Keeps NeuroFly running, month after month.' },
+      { amount: 10, url: '', impact: 'Makes you part of every release.', suggested: true },
+      { amount: 25, url: '', impact: 'Carries the science forward, steadily.' },
+    ],
+  },
 };
 
-// ---- page counter ---------------------------------------------------------------------------------
-// Sends this page's path to our counter, which stores only the date and the page:
-// no IP address, cookie or identifier, and nothing is kept in the browser, so it
-// runs without consent. Only the published site counts, and a prerendered page
-// only once it is shown.
-if (location.hostname === 'neurofly.app') {
-  const countView = () => { try { navigator.sendBeacon(CONFIG.pageCounter, location.pathname); } catch { /* not counted */ } };
-  if (document.prerendering) document.addEventListener('prerenderingchange', countView, { once: true });
-  else countView();
-}
+// ---- our own statistics ---------------------------------------------------------------------------
+// Each page tells our counter what it is, where the visit came from (referring
+// site, campaign parameters), the screen's width, how long it was looked at and
+// how far it was scrolled, and which downloads, films, forms and links were
+// used. The counter keeps daily totals only and nothing is stored in the
+// browser, so it runs without consent. Only the published site counts, and a
+// prerendered page only once it is shown.
+const collect = (() => {
+  if (location.hostname !== 'neurofly.app') return () => {};
+  const send = (m) => { try { navigator.sendBeacon(CONFIG.collector, JSON.stringify(m)); } catch { /* not counted */ } };
+  const notFound = document.documentElement.dataset.page === '404';
+  const p = notFound ? '/404' : location.pathname;
+  const q = new URLSearchParams(location.search);
+  const pageview = () => send({ t: 'pv', p, nf: notFound ? location.pathname : undefined, r: document.referrer || '', w: screen.width,
+    us: q.get('utm_source') || undefined, um: q.get('utm_medium') || undefined, uc: q.get('utm_campaign') || undefined });
+  if (document.prerendering) document.addEventListener('prerenderingchange', pageview, { once: true });
+  else pageview();
+
+  let since = document.visibilityState === 'visible' ? performance.now() : null, first = true, depth = 0;
+  const measure = () => {
+    const room = document.documentElement.scrollHeight - innerHeight;
+    depth = Math.max(depth, room > 0 ? Math.min(100, Math.round(100 * scrollY / room)) : 100);
+  };
+  measure();
+  addEventListener('scroll', measure, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') { since = performance.now(); return; }
+    if (since === null) return;
+    send({ t: 'end', p, ms: Math.round(performance.now() - since), sc: first ? depth : undefined });
+    since = null; first = false;
+  });
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest?.('a[href]');
+    if (!a) return;
+    const u = new URL(a.href, location.href);
+    if (u.protocol === 'mailto:') send({ t: 'ev', p, n: 'email' });
+    else if (u.hostname === 'get.neurofly.app') send({ t: 'ev', p, n: 'download', v: u.pathname.slice(1) });
+    else if (/^https?:$/.test(u.protocol) && u.hostname !== location.hostname) send({ t: 'ev', p, n: 'outbound', v: u.hostname.replace(/^www\./, '') });
+  }, { capture: true });
+  document.addEventListener('submit', (e) => send({ t: 'ev', p, n: 'form', v: e.target.id || e.target.getAttribute('name') || 'form' }), { capture: true });
+  return (name, value) => send({ t: 'ev', p, n: name, v: value });
+})();
 
 // ---- navigation -----------------------------------------------------------------------------------
 const toggle = document.querySelector('.nav-toggle');
@@ -160,6 +211,7 @@ for (const n of document.querySelectorAll('[data-consent-state]')) {
 
 // ---- statistics events (only if the visitor allowed statistics) --------------------------------
 function track(name, props) {
+  collect(name, props ? Object.values(props)[0] : undefined);
   try { window.rybbit?.event?.(name, props); } catch { /* statistics are optional */ }
 }
 document.addEventListener('click', (e) => {
@@ -410,9 +462,17 @@ if (hero && !reduceMotion) {
   const conn = navigator.connection;
   const slow = conn && (conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || ''));
   if (!slow) {
-    const large = Math.max(window.innerWidth, 1) * (window.devicePixelRatio || 1) > 1400;
+    // The sharpest file this browser plays well for this screen: AV1, then
+    // HEVC (Apple devices), then H.264; 1440p where the screen has the pixels.
+    const px = Math.max(window.innerWidth, 1) * (window.devicePixelRatio || 1);
+    const can = (type) => hero.canPlayType?.(type) === 'probably';
+    const d = hero.dataset;
+    const src = can('video/mp4; codecs="av01.0.12M.08"') && px > 2000 ? d.srcAv1Xl
+      : can('video/mp4; codecs="av01.0.08M.08"') ? d.srcAv1
+      : can('video/mp4; codecs="hvc1.1.6.L150.90"') && px > 1400 ? d.srcHevcXl
+      : px > 1400 ? d.srcLarge : d.srcSmall;
     const start = () => {
-      hero.src = large ? hero.dataset.srcLarge : hero.dataset.srcSmall;
+      hero.src = src;
       hero.preload = 'auto';
       hero.addEventListener('canplaythrough', () => {
         hero.classList.add('is-ready');
@@ -453,4 +513,54 @@ if (reelDialog) {
   reelDialog.querySelector('.close').addEventListener('click', closeFilm);
   reelDialog.addEventListener('click', (e) => { if (e.target === reelDialog) closeFilm(); });
   reelDialog.addEventListener('cancel', (e) => { e.preventDefault(); closeFilm(); });
+}
+
+// ---- support (donations) ----------------------------------------------------------------------------
+// Each amount opens its own Stripe Payment Link; Stripe brings the donor back
+// to /?thanks=1#support, where the section says thank you instead.
+const support = document.querySelector('[data-support]');
+if (support) {
+  const D = CONFIG.donate;
+  const offers = { once: D.once.filter((o) => o.url), monthly: D.monthly.filter((o) => o.url) };
+  if (D.onceOther) offers.once.push({ amount: null, url: D.onceOther, impact: 'Choose any amount on the next page. Every franc counts.' });
+  if (offers.once.length || offers.monthly.length) {
+    support.hidden = false;
+    for (const a of document.querySelectorAll('[data-support-link]')) a.hidden = false;
+    const amounts = support.querySelector('[data-support-amounts]');
+    const impact = support.querySelector('[data-support-impact]');
+    const go = support.querySelector('[data-support-go]');
+    const freqButtons = [...support.querySelectorAll('[data-freq]')];
+    let freq = offers.once.length ? 'once' : 'monthly', choice = null;
+    if (!offers.once.length || !offers.monthly.length) freqButtons[0].parentElement.hidden = true;
+    const render = () => {
+      const list = offers[freq];
+      if (!list.includes(choice)) choice = list.find((o) => o.suggested) || list[0];
+      for (const b of freqButtons) b.setAttribute('aria-pressed', String(b.dataset.freq === freq));
+      amounts.replaceChildren(...list.map((o) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(o === choice));
+        if (o.amount === null) { b.className = 'other'; b.textContent = 'Other amount'; }
+        else {
+          b.textContent = `${D.currency} ${o.amount}`;
+          if (o.suggested) { const s = document.createElement('small'); s.textContent = 'Suggested'; b.append(s); }
+        }
+        b.addEventListener('click', () => { choice = o; render(); });
+        return b;
+      }));
+      impact.textContent = choice.impact;
+      go.href = choice.url;
+      go.textContent = choice.amount === null ? 'Choose your amount'
+        : `Donate ${D.currency} ${choice.amount}${freq === 'monthly' ? ' a month' : ''}`;
+    };
+    for (const b of freqButtons) b.addEventListener('click', () => { freq = b.dataset.freq; render(); });
+    go.addEventListener('click', () => collect('donate', `${freq} ${choice.amount ?? 'other'}`));
+    render();
+    if (new URLSearchParams(location.search).has('thanks')) {
+      support.querySelector('[data-support-form]').hidden = true;
+      support.querySelector('[data-support-thanks]').hidden = false;
+      collect('donate-thanks');
+      support.scrollIntoView({ block: 'center' });
+    }
+  }
 }

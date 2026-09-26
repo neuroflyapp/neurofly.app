@@ -66,6 +66,7 @@
       <a href="vision.html">Vision</a>
       <a href="ethics.html">Ethics</a>
       <a href="contact.html">Contact</a>
+      <a href="index.html#support" data-support-link hidden>Support</a>
       <a class="cta" href="#get" data-track="nav-get">Get NeuroFly</a>
     </nav>
   </div>
@@ -74,7 +75,8 @@
 <main id="main">
 <div class="hero-film">
   <video class="hero-video" muted loop playsinline preload="none" poster="media/hero-poster.jpg"
-    data-hero data-src-large="media/hero-1080.mp4" data-src-small="media/hero-720.mp4" aria-hidden="true"></video>
+    data-hero data-src-av1-xl="media/hero-1440-av1.mp4" data-src-av1="media/hero-1080-av1.mp4" data-src-hevc-xl="media/hero-1440-hevc.mp4"
+    data-src-large="media/hero-1080.mp4" data-src-small="media/hero-720.mp4" aria-hidden="true"></video>
   <div class="hero-shade" aria-hidden="true"></div>
   <div class="wrap hero-copy">
     <span class="kicker">In-silico neuroscience · <i>Drosophila melanogaster</i></span>
@@ -337,6 +339,44 @@
       <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a></p>
     <p class="note intended-use">NeuroFly is a research and teaching tool. It is not validated for medical, veterinary,
       regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance.</p>
+  </div>
+</section>
+
+<section class="support-band" id="support" aria-labelledby="support-title" data-support hidden>
+  <div class="wrap support-grid">
+    <div class="support-story">
+      <span class="kicker">Support NeuroFly</span>
+      <h2 id="support-title">Keep her brain growing.</h2>
+      <p class="support-lead">NeuroFly is free, open to everyone and carries no advertising. Every simulation run, every film
+        rendered from the real circuit and every new part of the connectome comes from an independent project — and stays
+        free because people choose to support it.</p>
+      <ul class="support-uses">
+        <li><b>Computing power</b> for simulation runs, validation and films from the real circuit</li>
+        <li><b>New science</b>: further parts of the connectome, experiments and the literature behind them</li>
+        <li><b>Free for everyone</b>: classrooms, students and researchers, without ads or accounts</li>
+      </ul>
+    </div>
+    <div class="support-card">
+      <div class="support-thanks" data-support-thanks hidden>
+        <span class="support-thanks-mark" aria-hidden="true"></span>
+        <h3>Thank you.</h3>
+        <p>You just helped a fly's brain grow. Your support keeps NeuroFly free for everyone who wants to see a brain at work.</p>
+        <p class="support-share"><a class="btn secondary" href="https://x.com/intent/post?text=NeuroFly%20%E2%80%94%20a%20fruit%20fly%20brain%20you%20can%20watch%20think.&amp;url=https%3A%2F%2Fneurofly.app" target="_blank" rel="noopener">Share NeuroFly</a></p>
+      </div>
+      <div class="support-form" data-support-form>
+        <div class="support-freq" role="group" aria-label="How often">
+          <button type="button" data-freq="once" aria-pressed="true">One-time</button>
+          <button type="button" data-freq="monthly" aria-pressed="false">Monthly</button>
+        </div>
+        <div class="support-amounts" role="group" aria-label="Amount" data-support-amounts></div>
+        <p class="support-impact" aria-live="polite" data-support-impact></p>
+        <a class="btn primary support-go" href="#support" data-support-go>Donate</a>
+        <p class="support-trust">TWINT, Apple Pay, Google Pay or card · secure checkout by Stripe · no account needed</p>
+      </div>
+      <p class="support-fine">NeuroFly is an independent, non-commercial project, not a registered charity. Donations are
+        voluntary gifts to the project as a whole and are not tax-deductible. <a href="terms.html#donations">Terms</a> ·
+        <a href="privacy.html#donations">Privacy</a></p>
+    </div>
   </div>
 </section>
 

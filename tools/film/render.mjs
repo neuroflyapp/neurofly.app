@@ -88,36 +88,36 @@ console.log('stage:', JSON.stringify(info).slice(0, 300));
 
 const render = (f) => page.evaluate(({ f, s }) => window.stage.renderFrame(f, s), { f, s: spikes[f + PRE] });
 for (let f = -PRE; f < 0; f++) await render(f);
-const shot = () => page.screenshot({ type: 'jpeg', quality: 94 });
+// Lossless frames: JPEG (even at quality 94, 4:2:0 chroma) smeared the thin
+// synapse lines and single-pixel somata before the video encode.
+const shot = () => page.screenshot({ type: 'png' });
 const stills = arg('still', null);
 if (stills) {
   const want = new Set(stills.split(',').map(Number));
   const last = Math.max(...want);
   for (let f = 0; f <= last; f++) {
     await render(f);
-    if (want.has(f)) { await fs.writeFile(path.join(OUT, `${NAME}-still-${f}.jpg`), await shot()); console.log('still', f); }
+    if (want.has(f)) { await fs.writeFile(path.join(OUT, `${NAME}-still-${f}.png`), await shot()); console.log('still', f); }
   }
 } else {
-  const common = ['-c:v', 'libx264', '-preset', 'slow', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(FPS),
-    '-g', String(FPS * 2), '-movflags', '+faststart', '-an', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709'];
-  const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-vcodec', 'mjpeg', '-i', 'pipe:0',
-    '-filter_complex', `[0:v]scale=${W}:${H}:flags=lanczos,format=yuv420p,split=2[a][b];[b]scale=${Math.round(W * 2 / 3)}:${Math.round(H * 2 / 3)}:flags=lanczos[c]`,
-    '-map', '[a]', ...common, '-crf', arg('crf', '21'), path.join(OUT, `${NAME}-1080.mp4`),
-    '-map', '[c]', ...common, '-crf', arg('crf720', '23'), path.join(OUT, `${NAME}-720.mp4`)];
+  // One lossless RGB master; the web versions (AV1, H.264, smaller sizes) are
+  // encoded from it with tools/film/encode-web.sh.
+  const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-vcodec', 'png', '-i', 'pipe:0',
+    '-c:v', 'libx264rgb', '-preset', 'medium', '-qp', '0', '-r', String(FPS), '-an', path.join(OUT, `${NAME}-master.mkv`)];
   const enc = spawn(FFMPEG, args, { stdio: ['pipe', 'ignore', 'pipe'] });
   let err = ''; enc.stderr.on('data', (b) => { err = (err + b).slice(-4000); });
   const t0 = Date.now();
   for (let f = 0; f < N; f++) {
     await render(f);
     const jpg = await shot();
-    if (f === Number(arg('posterAt', 0))) await fs.writeFile(path.join(OUT, `${NAME}-poster.jpg`), jpg);
+    if (f === Number(arg('posterAt', 0))) await fs.writeFile(path.join(OUT, `${NAME}-poster.png`), jpg);
     if (!enc.stdin.write(jpg)) await once(enc.stdin, 'drain');
     if (f % 60 === 0) console.log(`frame ${f}/${N} ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   }
   enc.stdin.end();
   const [code] = await once(enc, 'close');
   if (code) throw new Error(`ffmpeg ${code}: ${err}`);
-  console.log('done', fss.statSync(path.join(OUT, `${NAME}-1080.mp4`)).size, fss.statSync(path.join(OUT, `${NAME}-720.mp4`)).size);
+  console.log('done', fss.statSync(path.join(OUT, `${NAME}-master.mkv`)).size);
 }
 await browser.close();
 server.close();

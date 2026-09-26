@@ -1,0 +1,15 @@
+# Worker neurofly-stats (stats-worker.js): the dashboard, behind Cloudflare Access.
+name = "neurofly-stats"
+main = "stats-worker.js"
+routes = [{ pattern = "stats.neurofly.app", custom_domain = true }]
+compatibility_date = "2026-09-01"
+workers_dev = false
+preview_urls = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "neurofly-downloads"
+database_id = "82859622-789e-4092-96a7-0a646341c0ab"
+
+[observability]
+enabled = false

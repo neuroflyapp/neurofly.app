@@ -497,3 +497,53 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .download-meta { margin-top: 18px; }
 .download-meta code { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; background: var(--paper-2);
   padding: 1px 5px; border-radius: 4px; color: var(--ink-2); }
+
+/* ---- support (donations) ---------------------------------------------------------------------------- */
+.support-band { position: relative; overflow: hidden; background: #070c0b; color: var(--night-ink); padding-block: clamp(56px, 8vw, 104px); }
+.support-band[hidden] { display: none; }
+.support-band::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at 78% 40%, rgba(109, 255, 160, .10), transparent 70%),
+    linear-gradient(90deg, #070c0b 0%, rgba(7, 12, 11, .82) 45%, rgba(7, 12, 11, .55) 100%), url("../media/hero-poster.jpg") right center / cover no-repeat; opacity: .95; }
+.support-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.support-band .kicker { color: #6dffa0; }
+.support-band h2 { color: #f4faf7; font-size: clamp(34px, 4.6vw, 56px); line-height: 1.04; letter-spacing: -.02em; margin: 10px 0 18px; max-width: 13ch; }
+.support-lead { font-size: clamp(17px, 1.5vw, 19.5px); line-height: 1.6; color: #c9d6d1; max-width: 52ch; margin: 0 0 22px; }
+.support-uses { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; max-width: 54ch; }
+.support-uses li { position: relative; padding-left: 26px; color: #aebdb7; line-height: 1.5; }
+.support-uses li::before { content: ""; position: absolute; left: 4px; top: .55em; width: 9px; height: 9px; border-radius: 50%;
+  background: #6dffa0; box-shadow: 0 0 12px 2px rgba(109, 255, 160, .55); }
+.support-uses b { color: #eef5f2; font-weight: 620; }
+.support-card { background: rgba(14, 22, 20, .86); border: 1px solid #22322d; border-radius: 18px; padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), 0 0 0 1px rgba(109, 255, 160, .04) inset; }
+.support-freq { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: #0b1311; border: 1px solid #1f2d29; margin-bottom: 16px; }
+.support-freq button { font: 620 15px/1 var(--sans); padding: 12px; border-radius: 9px; border: 0; background: transparent; color: #9aaaa4; cursor: pointer; }
+.support-freq button[aria-pressed="true"] { background: #17231f; color: #f4faf7; box-shadow: inset 0 0 0 1px #2b3e38; }
+.support-amounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px; }
+.support-amounts button { position: relative; font: 650 19px/1 var(--sans); padding: 18px 10px; border-radius: 12px; cursor: pointer;
+  background: #0f1917; color: #e8efec; border: 1px solid #2a3a35; transition: border-color .15s, background .15s, transform .15s; font-variant-numeric: tabular-nums; }
+.support-amounts button:hover { border-color: #3f5a51; transform: translateY(-1px); }
+.support-amounts button[aria-pressed="true"] { background: linear-gradient(180deg, #13402a, #0e2c1e); border-color: #6dffa0; color: #fff;
+  box-shadow: 0 0 0 1px #6dffa0 inset, 0 8px 28px -10px rgba(109, 255, 160, .55); }
+.support-amounts button small { display: block; font: 600 10.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: #6dffa0; margin-top: 7px; }
+.support-amounts button.other { font-size: 15px; }
+.support-impact { min-height: 3em; margin: 16px 2px 14px; color: #c9d6d1; line-height: 1.5; font-size: 15.5px; }
+.support-go { width: 100%; justify-content: center; font-size: 17px; padding: 17px 22px; border-radius: 12px; }
+.support-trust { margin: 12px 0 0; text-align: center; font-size: 12.5px; color: #8a9b95; }
+.support-fine { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #1f2d29; font-size: 12px; line-height: 1.55; color: #7e8f89; }
+.support-fine a { color: #a9bab4; }
+.support-thanks { text-align: center; padding: 8px 4px 4px; }
+.support-thanks h3 { color: #f4faf7; font-size: 30px; margin: 14px 0 8px; }
+.support-thanks p { color: #c9d6d1; line-height: 1.6; }
+.support-thanks-mark { display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle, #b8ffd3 0%, #6dffa0 38%, rgba(109, 255, 160, 0) 70%);
+  animation: support-pulse 2.4s ease-in-out infinite; }
+@keyframes support-pulse { 0%, 100% { transform: scale(.85); opacity: .75; } 50% { transform: scale(1.1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .support-thanks-mark { animation: none; } .support-amounts button { transition: none; } }
+@media (max-width: 860px) { .support-grid { grid-template-columns: 1fr; } .support-band::before { background-position: center top; } }
+.support-amounts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.support-amounts button.other { grid-column: 1 / -1; padding: 13px 10px; font-weight: 600; color: #b9c8c2; }
+.support-band .support-go { background: #6dffa0; color: #04140b; border-color: #6dffa0; font-weight: 700;
+  box-shadow: 0 10px 34px -10px rgba(109, 255, 160, .75), inset 0 1px 0 rgba(255, 255, 255, .5); transition: transform .15s, box-shadow .15s; }
+.support-band .support-go:hover { background: #8dffb6; transform: translateY(-1px); box-shadow: 0 14px 40px -10px rgba(109, 255, 160, .9), inset 0 1px 0 rgba(255, 255, 255, .5); }
+.support-band .support-go:focus-visible, .support-amounts button:focus-visible, .support-freq button:focus-visible { outline: 2px solid #b8ffd3; outline-offset: 3px; }
+@media (max-width: 480px) { .support-amounts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.support-amounts button { white-space: nowrap; font-size: clamp(16px, 1.35vw, 19px); padding-inline: 6px; }

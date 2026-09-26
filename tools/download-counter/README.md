@@ -51,11 +51,21 @@ The Worker itself also refuses every request without an Access token.
 
 ## Deploying
 
-The dashboard editor mangles multi-line typing, so each deployed copy is its
-file with the comment lines removed and the lines joined by spaces (every
-statement terminated, no comments inside code lines). After deploying, read the
-script back (`/workers/scripts/<name>/content/v2`) and compare its SHA-256 with
-the joined local file. A new table is created in the D1 console before the code
-that uses it is deployed.
+With wrangler (logged in once with `npx wrangler login`), from this folder:
+
+    npm install
+    npm run deploy:counter    # worker.js       -> neurofly-downloads (wrangler.counter.toml)
+    npm run deploy:stats      # stats-worker.js -> neurofly-stats     (wrangler.stats.toml)
+
+The configs carry the custom domains, the hourly cron, the D1 binding and
+`workers_dev`/`preview_urls` off; the Access protection of neurofly-stats is an
+Access application and is not touched by a deploy. New tables go first:
+`npx wrangler d1 execute neurofly-downloads --remote --command "CREATE TABLE …"`.
+Test locally with `npx wrangler dev -c wrangler.counter.toml --local` (a local
+D1 copy; create the tables there with `--local`).
+
+Site statistics (`POST /collect`) keep daily totals in `stats` (metric, key,
+count, sum); `visitors` and `salts` hold the per-day visitor hashes and salt and
+are emptied by the hourly cron once the UTC day is over.
 
 When releasing a new version, link the button to `https://get.neurofly.app/v<new version>`.
