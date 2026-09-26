@@ -25,7 +25,7 @@ Facts behind the wording (checked 23 September 2026; re-check before changing):
   Cloudflare.
 - Mail: contact@neurofly.app is hosted by Apple iCloud Mail (MX records);
   Apple uses standard contractual clauses for EEA/UK/CH transfers.
-- Desktop app 2.1.0: no network code; runtime test with all workspaces made
+- Desktop app 2.2.0 (as 2.1.0): no network code; runtime test with all workspaces made
   0 network requests. UI preferences are kept in the app's own local storage;
   exports go only where the user saves them.
 """
@@ -246,7 +246,7 @@ privacy = f"""
       contribution. If you do not want to be named, please say so in your message.</p>
 
     <h2 id="software">5. The NeuroFly software</h2>
-    <p>NeuroFly for Windows runs on your computer. The current version (2.1) contains no telemetry, crash reporting, update check,
+    <p>NeuroFly for Windows runs on your computer. The current version (2.2) contains no telemetry, crash reporting, update check,
       advertising or account, and sends no data to us. Links to scientific publications in the application open in your web browser,
       and only when you click them.</p>
     <p>The application keeps your interface settings (for example language and panel choices) in its own local storage on your

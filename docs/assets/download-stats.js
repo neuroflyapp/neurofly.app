@@ -57,13 +57,19 @@
     <div class="legend"><span><i class="sw-web"></i>Webseite</span><span><i class="sw-gh"></i>direkt auf GitHub</span></div>
     <svg class="chart" id="chart" viewBox="0 0 900 240" role="img" aria-label="Downloads pro Tag"></svg>
   </section>
+  <section class="dl-panel" aria-labelledby="h-byversion">
+    <h2 id="h-byversion">Pro Tag und Version</h2>
+    <p class="sub">Letzte 30 Tage, UTC: Downloads (Webseite und GitHub direkt) jeder Veröffentlichung; gestrichelt der Tag der Veröffentlichung.</p>
+    <div class="legend" id="version-legend"></div>
+    <svg class="chart" id="chart-versions" viewBox="0 0 900 240" role="img" aria-label="Downloads pro Tag und Version"></svg>
+  </section>
   <section class="dl-panel" aria-labelledby="h-versions">
     <h2 id="h-versions">Pro Version</h2>
     <p class="sub">Windows-Build (ZIP) jeder Veröffentlichung.</p>
     <div class="table-wrap dl-table">
       <table class="dl">
-        <thead><tr><th>Version</th><th>Insgesamt</th><th>Webseite</th><th>GitHub direkt</th></tr></thead>
-        <tbody id="versions"><tr><td colspan="4">–</td></tr></tbody>
+        <thead><tr><th>Version</th><th>Veröffentlicht</th><th>Insgesamt</th><th>Webseite</th><th>GitHub direkt</th><th>Ø pro Tag</th></tr></thead>
+        <tbody id="versions"><tr><td colspan="6">–</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -108,7 +114,14 @@
     ['scrolldepth', 'Scrolltiefe'], ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
   ];
 
+  const VERSION_COLORS = ['#0b7a47', '#2a78d6', '#eb6834', '#9b59b6', '#c9a227', '#1baf7a', '#7f8c8d'];
   let data = null, period = 30;
+  // Release days (UTC) -> versions, from GitHub's release list.
+  const releaseMarks = (span, releases) => {
+    const at = new Map(span.map((d, i) => [d, i]));
+    return (releases || []).filter((r) => r.published_at && at.has(r.published_at.slice(0, 10)))
+      .map((r) => ({ index: at.get(r.published_at.slice(0, 10)), label: r.tag_name }));
+  };
   try { period = Number(localStorage.getItem('nf-stats-period')) || 30; } catch { /* default */ }
 
   async function getJSON(url) {
@@ -178,7 +191,8 @@
       const pvDay = byDay('pv'), visDay = byDay('visitors');
       const every = period <= 7 ? 1 : period <= 30 ? 5 : 15;
       drawChart($('chart-views'), span.map((d, i) => ({ parts: [pvDay.get(d) || 0, visDay.get(d) || 0],
-        label: i % every === every - 1 || i === span.length - 1 ? dayLabel(d) : null })), ['#9fb3aa', 'var(--accent)'], { overlay: true });
+        label: i % every === every - 1 || i === span.length - 1 ? dayLabel(d) : null })), ['#9fb3aa', 'var(--accent)'],
+        { overlay: true, marks: releaseMarks(span, data.releases) });
     }
     const hours = new Array(24).fill(0);
     for (const r of rows) if (r.metric === 'hour') hours[hourOf(r.key)] += r.n;
@@ -234,15 +248,17 @@
     // first stored day), so the bars add up to the totals above.
     const span = days(30);
     const today = span[span.length - 1];
-    const ghDay = new Map();
+    const ghDay = new Map(), ghFileDay = new Map();
     for (const f of files) {
+      const own = new Map();
+      ghFileDay.set(f.file, own);
       const totals = new Map(stats.github.filter((r) => r.file === f.file).map((r) => [r.day, r.total]));
       totals.set(today, Math.max(totals.get(today) || 0, f.total)); // live value for today
       const webRows = web.filter((r) => r.file === f.file);
       let prev = 0;
       for (const d of [...totals.keys()].sort()) {
         const direct = totals.get(d) - webRows.reduce((s, r) => s + (r.day <= d ? r.n : 0), 0);
-        if (direct > prev) { ghDay.set(d, (ghDay.get(d) || 0) + direct - prev); prev = direct; }
+        if (direct > prev) { ghDay.set(d, (ghDay.get(d) || 0) + direct - prev); own.set(d, direct - prev); prev = direct; }
       }
     }
     const webDay = new Map();
@@ -251,19 +267,38 @@
     const t = series[series.length - 1];
     $('f-today').textContent = fmt(t.w + t.g);
     $('f-today-split').textContent = `Webseite ${fmt(t.w)} / GitHub ${fmt(t.g)}`;
+    const marks = releaseMarks(span, releases);
     drawChart($('chart'), series.map((s, i) => ({ parts: [s.w, s.g], label: i % 5 === 4 || i === series.length - 1 ? dayLabel(s.d) : null })),
-      ['var(--accent)', '#9fb3aa']);
+      ['var(--accent)', '#9fb3aa'], { marks });
 
+    // Per day and version: website + direct GitHub downloads of each release's ZIP.
+    const byVersion = files.slice().sort((a, b) => version(a.file).localeCompare(version(b.file), undefined, { numeric: true }));
+    const fills = byVersion.map((_, k) => VERSION_COLORS[k % VERSION_COLORS.length]);
+    const legend = $('version-legend');
+    legend.replaceChildren(...byVersion.map((f, k) => {
+      const item = document.createElement('span'); const sw = document.createElement('i');
+      sw.style.background = fills[k]; item.append(sw, document.createTextNode(version(f.file)));
+      return item;
+    }));
+    drawChart($('chart-versions'), span.map((d, i) => ({
+      parts: byVersion.map((f) => web.reduce((n, r) => n + (r.file === f.file && r.day === d ? r.n : 0), 0) + (ghFileDay.get(f.file)?.get(d) || 0)),
+      label: i % 5 === 4 || i === span.length - 1 ? dayLabel(d) : null })), fills, { marks });
+
+    const releasedAt = new Map();
+    for (const r of releases) for (const a of r.assets) if (ZIP.test(a.name) && r.published_at) releasedAt.set(a.name, r.published_at);
     const rows = files.slice().sort((a, b) => version(b.file).localeCompare(version(a.file), undefined, { numeric: true }));
     $('versions').replaceChildren(...(rows.length ? rows.map((f) => {
       const w = webBy(f.file);
-      return tableRow([version(f.file), fmt(f.total), fmt(w), fmt(Math.max(0, f.total - w))]);
-    }) : [emptyRow(4, 'Noch keine Veröffentlichung')]));
+      const at = releasedAt.get(f.file);
+      const daysOut = at ? Math.max(1, (Date.now() - Date.parse(at)) / 864e5) : null;
+      return tableRow([version(f.file), at ? new Date(at).toLocaleDateString('de-CH') : '–', fmt(f.total), fmt(w), fmt(Math.max(0, f.total - w)),
+        daysOut ? (f.total / daysOut).toLocaleString('de-CH', { maximumFractionDigits: 1 }) : '–']);
+    }) : [emptyRow(6, 'Noch keine Veröffentlichung')]));
   }
 
   // Bars per slot: parts[k] in fills[k], stacked from the bottom, or (overlay)
   // each drawn from the baseline over the previous one.
-  function drawChart(svg, series, fills, { overlay = false, height = 240 } = {}) {
+  function drawChart(svg, series, fills, { overlay = false, height = 240, marks = [] } = {}) {
     const W = 900, H = height, L = 40, R = 8, T = 12, B = 34;
     const heightOf = (s) => (overlay ? Math.max(...s.parts) : s.parts.reduce((a, b) => a + b, 0));
     const max = Math.max(1, ...series.map(heightOf));
@@ -288,6 +323,12 @@
       });
       if (s.label) nodes.push(el('text', { x: L + i * bw + bw / 2, y: H - 12, 'text-anchor': 'middle' }, s.label));
     });
+    for (const m of marks) {
+      const x = L + m.index * bw + bw / 2;
+      nodes.push(el('line', { x1: x, x2: x, y1: T, y2: H - B, stroke: '#eb6834', 'stroke-width': 1.5, 'stroke-dasharray': '4 4' }));
+      const right = x > W - 90;   // near the right edge the label goes to the left of the line
+      nodes.push(el('text', { x: right ? x - 4 : x + 4, y: T + 10, 'text-anchor': right ? 'end' : 'start', fill: '#eb6834' }, m.label));
+    }
     svg.replaceChildren(...nodes);
   }
 
@@ -311,6 +352,7 @@
       if (stats) { data = { site: siteRows(stats) }; renderSite(); }
       else problems.push('Die eigenen Zahlen (Besucher, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
       if (gh.status === 'fulfilled') {
+        if (data) { data.releases = gh.value; renderSite(); }
         // Without the counter's figures, GitHub's totals still show; the split waits for them.
         renderDownloads(gh.value, stats || { website: [], github: [] });
         storeSnapshot(gh.value);
