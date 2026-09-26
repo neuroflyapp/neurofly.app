@@ -22,8 +22,8 @@ const CONFIG = {
     currency: 'CHF',
     once: [
       { amount: 10, url: '', impact: 'Fuels another round of simulation runs.' },
-      { amount: 25, url: '', impact: 'Helps render the next film from the real circuit.', suggested: true },
-      { amount: 50, url: '', impact: 'Supports a new part of the connectome.' },
+      { amount: 25, url: '', impact: 'Helps render the next film from a simulation run.', suggested: true },
+      { amount: 50, url: '', impact: 'Supports a new experiment in the in-silico lab.' },
       { amount: 100, url: '', impact: 'Backs a whole release — free for everyone.' },
     ],
     onceOther: '',
