@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neurofly.app; img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
 <title>Cookies — NeuroCause</title>
 <meta name="description" content="Which cookies and similar technologies neuro-cause.com uses, and how to change your choice.">
 <meta name="robots" content="index, follow">
@@ -47,7 +47,7 @@
 <section class="block">
   <div class="wrap prose legal">
 
-    <p class="small">Effective 28 September 2026. This page adds detail to the <a href="privacy.html">privacy notice</a>.</p>
+    <p class="small">Effective 29 September 2026. This page adds detail to the <a href="privacy.html">privacy notice</a>.</p>
     <h2>Cookies and similar technologies</h2>
     <p>Like most websites, neuro-cause.com keeps a few small entries in your browser. We store them in the browser’s local storage
       rather than in classic HTTP cookies, but they serve the same purpose, so we call them cookies here. Our own usage
@@ -64,15 +64,15 @@
       </table>
     </div>
     <h3>Statistics</h3>
-    <p>Optional, only with your consent. We use Rybbit (rybbit.com) to see which pages are read and how visitors find the site.
-      Rybbit stores the statistics on servers in the EU and keeps them for three years; see the
+    <p>Optional, only with your consent. Microsoft Clarity provides heatmaps and masked session recordings; see the
       <a href="privacy.html#statistics">privacy notice</a>.</p>
     <div class="table-wrap">
       <table class="spec legal-table">
         <thead><tr><th>Name</th><th>Provider</th><th>Purpose</th><th>Duration</th></tr></thead>
         <tbody>
-          <tr><td><code>rybbit-visitor-id</code></td><td>Rybbit</td><td>A random ID, so that a repeat visit is counted as one visitor</td>
-            <td>Until you withdraw consent or clear your browser data</td></tr>
+          <tr><td><code>_clck</code>, <code>_clsk</code> and related Clarity storage</td><td>Microsoft Clarity</td>
+            <td>Recognise visits and connect page interactions into sessions</td>
+            <td>According to Microsoft's cookie policy, or until you clear browser data</td></tr>
         </tbody>
       </table>
     </div>
@@ -80,8 +80,8 @@
     <p>On your first visit we ask whether you accept all cookies or only the necessary ones. Your current setting on this browser:
       statistics <b data-consent-state>not yet chosen</b>.</p>
     <p><button type="button" class="btn secondary" data-privacy-settings>Privacy settings</button></p>
-    <p>You can change or withdraw your consent there at any time; if you withdraw it, the statistics ID is deleted from your browser.
-      You can also delete stored entries in your browser’s settings.</p>
+    <p>You can change or withdraw your consent there at any time; Clarity stops loading on later pages. To remove cookies already
+      saved, clear this site's data in your browser settings.</p>
 
   </div>
 </section>

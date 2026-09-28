@@ -521,6 +521,7 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .support-freq button { font: 620 15px/1 var(--sans); padding: 12px; border-radius: 9px; border: 0; background: transparent; color: #9aaaa4; cursor: pointer; }
 .support-freq button[aria-pressed="true"] { background: #17231f; color: #f4faf7; box-shadow: inset 0 0 0 1px #2b3e38; }
 .support-amounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px; }
+.support-amounts[hidden] { display: none; }
 .support-amounts button { position: relative; font: 650 19px/1 var(--sans); padding: 18px 10px; border-radius: 12px; cursor: pointer;
   background: #0f1917; color: #e8efec; border: 1px solid #2a3a35; transition: border-color .15s, background .15s, transform .15s; font-variant-numeric: tabular-nums; }
 .support-amounts button:hover { border-color: #3f5a51; transform: translateY(-1px); }

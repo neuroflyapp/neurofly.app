@@ -16,12 +16,9 @@ Facts behind the wording (checked 23 September 2026; re-check before changing):
   in the browser.
 - Donations: Stripe Payment Links (TWINT, cards, Apple/Google Pay), links set in
   assets/site.js CONFIG.donate; the support section is hidden until then.
-- Statistics: Rybbit (app.rybbit.io), loaded only after consent by
-  assets/site.js. Site configuration served by Rybbit: pageviews, outbound
-  links and URL parameters on; session replay, web vitals, errors, clicks,
-  copy and form tracking off. The script stores `rybbit-visitor-id` in
-  localStorage. Rybbit states EU hosting (Hetzner, Germany/Finland) and
-  retention of 3 years on the Standard plan.
+- Optional statistics: Microsoft Clarity (project ypl7e33gz2), loaded only
+  after fresh consent. Heatmaps and masked session recordings are disclosed;
+  ad storage is denied through Consent V2.
 - Forms: Airform (airform.io, open source), served from Heroku behind
   Cloudflare.
 - Mail: the contact address is hosted by Apple iCloud Mail (MX records);
@@ -34,8 +31,8 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / 'docs'
-UPDATED = '28 September 2026'           # operator renamed NeuroCause
-PRIVACY_UPDATED = '28 September 2026'   # privacy notice and cookies: NeuroCause
+UPDATED = '29 September 2026'
+PRIVACY_UPDATED = '29 September 2026'
 TERMS_UPDATED = '28 September 2026'     # terms of use: NeuroCause
 
 # Who operates the site, where, and how to reach us. The domain switch to
@@ -45,8 +42,10 @@ DOMAIN = 'neuro-cause.com'
 EMAIL = 'contact@neuro-cause.com'
 MAILTO = f'<a href="mailto:{EMAIL}">{EMAIL}</a>'
 
-CSP = ("default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; "
-       "img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; "
+CSP = ("default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; "
+       "connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neurofly.app; "
+       "img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; "
+       "style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; "
        "base-uri 'self'; object-src 'none'")
 
 FOOTER = """<footer class="site-footer">
@@ -190,13 +189,11 @@ privacy = f"""
           pseudonymous value derived from the IP address and browser details is used for one day at most.</dd>
         <dt>Recipients</dt><dd>Our hosting and infrastructure providers, GitHub (GitHub Pages) and Cloudflare.</dd></dl></div>
       <div class="fact-item"><h3>When you accept statistics</h3><dl>
-        <dt>Data</dt><dd>Page address including its parameters, referring page, browser, operating system, device type, screen size,
-          language, approximate location derived from the IP address, clicks on links to other sites, and a random visitor ID stored
-          in your browser.</dd>
+        <dt>Data</dt><dd>Page address and referral, device and browser information, approximate location, interactions on the page,
+          heatmaps and masked session recordings. Clarity may set analytics cookies and similar identifiers.</dd>
         <dt>Purpose and basis</dt><dd>Understanding which pages are read, to improve them. Only with your consent (GDPR Art. 6(1)(a)),
           which you can withdraw at any time under <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>.</dd>
-        <dt>Recipient</dt><dd>Rybbit (rybbit.com), which stores statistics on servers in the EU (Hetzner, Germany and Finland). See
-          section 3.</dd></dl></div>
+        <dt>Recipient</dt><dd>Microsoft Clarity (Microsoft Corporation). See section 3.</dd></dl></div>
       <div class="fact-item"><h3>When you use the contact or suggestion form</h3><dl>
         <dt>Data</dt><dd>What you enter: name, email address, organisation, role, topic and message, or your suggestion and reference.</dd>
         <dt>Purpose and basis</dt><dd>Answering you and reviewing suggestions and scientific corrections: our legitimate interest in
@@ -230,17 +227,18 @@ privacy = f"""
     <p>Fields marked as required on the forms are needed to process your request; without a return address we cannot reply.</p>
 
     <h2 id="statistics">3. Page statistics</h2>
-    <p>In addition to the measurement described in section 2, you can allow page statistics by Rybbit. Nothing from Rybbit is
-      loaded unless you choose <em>Accept all</em> in the cookie banner or switch on statistics in the privacy settings.</p>
-    <p>If you accept, the Rybbit script loads from app.rybbit.io and records the data listed above. Rybbit states that it uses
-      the IP address only briefly to derive an approximate location and does not store it. The script keeps a random visitor ID in
-      your browser’s local storage (<code>rybbit-visitor-id</code>) so that a repeat visit is counted as one visitor. Session
-      recording, error reporting and tracking of clicks, copying and form input are switched off for this site.</p>
-    <p>Rybbit keeps the statistics for the retention period of our plan, three years on the Standard plan, and then deletes them.
-      Rybbit uses further service providers, among them Cloudflare (USA) for its network; the current list is published at
-      <a href="https://rybbit.com/subprocessors">rybbit.com/subprocessors</a>. You can withdraw your consent at any time under
-      <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>; the visitor ID is then removed
-      from your browser. Withdrawal does not affect statistics recorded before it.</p>
+    <p>In addition to our own measurement described in section 2, you can allow Microsoft Clarity. Its code is not loaded until
+      you choose <em>Accept all</em> or enable statistics in the <button type="button" class="linklike ink"
+      data-privacy-settings>privacy settings</button>. A previous choice for the former analytics provider is not reused.</p>
+    <p>Clarity helps us inspect page usage through heatmaps and session recordings. It processes the information listed above;
+      recordings mask sensitive content by default, and we also mask form fields. Do not enter confidential information elsewhere
+      on the site. We tell Clarity that analytics storage is allowed only after your choice and that advertising storage is denied.
+      See <a href="https://learn.microsoft.com/en-us/clarity/setup-and-installation/privacy-disclosure">Microsoft's Clarity
+      privacy information</a> and <a href="https://privacy.microsoft.com/en-us/privacystatement">Microsoft's privacy statement</a>.</p>
+    <p>Clarity can use cookies and similar identifiers to recognise visits. You may withdraw consent at any time under
+      <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>. That stops further Clarity
+      loading after a reload; you can clear previously stored cookies in your browser. Withdrawal does not erase information
+      already processed. Microsoft may process data outside Switzerland and the EEA under its applicable transfer safeguards.</p>
 
     <h2 id="forms">4. Contact form, suggestions and email</h2>
     <p>The forms on the <a href="contact.html">contact page</a> are transmitted through Airform (airform.io), a form service that
@@ -287,8 +285,8 @@ privacy = f"""
         Swiss–U.S. Data Privacy Framework.</li>
       <li><b>Stripe</b> (donations): certified under the EU–U.S. and the Swiss–U.S. Data Privacy Framework; Stripe also uses the
         European Commission’s standard contractual clauses.</li>
-      <li><b>Rybbit</b> (statistics, only with consent): stores statistics in the EU; for providers outside the EEA, Rybbit states
-        that it uses standard contractual clauses or other recognised mechanisms.</li>
+      <li><b>Microsoft</b> (Clarity, only with consent): may process data outside Switzerland and the EEA under its applicable
+        transfer safeguards; see Microsoft's privacy statement linked in section 3.</li>
       <li><b>Airform</b> (forms): runs on infrastructure in the USA. Your message passes through it only if you use a form; you can
         email us directly instead.</li>
     </ul>
@@ -308,7 +306,7 @@ privacy = f"""
       Data Protection and Information Commissioner (FDPIC), in the EU the authority of your country.</p>
 
     <h2 id="children">10. Children</h2>
-    <p>This website and the software are made for researchers, educators, students and interested adults. They are not directed at
+    <p>This website and the software are made for researchers, educators and interested adults. They are not directed at
       children under 13, and we do not knowingly collect data from them. If you believe a child has sent us personal data, please
       tell us.</p>
 
@@ -337,15 +335,15 @@ cookies = f"""
       </table>
     </div>
     <h3>Statistics</h3>
-    <p>Optional, only with your consent. We use Rybbit (rybbit.com) to see which pages are read and how visitors find the site.
-      Rybbit stores the statistics on servers in the EU and keeps them for three years; see the
+    <p>Optional, only with your consent. Microsoft Clarity provides heatmaps and masked session recordings; see the
       <a href="privacy.html#statistics">privacy notice</a>.</p>
     <div class="table-wrap">
       <table class="spec legal-table">
         <thead><tr><th>Name</th><th>Provider</th><th>Purpose</th><th>Duration</th></tr></thead>
         <tbody>
-          <tr><td><code>rybbit-visitor-id</code></td><td>Rybbit</td><td>A random ID, so that a repeat visit is counted as one visitor</td>
-            <td>Until you withdraw consent or clear your browser data</td></tr>
+          <tr><td><code>_clck</code>, <code>_clsk</code> and related Clarity storage</td><td>Microsoft Clarity</td>
+            <td>Recognise visits and connect page interactions into sessions</td>
+            <td>According to Microsoft's cookie policy, or until you clear browser data</td></tr>
         </tbody>
       </table>
     </div>
@@ -353,8 +351,8 @@ cookies = f"""
     <p>On your first visit we ask whether you accept all cookies or only the necessary ones. Your current setting on this browser:
       statistics <b data-consent-state>not yet chosen</b>.</p>
     <p><button type="button" class="btn secondary" data-privacy-settings>Privacy settings</button></p>
-    <p>You can change or withdraw your consent there at any time; if you withdraw it, the statistics ID is deleted from your browser.
-      You can also delete stored entries in your browser’s settings.</p>
+    <p>You can change or withdraw your consent there at any time; Clarity stops loading on later pages. To remove cookies already
+      saved, clear this site's data in your browser settings.</p>
 """
 page('cookies.html', 'Cookies', f'Which cookies and similar technologies {DOMAIN} uses, and how to change your choice.', 'Legal',
      'Cookies', '', section(cookies))
@@ -568,7 +566,7 @@ hub = f"""
     <p>{ORG}’s code is licensed under the <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm
       Noncommercial License 1.0.0</a>: research, teaching and other non-commercial use are permitted; commercial use requires a
       licence from {ORG}. The notices for third-party components are included with the software. This website uses no
-      third-party code, fonts or frameworks; the optional page statistics come from Rybbit and load only with your consent.</p>
+      third-party frameworks or fonts; optional Microsoft Clarity code loads only with your consent.</p>
 ''', alt=True, id_='licences')}"""
 page('legal.html', 'Legal', f'Imprint, privacy notice, cookies, terms, and licences & credits of {ORG}.', 'Legal',
      'Legal', f'Everything in one place: who we are, how we handle data, and whose work {ORG} builds on.', hub)
@@ -580,7 +578,6 @@ for path in sorted(DOCS.glob('*.html')):
     if path.name == 'paper.html':
         continue
     s = path.read_text(encoding='utf-8')
-    s = re.sub(r'\n<script src="https://app\.rybbit\.io/api/script\.js\?siteId=[0-9a-f]+" defer></script>', '', s)
     s = re.sub(r'<meta http-equiv="Content-Security-Policy" content="[^"]*">',
                f'<meta http-equiv="Content-Security-Policy" content="{CSP}">', s)
     s = re.sub(r'<footer class="site-footer">.*?</footer>', lambda _: FOOTER, s, flags=re.S)

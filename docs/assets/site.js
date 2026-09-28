@@ -7,16 +7,15 @@
 // formEmail: the address the forms deliver to through Airform (https://airform.io/<address>).
 //   Airform receives a normal HTML form POST; the visitor sees Airform's confirmation page.
 // contactEmail: public address shown next to the forms.
-// statistics: Rybbit page statistics, loaded only after the visitor allows it.
+// statistics: Microsoft Clarity, loaded only after the visitor allows it.
 // collector: our own statistics (Cloudflare Worker `neurofly-downloads`).
 const CONFIG = {
   formEmail: 'contact@neuro-cause.com',
   contactEmail: 'contact@neuro-cause.com',
-  statistics: { src: 'https://app.rybbit.io/api/script.js?siteId=662701b51c45', storageKeys: ['rybbit-visitor-id', 'rybbit-user-id'] },
+  statistics: { src: 'https://www.clarity.ms/tag/ypl7e33gz2' },
   collector: 'https://get.neurofly.app/collect',
-  // Donations: Stripe Payment Links (Stripe dashboard → Payment links), one per
-  // amount; `onceOther` is a link where the donor chooses the amount. In each
-  // link's settings, after payment redirect to https://neuro-cause.com/?thanks=1#support.
+  // Donations: verified live Stripe Payment Links only. `onceOther` is a link
+  // where the donor chooses the amount. Stripe handles confirmation and receipts.
   // The support section and its menu link stay hidden until a link is filled in.
   donate: {
     currency: 'CHF',
@@ -26,7 +25,7 @@ const CONFIG = {
       { amount: 50, url: '', impact: 'Supports a new experiment in the in-silico lab.' },
       { amount: 100, url: '', impact: 'Backs a whole release — free for everyone.' },
     ],
-    onceOther: '',
+    onceOther: 'https://donate.stripe.com/8x200j7Ci1y3ftJ24TeEo00',
     monthly: [
       { amount: 5, url: '', impact: 'Keeps NeuroCause running, month after month.' },
       { amount: 10, url: '', impact: 'Makes you part of every release.', suggested: true },
@@ -91,7 +90,7 @@ if (toggle && nav) {
 // ---- cookie consent ----------------------------------------------------------------------------
 // A conventional banner: accept all, only necessary, or settings with one switch
 // per category. Necessary storage (the choice itself, 'neurofly-consent') is
-// always on; statistics (Rybbit) load only when accepted. The choice is asked
+// always on; Clarity loads only when statistics are accepted. The choice is asked
 // again after 12 months and can be changed under "Privacy settings".
 const CONSENT_KEY = 'neurofly-consent';
 const CONSENT_MAX_AGE = 365 * 24 * 3600 * 1000;
@@ -103,7 +102,8 @@ const storage = {
 function readConsent() {
   try {
     const c = JSON.parse(storage.get(CONSENT_KEY));
-    if (c && (c.statistics === true || c.statistics === false) && Date.now() - c.at < CONSENT_MAX_AGE) return c;
+    if (c?.v === 3 && (c.statistics === true || c.statistics === false)
+      && Number.isFinite(c.at) && c.at <= Date.now() && Date.now() - c.at < CONSENT_MAX_AGE) return c;
   } catch { /* no valid choice */ }
   return null;
 }
@@ -111,19 +111,24 @@ let statisticsLoaded = false;
 function loadStatistics() {
   if (statisticsLoaded) return;
   statisticsLoaded = true;
+  window.clarity = window.clarity || function () {
+    (window.clarity.q = window.clarity.q || []).push(arguments);
+  };
+  // Consent V2 is queued before Clarity loads; advertising consent stays denied.
+  window.clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' });
   const s = document.createElement('script');
   s.src = CONFIG.statistics.src;
-  s.defer = true;
+  s.async = true;
   document.head.append(s);
 }
 function saveConsent(statistics) {
   const before = readConsent();
-  storage.set(CONSENT_KEY, JSON.stringify({ statistics, at: Date.now(), v: 2 }));
+  storage.set(CONSENT_KEY, JSON.stringify({ statistics, at: Date.now(), v: 3 }));
   document.querySelector('.consent')?.remove();
   for (const n of document.querySelectorAll('[data-consent-state]')) n.textContent = statistics ? 'accepted' : 'declined';
   if (statistics) loadStatistics();
   else {
-    for (const k of CONFIG.statistics.storageKeys) storage.del(k);
+    if (statisticsLoaded) window.clarity?.('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
     // A statistics script that already runs cannot be unloaded; reload without it.
     if (statisticsLoaded || before?.statistics) location.reload();
   }
@@ -168,10 +173,9 @@ function consentSettings() {
           <label class="switch"><input type="checkbox" checked disabled><span aria-hidden="true"></span><em>Always on</em></label>
         </div>
         <div class="consent-cat">
-          <div><h3>Statistics</h3><p>Page statistics by Rybbit (rybbit.com), stored on servers in the EU for up to three years:
-            which pages are read, the referring page, browser, device type, screen size, language and approximate location, and
-            clicks on links to other sites. Stores a random visitor ID in your browser (<code>rybbit-visitor-id</code>) to recognise
-            a repeat visit. No advertising, no profiles.</p></div>
+          <div><h3>Statistics</h3><p>Microsoft Clarity helps us understand how visitors use pages through
+            heatmaps and masked session recordings. It may set analytics cookies and process device, page and interaction data.
+            It loads only if you allow statistics. Advertising storage remains disabled.</p></div>
           <label class="switch"><input type="checkbox" name="statistics" aria-label="Allow statistics"><span aria-hidden="true"></span><em>Optional</em></label>
         </div>
         <div class="consent-actions">
@@ -212,7 +216,7 @@ for (const n of document.querySelectorAll('[data-consent-state]')) {
 // ---- statistics events (only if the visitor allowed statistics) --------------------------------
 function track(name, props) {
   collect(name, props ? Object.values(props)[0] : undefined);
-  try { window.rybbit?.event?.(name, props); } catch { /* statistics are optional */ }
+  if (statisticsLoaded) try { window.clarity?.('event', name); } catch { /* optional */ }
 }
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a[data-track]');
@@ -516,13 +520,14 @@ if (reelDialog) {
 }
 
 // ---- support (donations) ----------------------------------------------------------------------------
-// Each amount opens its own Stripe Payment Link; Stripe brings the donor back
-// to /?thanks=1#support, where the section says thank you instead.
+// Each amount opens a verified live Stripe Payment Link; checkout and payment
+// confirmation stay with Stripe so a query parameter cannot imply payment.
 const support = document.querySelector('[data-support]');
 if (support) {
   const D = CONFIG.donate;
   const offers = { once: D.once.filter((o) => o.url), monthly: D.monthly.filter((o) => o.url) };
-  if (D.onceOther) offers.once.push({ amount: null, url: D.onceOther, impact: 'Choose any amount on the next page. Every franc counts.' });
+  if (D.onceOther) offers.once.push({ amount: null, url: D.onceOther,
+    impact: 'Choose an amount at Stripe checkout. Your support funds careful testing and open research resources.' });
   if (offers.once.length || offers.monthly.length) {
     support.hidden = false;
     for (const a of document.querySelectorAll('[data-support-link]')) a.hidden = false;
@@ -532,6 +537,7 @@ if (support) {
     const freqButtons = [...support.querySelectorAll('[data-freq]')];
     let freq = offers.once.length ? 'once' : 'monthly', choice = null;
     if (!offers.once.length || !offers.monthly.length) freqButtons[0].parentElement.hidden = true;
+    if (offers.once.length === 1 && offers.once[0].amount === null && !offers.monthly.length) amounts.hidden = true;
     const render = () => {
       const list = offers[freq];
       if (!list.includes(choice)) choice = list.find((o) => o.suggested) || list[0];
@@ -540,7 +546,7 @@ if (support) {
         const b = document.createElement('button');
         b.type = 'button';
         b.setAttribute('aria-pressed', String(o === choice));
-        if (o.amount === null) { b.className = 'other'; b.textContent = 'Other amount'; }
+        if (o.amount === null) { b.className = 'other'; b.textContent = 'Choose amount on Stripe'; }
         else {
           b.textContent = `${D.currency} ${o.amount}`;
           if (o.suggested) { const s = document.createElement('small'); s.textContent = 'Suggested'; b.append(s); }
@@ -550,17 +556,11 @@ if (support) {
       }));
       impact.textContent = choice.impact;
       go.href = choice.url;
-      go.textContent = choice.amount === null ? 'Choose your amount'
+      go.textContent = choice.amount === null ? 'Support the research →'
         : `Donate ${D.currency} ${choice.amount}${freq === 'monthly' ? ' a month' : ''}`;
     };
     for (const b of freqButtons) b.addEventListener('click', () => { freq = b.dataset.freq; render(); });
     go.addEventListener('click', () => collect('donate', `${freq} ${choice.amount ?? 'other'}`));
     render();
-    if (new URLSearchParams(location.search).has('thanks')) {
-      support.querySelector('[data-support-form]').hidden = true;
-      support.querySelector('[data-support-thanks]').hidden = false;
-      collect('donate-thanks');
-      support.scrollIntoView({ block: 'center' });
-    }
   }
 }

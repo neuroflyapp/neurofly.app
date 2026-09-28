@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neurofly.app; img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
 <title>Contact &amp; suggestions — NeuroCause</title>
 <meta name="description" content="Contact NeuroCause, request early access, or suggest an improvement — features, data sources, experiment protocols or scientific corrections.">
 <link rel="canonical" href="https://neuro-cause.com/contact.html">
@@ -54,7 +54,7 @@
       </div>
 
       <div role="tabpanel" id="panel-contact" aria-labelledby="tab-contact">
-        <form data-form="contact" method="post" novalidate>
+        <form data-form="contact" data-clarity-mask="true" method="post" novalidate>
           <input type="hidden" name="form" value="Contact">
           <div class="field-row">
             <div class="field"><label for="c-name">Name <span class="req" aria-hidden="true">*</span></label>
@@ -94,7 +94,7 @@
       </div>
 
       <div role="tabpanel" id="panel-suggest" aria-labelledby="tab-suggest" hidden>
-        <form data-form="suggestion" method="post" novalidate>
+        <form data-form="suggestion" data-clarity-mask="true" method="post" novalidate>
           <input type="hidden" name="form" value="Suggestion">
           <div class="field"><label for="s-kind">Kind of suggestion <span class="req" aria-hidden="true">*</span></label>
             <select id="s-kind" name="kind" required>
