@@ -1,0 +1,14 @@
+{
+  "name": "NeuroCause",
+  "short_name": "NeuroCause",
+  "description": "In-silico experiments on measured nervous systems.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fbfaf7",
+  "theme_color": "#080c0d",
+  "icons": [
+    { "src": "brand/neurocause-icon-256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "brand/neurocause-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "brand/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
