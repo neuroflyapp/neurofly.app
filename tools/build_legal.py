@@ -74,6 +74,7 @@ HEADER = """<a class="skip" href="#main">Skip to content</a>
       <a href="./#models">Models</a>
       <a href="science.html">Methods</a>
       <a href="evidence.html">Evidence</a>
+      <a href="paper.html">Paper</a>
       <a href="vision.html">Vision</a>
       <a href="ethics.html">Ethics</a>
       <a href="contact.html">Contact</a>
@@ -574,6 +575,10 @@ page('legal.html', 'Legal', f'Imprint, privacy notice, cookies, terms, and licen
 
 # ---- every page: no statistics tag in the head, one CSP, one footer ------------------------
 for path in sorted(DOCS.glob('*.html')):
+    # The editorial paper has its own compact footer and active navigation;
+    # do not replace either with the legal-page template.
+    if path.name == 'paper.html':
+        continue
     s = path.read_text(encoding='utf-8')
     s = re.sub(r'\n<script src="https://app\.rybbit\.io/api/script\.js\?siteId=[0-9a-f]+" defer></script>', '', s)
     s = re.sub(r'<meta http-equiv="Content-Security-Policy" content="[^"]*">',

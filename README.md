@@ -27,6 +27,7 @@ one script — no framework, no web fonts.
 | `index.html` | overview: approach, assays, models, evidence, download |
 | `science.html` | methods of the fly model: data, neuron model, senses, motor system, limitations |
 | `evidence.html` | benchmark assays with figures and data tables, verification, data fingerprints |
+| `paper.html`, `papers/` | public, non-peer-reviewed methods and validation-status working paper with a readable overview and PDF |
 | `vision.html` | vision and roadmap |
 | `ethics.html` | ethical commitments |
 | `contact.html` | contact and suggestion forms |

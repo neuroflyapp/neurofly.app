@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://app.rybbit.io; connect-src 'self' https://app.rybbit.io https://get.neurofly.app; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<title>Working paper — NeuroCause</title>
+<meta name="description" content="Read the NeuroCause methods and validation-status working paper: connectome provenance, simulation architecture, internal verification, negative results and the limits of current claims.">
+<meta name="citation_title" content="NeuroCause: an inspectable platform for connectome-constrained fly simulation">
+<meta name="citation_author" content="NeuroCause Research Software">
+<meta name="citation_date" content="2026/09/28">
+<meta name="citation_pdf_url" content="https://neuro-cause.com/papers/neurocause-methods-working-paper-2026-09-28.pdf">
+<link rel="canonical" href="https://neuro-cause.com/paper.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="NeuroCause">
+<meta property="og:title" content="NeuroCause · methods and validation status">
+<meta property="og:description" content="A transparent working paper on what the fly model uses, what it assumes, what it fails to reproduce and what validation remains.">
+<meta property="og:url" content="https://neuro-cause.com/paper.html">
+<meta property="og:image" content="https://neuro-cause.com/img/studio-circuit.jpg">
+<meta name="theme-color" content="#080c0d">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/neurocause-favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body class="paper-page">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="NeuroCause home"><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="149" height="28"></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="./#models">Models</a>
+      <a href="science.html">Methods</a>
+      <a href="evidence.html">Evidence</a>
+      <a href="paper.html" aria-current="page">Paper</a>
+      <a href="vision.html">Vision</a>
+      <a href="ethics.html">Ethics</a>
+      <a href="contact.html">Contact</a>
+      <a href="./#get" class="cta" data-track="nav-get">Download</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+  <section class="paper-hero" aria-labelledby="paper-title">
+    <div class="wrap paper-hero-grid">
+      <div>
+        <span class="paper-eyebrow"><span class="paper-beacon" aria-hidden="true"></span> Research software · working paper 01</span>
+        <h1 id="paper-title">Inside the model.<br><em>Beyond the wiring.</em></h1>
+        <p class="paper-deck">An inspectable platform for connectome-constrained fly simulation: its anatomy, explicit assumptions, reproducible software checks, negative results and the experiments still needed to validate it.</p>
+        <div class="paper-actions">
+          <a class="btn paper-download" href="papers/neurocause-methods-working-paper-2026-09-28.pdf" type="application/pdf" data-track="paper-pdf">Read the full paper <span aria-hidden="true">↗</span></a>
+          <a class="paper-text-link" href="#abstract">Read the overview <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="paper-meta">NeuroCause Research Software <span aria-hidden="true">·</span> 28 September 2026 <span aria-hidden="true">·</span> Version 0.3 <span aria-hidden="true">·</span> 5-page PDF</p>
+      </div>
+      <aside class="paper-status" aria-label="Paper status">
+        <span class="paper-status-label">Status / 01</span>
+        <strong>Methods &amp;<br>validation status</strong>
+        <div class="paper-status-rule"></div>
+        <p>Public working paper. Not peer reviewed. No new animal experiments.</p>
+        <p>Software verification and within-model results are <b>not</b> biological validation, clinical evidence or proof of subjective experience.</p>
+        <a href="#boundaries">Read the claim boundaries <span aria-hidden="true">↗</span></a>
+      </aside>
+    </div>
+  </section>
+
+  <section class="paper-summary" id="abstract" aria-labelledby="abstract-title">
+    <div class="wrap paper-reading-grid">
+      <aside class="paper-rail" aria-label="On this page">
+        <span>In this paper</span>
+        <a href="#abstract">01 &nbsp; Abstract</a>
+        <a href="#architecture">02 &nbsp; Architecture</a>
+        <a href="#evidence-layers">03 &nbsp; Evidence</a>
+        <a href="#boundaries">04 &nbsp; Boundaries</a>
+        <a href="#research-program">05 &nbsp; Next tests</a>
+        <a href="#cite">06 &nbsp; Cite &amp; download</a>
+      </aside>
+      <div class="paper-body">
+        <div class="paper-section-label">01 / Abstract</div>
+        <h2 id="abstract-title">What the connectome tells us.<br>And what it does not.</h2>
+        <p class="paper-large">Synapse-resolution wiring constrains which cells can interact. It does not specify their physiology, behavior, drug response or subjective experience. NeuroCause makes that distinction inspectable rather than hiding it inside a simulation.</p>
+        <p>The current running model joins a selected female FAFB/FlyWire brain graph to a selected male MaleCNS nerve-cord graph through an <em>explicitly modelled</em> population-rate interface. Its body, sensory encoders and neural dynamics are model components. The paper documents the sources and choices, the checks that pass, the phenomena that do not reproduce and the empirical gates for stronger claims.</p>
+        <div class="paper-quickfacts" aria-label="Key paper facts">
+          <div><span>Running brain</span><strong>7,270</strong><small>selected neurons</small></div>
+          <div><span>Nerve cord</span><strong>1,045</strong><small>selected neurons</small></div>
+          <div><span>Development explorers</span><strong>5</strong><small>not all in public v2.2.0</small></div>
+          <div><span>External validation</span><strong>Pending</strong><small>no animal replacement claim</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper-chapter" id="architecture" aria-labelledby="architecture-title">
+    <div class="wrap paper-reading-grid">
+      <div class="paper-rail paper-rail-note">Measured wiring is a constraint.<br>Function is a model to test.</div>
+      <div class="paper-body">
+        <div class="paper-section-label">02 / Architecture</div>
+        <h2 id="architecture-title">One explicit bridge.<br>No invented cross-animal synapses.</h2>
+        <p>The active closed loop uses two biological specimens. Published neuron identities and contact counts are kept distinct from the engineered bridge and virtual body. Selecting another anatomy explorer does not silently substitute it into the running circuit.</p>
+        <figure class="paper-figure">
+          <svg viewBox="0 0 760 226" role="img" aria-labelledby="arch-title arch-desc">
+            <title id="arch-title">Current mixed-specimen runtime</title>
+            <desc id="arch-desc">A female FAFB brain feeds a modelled population-rate bridge, which feeds a male MaleCNS nerve cord and a modelled body. A feedback path returns modelled sensory and proprioceptive signals.</desc>
+            <defs><marker id="paper-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#537168"/></marker></defs>
+            <rect x="7" y="52" width="163" height="92" rx="10" class="paper-svg-measured"/>
+            <rect x="201" y="52" width="163" height="92" rx="10" class="paper-svg-model"/>
+            <rect x="395" y="52" width="163" height="92" rx="10" class="paper-svg-measured"/>
+            <rect x="589" y="52" width="163" height="92" rx="10" class="paper-svg-model"/>
+            <g class="paper-svg-title"><text x="88" y="88" text-anchor="middle">FAFB v783</text><text x="282" y="88" text-anchor="middle">Rate bridge</text><text x="476" y="88" text-anchor="middle">MaleCNS v1.0</text><text x="670" y="88" text-anchor="middle">Body + senses</text></g>
+            <g class="paper-svg-sub"><text x="88" y="113" text-anchor="middle">female brain</text><text x="282" y="113" text-anchor="middle">model mapping</text><text x="476" y="113" text-anchor="middle">male nerve cord</text><text x="670" y="113" text-anchor="middle">model mechanics</text></g>
+            <g class="paper-svg-arrow"><path d="M172 98 H197"/><path d="M366 98 H391"/><path d="M560 98 H585"/><path d="M672 148 V187 H88 V148" class="paper-svg-feedback"/></g>
+            <text x="380" y="211" text-anchor="middle" class="paper-svg-caption">modelled sensory and proprioceptive feedback</text>
+          </svg>
+          <figcaption><b>Figure 1.</b> Green outlines: connectivity constrained by published anatomy. Dark outlines and dashed return: modelled transformations. The diagram is a model architecture, not a continuous connectome from one fly.</figcaption>
+        </figure>
+        <p class="paper-detail">Female BANC and male MaleCNS each contain brain and cord from one animal, but the active runtime does not yet use a single-specimen brain-to-body model. MANC is a different male individual. The optic-lobe v1.1 explorer is an older overlapping release of the <em>same</em> MaleCNS male; its connections are not added to the newer graph.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper-chapter paper-chapter-alt" id="evidence-layers" aria-labelledby="evidence-title">
+    <div class="wrap paper-reading-grid">
+      <div class="paper-rail paper-rail-note">Three evidential layers.<br>Do not collapse them.</div>
+      <div class="paper-body">
+        <div class="paper-section-label">03 / Evidence</div>
+        <h2 id="evidence-title">Anatomy, simulation, experience.</h2>
+        <p>The paper distinguishes published reconstructions from computed states and from the unresolved question of experience. A numerical output is not automatically a biological measurement.</p>
+        <div class="paper-evidence-grid">
+          <article><span class="paper-layer-index">A / Source-derived</span><h3>Reconstructed anatomy</h3><p>Versioned cell identities, selected directed neuron pairs and anatomical contact counts.</p><small>Does not determine conductance or receptor effects.</small></article>
+          <article><span class="paper-layer-index">B / Model-derived</span><h3>Simulated dynamics</h3><p>Seeded membrane states, spikes, behavior and responses to interventions.</p><small>Not yet calibrated to withheld recordings or another animal.</small></article>
+          <article><span class="paper-layer-index">C / Unresolved</span><h3>Subjective experience</h3><p>No direct observable in the current software establishes feeling or pain.</p><small>Digital sentience remains a research question, not a result.</small></article>
+        </div>
+        <p class="paper-detail">Internal software tests passed for specimen identity, graph validity, reproducibility, sensory routing and exports. The documented model does <em>not</em> reproduce habituation, associative learning or thermal preference in the cited protocols. These failures are reported rather than hidden. See the <a href="evidence.html">benchmark evidence</a> and the full paper for methods and references.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper-chapter" id="boundaries" aria-labelledby="boundaries-title">
+    <div class="wrap paper-reading-grid">
+      <div class="paper-rail paper-rail-note">Scientific claims need<br>corresponding tests.</div>
+      <div class="paper-body">
+        <div class="paper-section-label">04 / Claim boundaries</div>
+        <h2 id="boundaries-title">A research prototype.<br>Not a replacement animal.</h2>
+        <div class="paper-boundary-list">
+          <div><b>Whole animal</b><p>The running brain and cord come from different animals. The virtual eye, muscles and body were not measured from either reconstructed individual.</p></div>
+          <div><b>Pharmacology</b><p>Generic gain or blockade controls are circuit interventions. Predicting a named compound requires targets, concentration-response curves, uptake, metabolism and blinded validation.</p></div>
+          <div><b>Sentience</b><p>NeuroCause does not report measured feelings, pain or a sentience score. Whether a digital system could have subjective experience is an open research and ethics question.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper-chapter paper-chapter-alt" id="research-program" aria-labelledby="program-title">
+    <div class="wrap paper-reading-grid">
+      <div class="paper-rail paper-rail-note">The road from a working<br>model to a tested one.</div>
+      <div class="paper-body">
+        <div class="paper-section-label">05 / Prospective tests</div>
+        <h2 id="program-title">What evidence must come next?</h2>
+        <ol class="paper-gates">
+          <li><span>01</span><div><b>One specimen, one native graph.</b><p>Audit brain-to-cord coverage, missing edges and version differences before a same-animal runtime is claimed.</p></div></li>
+          <li><span>02</span><div><b>Calibrate physiology.</b><p>Fit identifiable sensory, cellular and motor parameters against independent recordings, with uncertainty.</p></div></li>
+          <li><span>03</span><div><b>Predict held-out data.</b><p>Freeze code and parameters, preregister endpoints and compare with simpler baselines in blinded neural and behavioral experiments.</p></div></li>
+          <li><span>04</span><div><b>Assess sentience separately.</b><p>Define competing theories and discriminating tests with independent ethical review; prediction alone cannot establish experience.</p></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="paper-cite" id="cite" aria-labelledby="cite-title">
+    <div class="wrap paper-reading-grid">
+      <div class="paper-rail paper-rail-note">Read · scrutinize · cite.</div>
+      <div class="paper-body">
+        <div class="paper-section-label">06 / Full paper</div>
+        <h2 id="cite-title">The methods, in full.</h2>
+        <p>The five-page PDF includes the dataset table, architecture, internal results, limitations, prospective validation criteria and linked primary literature. It is a public working paper, <strong>not a peer-reviewed publication</strong>.</p>
+        <div class="paper-citation">
+          <span>Suggested citation</span>
+          <p>NeuroCause Research Software. <i>NeuroCause: an inspectable platform for connectome-constrained fly simulation.</i> Methods and validation-status working paper, version 0.3 (28 September 2026). <a href="https://neuro-cause.com/paper.html">neuro-cause.com/paper.html</a>.</p>
+        </div>
+        <div class="paper-actions"><a class="btn paper-download" href="papers/neurocause-methods-working-paper-2026-09-28.pdf" type="application/pdf" data-track="paper-pdf">Open the PDF <span aria-hidden="true">↗</span></a><a class="paper-text-link" href="contact.html#suggest">Report a scientific error <span aria-hidden="true">↗</span></a></div>
+        <p class="paper-hash">PDF integrity · SHA-256 <code>f8fc4e69a70c7c74d70726b3f1e26b9aa9c8f7228af0c9f2a1bafcb45e3fb143</code></p>
+        <p class="paper-disclosure">The public v2.2.0 source snapshot does not yet include every exploratory anatomy bundle discussed in this manuscript. Independent reproduction of those newer counts requires a subsequent public importer and asset release. Publisher data retain their own licences; the paper does not imply endorsement by the source institutions.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer paper-footer">
+  <div class="wrap">
+    <div class="paper-footer-row"><a href="./" aria-label="NeuroCause home"><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="139" height="26"></a><nav aria-label="Footer"><a href="science.html">Methods</a><a href="evidence.html">Evidence</a><a href="ethics.html">Ethics</a><a href="contact.html">Contact</a><a href="legal.html">Legal</a></nav></div>
+    <p class="fine">Published connectome anatomy constrains the model; dynamics, senses and body remain modelled. No validated animal replacement, clinical use or demonstrated sentience is claimed. © 2026 NeuroCause.</p>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>
