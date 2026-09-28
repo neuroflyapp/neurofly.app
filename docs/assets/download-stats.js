@@ -114,7 +114,7 @@
     ['scrolldepth', 'Scrolltiefe'], ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
   ];
 
-  const VERSION_COLORS = ['#0b7a47', '#2a78d6', '#eb6834', '#9b59b6', '#c9a227', '#1baf7a', '#7f8c8d'];
+  const VERSION_COLORS = ['#0a7625', '#2a78d6', '#eb6834', '#9b59b6', '#c9a227', '#1baf7a', '#7f8c8d'];
   let data = null, period = 30;
   // Release days (UTC) -> versions, from GitHub's release list.
   const releaseMarks = (span, releases) => {
