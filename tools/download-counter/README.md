@@ -75,18 +75,15 @@ Control; Clarity and detailed own statistics start only after explicit consent.
 Navigation load time and request-to-first-byte time are summed by page and
 reported as averages, not labelled as Core Web Vitals. Missing 404 paths are
 stored only as coarse types to avoid retaining accidental tokens or addresses.
-The performance beacon is feature-gated in `docs/assets/site.js` until this
-Worker version is deployed; enable `CONFIG.performanceTelemetry` afterward.
+The performance beacon in `docs/assets/site.js` is enabled only for visitors
+who have explicitly accepted detailed statistics.
 
 ## Deployment state (29 September 2026)
 
-The previously committed website and dashboard UI changes are on `main`.
-The new basic/detail separation on branch `privacy/consent-tier-stats` **must
-be deployed as a unit**: deploy `worker.js` first, verify baseline requests no longer create
-visitor hashes, then publish `docs/` via GitHub Pages. Until this happens, the
-live Worker still has the old collection behaviour; do not publish the revised
-privacy notice alone. Wrangler OAuth login succeeded, but the next Cloudflare
-CLI check was blocked by the local approval/usage limit. `CONFIG.performanceTelemetry`
-remains `false`; enable it only after the matching Worker is deployed.
+The basic/detail split of `worker.js` was deployed to production as Cloudflare
+Worker version `c3a643c8-3960-4ad4-aacb-245d6cae2672` on 29 September 2026.
+Publish the matching `docs/` changes to GitHub Pages next; do not roll the
+Worker back to a pre-split version while this site version is live. The site
+enables aggregate navigation timings only in the consented detail tier.
 
 When releasing a new version, link the button to `https://get.neurofly.app/v<new version>`.

@@ -13,8 +13,8 @@ const CONFIG = {
   contactEmail: 'contact@neuro-cause.com',
   statistics: { src: 'https://www.clarity.ms/tag/ypl7e33gz2' },
   collector: 'https://get.neurofly.app/collect',
-  // Enable only after deploying the matching Worker code.
-  performanceTelemetry: false,
+  // Aggregate navigation timings are sent only after statistics consent.
+  performanceTelemetry: true,
   // Donations: verified live Stripe Payment Links only. `onceOther` is a link
   // where the donor chooses the amount. Stripe handles confirmation and receipts.
   // The support section and its menu link stay hidden until a link is filled in.
