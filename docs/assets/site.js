@@ -1,7 +1,6 @@
-// NeuroCause site script: navigation, figures, forms, films, our own statistics and
-// the choice about third-party statistics. No frameworks and no cookies. Our own
-// statistics keep nothing in the browser; nothing from a third party loads unless
-// the visitor has allowed page statistics (see consent below).
+// NeuroCause site script: navigation, figures, forms, films and statistics.
+// Baseline audience counts are separate from optional detailed statistics;
+// Clarity never loads before consent.
 
 // ---- configuration ------------------------------------------------------------------------------
 // formEmail: the address the forms deliver to through Airform (https://airform.io/<address>).
@@ -44,18 +43,34 @@ function ownMeasurementEnabled() {
   try { return localStorage.getItem(OWN_MEASUREMENT_OPTOUT_KEY) !== '1'; }
   catch { return true; }
 }
+// Detailed interaction and audience breakdowns are a separate, consented tier.
+// A cookie-free beacon is not automatically exempt from consent requirements.
+function detailedMeasurementEnabled() {
+  try {
+    const c = JSON.parse(localStorage.getItem('neurofly-consent'));
+    return c?.v === 3 && c.statistics === true && Number.isFinite(c.at)
+      && c.at <= Date.now() && Date.now() - c.at < 365 * 24 * 3600 * 1000;
+  } catch { return false; }
+}
 
 // ---- our own statistics ---------------------------------------------------------------------------
-// Each page tells our counter what it is, where the visit came from (referring
-// site, campaign parameters), the screen's width, how long it was looked at and
-// how far it was scrolled, and which downloads, films, forms and links were
-// used. The counter keeps daily totals only and nothing is stored in the
-// browser, so it runs without consent. Only the published site counts, and a
-// prerendered page only once it is shown.
+// Without statistics consent, only page/hour totals and a coarse 404 class are
+// sent. Referrers, campaigns, device breakdowns and interactions are sent only
+// after an active statistics choice. Both tiers respect the own-counter opt-out.
+// Only the published site counts; a prerendered page counts once it is shown.
 const collect = (() => {
-  if (location.hostname !== 'neuro-cause.com') return () => {};
+  if (location.hostname !== 'neuro-cause.com') {
+    const noop = () => {};
+    noop.detailPage = noop;
+    noop.consentStarted = noop;
+    return noop;
+  }
   const send = (m) => {
     if (!ownMeasurementEnabled()) return;
+    if (m.t !== 'pv') {
+      if (!detailedMeasurementEnabled()) return;
+      m.c = 1;
+    }
     try { navigator.sendBeacon(CONFIG.collector, JSON.stringify(m)); } catch { /* not counted */ }
   };
   const notFound = document.documentElement.dataset.page === '404';
@@ -63,8 +78,11 @@ const collect = (() => {
   const q = new URLSearchParams(location.search);
   const missingType = !notFound ? undefined : location.pathname.toLowerCase().endsWith('.html')
     ? '/unknown.html' : /\.[a-z0-9]{1,6}$/i.test(location.pathname) ? '/unknown.bin' : '/unknown';
-  const pageview = () => send({ t: 'pv', p, nf: missingType, r: document.referrer || '', w: screen.width,
-    us: q.get('utm_source') || undefined, um: q.get('utm_medium') || undefined, uc: q.get('utm_campaign') || undefined });
+  const detailPage = () => {
+    if (detailedMeasurementEnabled()) send({ t: 'detail', p, r: document.referrer || '', w: screen.width,
+      us: q.get('utm_source') || undefined, um: q.get('utm_medium') || undefined, uc: q.get('utm_campaign') || undefined });
+  };
+  const pageview = () => { send({ t: 'pv', p, nf: missingType }); detailPage(); };
   if (document.prerendering) document.addEventListener('prerenderingchange', pageview, { once: true });
   else pageview();
 
@@ -73,6 +91,7 @@ const collect = (() => {
   const reportLoad = () => {
     const n = performance.getEntriesByType?.('navigation')?.[0];
     if (!n || !Number.isFinite(n.loadEventEnd) || n.loadEventEnd <= 0) return;
+    if (!detailedMeasurementEnabled()) return;
     send({ t: 'perf', p, ms: Math.round(n.loadEventEnd),
       ttfb: Math.round(n.responseStart - n.requestStart) });
   };
@@ -81,29 +100,44 @@ const collect = (() => {
     else addEventListener('load', () => setTimeout(reportLoad, 0), { once: true });
   }
 
-  let since = document.visibilityState === 'visible' ? performance.now() : null, first = true, depth = 0;
+  let since = detailedMeasurementEnabled() && document.visibilityState === 'visible' ? performance.now() : null,
+    first = true, depth = 0;
   const measure = () => {
+    if (!detailedMeasurementEnabled()) return;
     const room = document.documentElement.scrollHeight - innerHeight;
     depth = Math.max(depth, room > 0 ? Math.min(100, Math.round(100 * scrollY / room)) : 100);
   };
   measure();
   addEventListener('scroll', measure, { passive: true });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') { since = performance.now(); return; }
+    if (document.visibilityState === 'visible') {
+      since = detailedMeasurementEnabled() ? performance.now() : null;
+      return;
+    }
     if (since === null) return;
-    send({ t: 'end', p, ms: Math.round(performance.now() - since), sc: first ? depth : undefined });
+    if (detailedMeasurementEnabled()) send({ t: 'end', p, ms: Math.round(performance.now() - since), sc: first ? depth : undefined });
     since = null; first = false;
   });
   document.addEventListener('click', (e) => {
     const a = e.target.closest?.('a[href]');
-    if (!a) return;
+    if (!a || !detailedMeasurementEnabled()) return;
     const u = new URL(a.href, location.href);
     if (u.protocol === 'mailto:') send({ t: 'ev', p, n: 'email' });
     else if (u.hostname === 'get.neurofly.app') send({ t: 'ev', p, n: 'download', v: u.pathname.slice(1) });
     else if (/^https?:$/.test(u.protocol) && u.hostname !== location.hostname) send({ t: 'ev', p, n: 'outbound', v: u.hostname.replace(/^www\./, '') });
   }, { capture: true });
-  document.addEventListener('submit', (e) => send({ t: 'ev', p, n: 'form', v: e.target.id || e.target.getAttribute('name') || 'form' }), { capture: true });
-  return (name, value) => send({ t: 'ev', p, n: name, v: value });
+  document.addEventListener('submit', (e) => {
+    if (detailedMeasurementEnabled()) send({ t: 'ev', p, n: 'form', v: e.target.id || e.target.getAttribute('name') || 'form' });
+  }, { capture: true });
+  const event = (name, value) => { if (detailedMeasurementEnabled()) send({ t: 'ev', p, n: name, v: value }); };
+  event.detailPage = detailPage;
+  event.consentStarted = () => {
+    // Never include pre-consent time or scrolling in a later detailed beacon.
+    since = document.visibilityState === 'visible' ? performance.now() : null;
+    first = true;
+    depth = 0;
+  };
+  return event;
 })();
 
 // ---- navigation -----------------------------------------------------------------------------------
@@ -116,10 +150,10 @@ if (toggle && nav) {
   });
 }
 
-// ---- cookie consent ----------------------------------------------------------------------------
+// ---- statistics and storage choices ---------------------------------------------------------------
 // A conventional banner: accept all, only necessary, or settings with one switch
 // per category. Necessary storage (the choice itself, 'neurofly-consent') is
-// always on; Clarity loads only when statistics are accepted. The choice is asked
+// always on; Clarity and our detailed tier start only after statistics consent. The choice is asked
 // again after 12 months and can be changed under "Privacy settings".
 const CONSENT_KEY = 'neurofly-consent';
 const CONSENT_MAX_AGE = 365 * 24 * 3600 * 1000;
@@ -159,6 +193,7 @@ function saveConsent(statistics, ownMeasurement = ownMeasurementEnabled()) {
   for (const n of document.querySelectorAll('[data-consent-state]')) n.textContent = statistics ? 'accepted' : 'declined';
   for (const n of document.querySelectorAll('[data-own-measurement-state]'))
     n.textContent = ownMeasurementEnabled() ? 'on' : 'off';
+  if (statistics && !before?.statistics) { collect.consentStarted(); collect.detailPage(); }
   if (statistics) loadStatistics();
   else {
     if (statisticsLoaded) window.clarity?.('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
@@ -172,12 +207,12 @@ function consentBanner() {
   box.className = 'consent';
   box.setAttribute('aria-label', 'Cookies');
   box.innerHTML = `
-    <p><b>Cookies on ${location.hostname}</b><br>Our own aggregate audience count works without cookies; you can turn it off in Settings.
-      With your consent, Microsoft Clarity adds heatmaps and masked recordings. You can change your choice at any time under Privacy settings.
+    <p><b>Privacy choices on ${location.hostname}</b><br>Basic page counts work without cookies; you can turn them off in Settings.
+      With your consent, detailed audience statistics and Microsoft Clarity add usage breakdowns, heatmaps and masked recordings. Change your choice anytime under Privacy settings.
       <a href="cookies.html">More</a></p>
     <div class="consent-actions">
       <button type="button" class="linklike ink" data-consent="settings">Settings</button>
-      <button type="button" class="btn secondary" data-consent="necessary">No optional cookies</button>
+      <button type="button" class="btn primary" data-consent="necessary">No optional cookies</button>
       <button type="button" class="btn primary" data-consent="all">Accept all</button>
     </div>`;
   box.addEventListener('click', (e) => {
@@ -206,18 +241,18 @@ function consentSettings() {
           <label class="switch"><input type="checkbox" checked disabled><span aria-hidden="true"></span><em>Always on</em></label>
         </div>
         <div class="consent-cat">
-          <div><h3>Own audience measurement</h3><p>Daily, aggregate page and usage statistics without cookies or cross-site profiles.
-            You may object to this separate measurement here; it is not tied to Clarity consent.</p></div>
+          <div><h3>Own audience measurement</h3><p>Daily page counts without browser identifiers or cross-site profiles.
+            You may object here; this choice is separate from detailed statistics consent.</p></div>
           <label class="switch"><input type="checkbox" name="own-measurement" aria-label="Allow own audience measurement"><span aria-hidden="true"></span><em>Opt out anytime</em></label>
         </div>
         <div class="consent-cat">
-          <div><h3>Statistics</h3><p>Microsoft Clarity helps us understand how visitors use pages through
-            heatmaps and masked session recordings. It may set analytics cookies and process device, page and interaction data.
+          <div><h3>Detailed statistics</h3><p>Our own detailed audience breakdowns and Microsoft Clarity help us understand how visitors use pages through
+            interaction counts, heatmaps and masked session recordings. Clarity may set analytics cookies and process device, page and interaction data.
             It loads only if you allow statistics. Advertising storage remains disabled.</p></div>
           <label class="switch"><input type="checkbox" name="statistics" aria-label="Allow statistics"><span aria-hidden="true"></span><em>Optional</em></label>
         </div>
         <div class="consent-actions">
-          <button type="submit" class="btn secondary" value="save">Save settings</button>
+          <button type="submit" class="btn primary" value="save">Save settings</button>
           <button type="submit" class="btn primary" value="all">Accept all</button>
         </div>
       </form>`;

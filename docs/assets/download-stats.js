@@ -26,22 +26,22 @@
   </div>
 
   <div class="dl-sectionbar">
-    <h2 class="dl-section">Besucher</h2>
+    <h2 class="dl-section">Webseitenutzung</h2>
     <div class="seg" role="group" aria-label="Zeitraum" id="period">
       <button type="button" data-days="1">Heute</button><button type="button" data-days="7">7 Tage</button><button type="button" data-days="30">30 Tage</button><button type="button" data-days="90">90 Tage</button>
     </div>
   </div>
   <section class="dl-facts facts" aria-label="Besucher, Übersicht">
-    <div class="fact total"><b id="s-visitors">–</b><span>Tagesunikate</span><div class="src" id="s-visitors-sub">–</div></div>
-    <div class="fact"><b id="s-visits">–</b><span>Besuche</span><div class="src" id="s-visits-sub">–</div></div>
+    <div class="fact total"><b id="s-visitors">–</b><span>Tagesunikate · Detail-Stichprobe</span><div class="src" id="s-visitors-sub">–</div></div>
+    <div class="fact"><b id="s-visits">–</b><span>Besuche · Detail-Stichprobe</span><div class="src" id="s-visits-sub">–</div></div>
     <div class="fact"><b id="s-pv">–</b><span>Seitenaufrufe</span><div class="src" id="s-pv-sub">–</div></div>
-    <div class="fact"><b id="s-bounce">–</b><span>Absprungrate</span><div class="src" id="s-time">–</div></div>
+    <div class="fact"><b id="s-bounce">–</b><span>Absprungrate · Detail-Stichprobe</span><div class="src" id="s-time">–</div></div>
   </section>
   <section class="dl-panel" aria-labelledby="h-trend">
     <h2 id="h-trend">Verlauf</h2>
     <p class="sub" id="trend-sub">–</p>
-    <div class="legend"><span><i class="sw-gh"></i>Seitenaufrufe</span><span><i class="sw-web"></i>Besucher</span></div>
-    <svg class="chart" id="chart-views" viewBox="0 0 900 240" role="img" aria-label="Besucher und Seitenaufrufe"></svg>
+    <div class="legend"><span><i class="sw-gh"></i>Seitenaufrufe</span><span><i class="sw-web"></i>Detail-Stichprobe</span></div>
+    <svg class="chart" id="chart-views" viewBox="0 0 900 240" role="img" aria-label="Seitenaufrufe und Detail-Stichprobe"></svg>
   </section>
   <section class="dl-panel" aria-labelledby="h-hours">
     <h2 id="h-hours">Tageszeit</h2>
@@ -80,11 +80,11 @@
     </div>
   </section>
   <ul class="notes">
-    <li>Eigene Besucherzahlen kommen aus unserem cookielosen Zähler, sofern Besucher ihm nicht widersprechen oder Global Privacy Control nutzen. Gespeichert werden Tagessummen.
-      Besucher werden je UTC-Tag unterschieden (über einen täglich neuen, danach gelöschten Zufallswert, nie über Cookies
-      oder gespeicherte IP-Adressen); über mehrere Tage summiert, zählt ein wiederkehrender Besucher also mehrfach. Ein Besuch
-      endet nach 30 Minuten ohne Seitenaufruf; «Absprung» ist ein Besuch mit nur einer Seite. Suchmaschinen und Bots werden
-      nicht gezählt. Die ausführlichen Werte (Besucher, Herkunft, Geräte …) gibt es ab dem 25.09.2026, Seitenaufrufe seit dem 24.09.</li>
+    <li>Seitenaufrufe sind die grundlegenden Tagessummen unseres Zählers, sofern Besucher ihm nicht widersprechen oder Global Privacy Control nutzen.
+      Tagesunikate, Besuche und die detaillierten Aufschlüsselungen werden nach der Umstellung nur noch mit Statistik-Einwilligung erhoben;
+      frühere Daten stammen aus der alten Messmethode. Diese Zahlen sind weder alle Besucher noch mit dem Basiszähler oder den Cloudflare-Edge-Werten direkt vergleichbar.
+      Ein Tagesunikat wird pro UTC-Tag geschätzt; wiederkehrende Personen zählen an mehreren Tagen mehrfach. Ein Besuch endet nach 30 Minuten
+      ohne Seitenaufruf; «Absprung» bedeutet nur eine Seite. Suchmaschinen und erkennbare Bots werden nicht gezählt.</li>
     <li>„Downloads insgesamt“ ist GitHubs eigener Zähler: jeder Abruf der ZIP-Datei, egal ob über die Webseite oder direkt auf
       GitHub. GitHub zählt auch abgebrochene Downloads und automatische Abrufe.</li>
     <li>„Über die Webseite“ zählt jeden Klick auf den Download-Button, der einen Download startet. Suchmaschinen, Link-Vorschauen
@@ -181,7 +181,7 @@
     const engagedN = engaged.reduce((s, r) => s + r.n, 0), engagedMs = engaged.reduce((s, r) => s + r.sum, 0);
     const perDay = (x) => (period > 1 ? `Ø ${fmt(Math.round(x / period))} pro Tag` : 'heute (UTC)');
     $('s-visitors').textContent = fmt(visitors);
-    $('s-visitors-sub').textContent = period > 1 ? `${perDay(visitors)} · Tageswerte addiert, nicht über den Zeitraum eindeutig` : 'heute, je Tag eindeutig';
+    $('s-visitors-sub').textContent = period > 1 ? `${perDay(visitors)} · nur Detail-Stichprobe; Tageswerte addiert` : 'nur Detail-Stichprobe';
     $('s-visits').textContent = fmt(visits);
     $('s-visits-sub').textContent = visits ? `Ø ${(pvWithVisits / visits).toLocaleString('de-CH', { maximumFractionDigits: 1 })} Seiten pro Besuch` : '–';
     $('s-pv').textContent = fmt(pv);
@@ -192,12 +192,12 @@
     // Trend: per day, or per hour for today.
     const hourOf = (h) => (Number(h) - new Date().getTimezoneOffset() / 60 + 24) % 24;
     if (period === 1) {
-      $('trend-sub').textContent = 'Heute: Seitenaufrufe nach Stunde (Zeitzone dieses Browsers); Besucher gibt es nur pro Tag.';
+      $('trend-sub').textContent = 'Heute: Seitenaufrufe nach Stunde (Zeitzone dieses Browsers); Detail-Stichprobe nur pro Tag.';
       const byHour = new Array(24).fill(0);
       for (const r of rows) if (r.metric === 'hour') byHour[hourOf(r.key)] += r.n;
       drawChart($('chart-views'), byHour.map((v, h) => ({ parts: [v, 0], label: h % 3 === 0 ? `${String(h).padStart(2, '0')} h` : null })), ['#9fb3aa', 'var(--accent)'], { overlay: true });
     } else {
-      $('trend-sub').textContent = `Letzte ${period} Tage, UTC. Besucher je Tag eindeutig.`;
+      $('trend-sub').textContent = `Letzte ${period} Tage, UTC. Detail-Stichprobe je Tag geschätzt; vor und nach der Umstellung nicht direkt vergleichbar.`;
       const byDay = (metric) => { const m = new Map(); for (const r of rows) if (r.metric === metric) m.set(r.day, (m.get(r.day) || 0) + r.n); return m; };
       const pvDay = byDay('pv'), visDay = byDay('visitors');
       const every = period <= 7 ? 1 : period <= 30 ? 5 : 15;

@@ -4,11 +4,10 @@
 //
 // GET  /v2.1.0  counts one website download of that release's Windows build
 //               (date and file name only) and redirects to the file on GitHub.
-// POST /collect site statistics without cookies (docs/assets/site.js sends
-//               them with navigator.sendBeacon): page views, visits, visitors,
-//               referrers, campaigns, approximate location, device, browser,
-//               system, screen, language, time on page, scrolling, events and
-//               aggregate navigation timings. Visitors can opt out.
+// POST /collect baseline: page/hour totals and coarse 404 classes without
+//               consent. Detailed audience and interaction aggregates are
+//               accepted only when the site has a statistics choice. Visitors
+//               can object to both own-counter tiers independently.
 //               Only daily totals are stored. Visitors are told apart for one
 //               UTC day by a hash of a random daily salt, the IP address and the
 //               browser's user agent; the salt and the hashes are deleted after
@@ -103,6 +102,9 @@ async function collect(text, request, env, day) {
   let m;
   try { m = JSON.parse(text); } catch { return; }
   if (!m || typeof m.p !== 'string' || !PAGE_PATH.test(m.p)) return;
+  // The consent flag is a guard against stale or accidental clients, not a
+  // proof of consent; the first-party site is responsible for collecting it.
+  if (m.t !== 'pv' && m.c !== 1) return;
   const db = env.DB, p = page(m.p), now = Date.now();
   const rows = [];
   const add = (metric, key, n = 1, sum = 0) => rows.push(db.prepare(
@@ -110,11 +112,6 @@ async function collect(text, request, env, day) {
   ).bind(day, metric, String(key), n, sum));
 
   if (m.t === 'pv') {
-    const ua = request.headers.get('user-agent') || '';
-    const ip = request.headers.get('cf-connecting-ip') || '';
-    const id = (await sha256hex(`${await dailySalt(db, day)}|${ip}|${ua}`)).slice(0, 20);
-    const seen = await db.prepare('SELECT last, vviews FROM visitors WHERE day = ?1 AND id = ?2').bind(day, id).first();
-    const newVisit = !seen || now - seen.last > VISIT_GAP_MS;
     add('pv', p);
     add('hour', String(new Date(now).getUTCHours()).padStart(2, '0'));
     // A missing URL can contain an email address or access token. Keep only a
@@ -123,6 +120,12 @@ async function collect(text, request, env, day) {
       const missing = String(m.nf).toLowerCase();
       add('404', missing.endsWith('.html') ? 'HTML' : /\.[a-z0-9]{1,6}$/.test(missing) ? 'Datei' : 'Pfad');
     }
+  } else if (m.t === 'detail') {
+    const ua = request.headers.get('user-agent') || '';
+    const ip = request.headers.get('cf-connecting-ip') || '';
+    const id = (await sha256hex(`${await dailySalt(db, day)}|${ip}|${ua}`)).slice(0, 20);
+    const seen = await db.prepare('SELECT last, vviews FROM visitors WHERE day = ?1 AND id = ?2').bind(day, id).first();
+    const newVisit = !seen || now - seen.last > VISIT_GAP_MS;
     if (!seen) {
       const cf = request.cf || {};
       add('visitors', '');
