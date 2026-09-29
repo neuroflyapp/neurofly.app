@@ -91,8 +91,8 @@
       und Prüfdienste werden nicht gezählt. Gespeichert werden nur Datum und Datei.</li>
     <li>„Direkt auf GitHub“ ist die Differenz der beiden. Sie kann kurzzeitig leicht abweichen, wenn ein Download über
       die Webseite gestartet, aber nicht abgeschlossen wurde.</li>
-    <li>„Ladezeit“ ist das Browser-Ereignis <code>load</code>, „Antwortzeit“ die Spanne vom Request bis zum ersten Antwort-Byte.
-      Beides sind aggregierte Diagnosewerte, keine Core Web Vitals; ältere Besuche und Browser ohne Performance-API fehlen.</li>
+    <li>Wenn Leistungswerte verfügbar sind: „Ladezeit“ ist das Browser-Ereignis <code>load</code>, „Antwortzeit“ die Spanne vom Request
+      bis zum ersten Antwort-Byte. Beides sind aggregierte Diagnosewerte, keine Core Web Vitals.</li>
   </ul>
 </main>`;
 
@@ -209,7 +209,8 @@
     for (const r of rows) if (r.metric === 'hour') hours[hourOf(r.key)] += r.n;
     drawChart($('chart-hours'), hours.map((v, h) => ({ parts: [v], label: h % 3 === 0 ? `${String(h).padStart(2, '0')}` : null })), ['var(--accent)'], { height: 200 });
 
-    $('lists').replaceChildren(...LISTS.map(([metric, title, name = (k) => k, value = 'count']) => {
+    $('lists').replaceChildren(...LISTS.filter(([metric]) => !metric.startsWith('perf_') || rows.some((r) => r.metric === metric))
+      .map(([metric, title, name = (k) => k, value = 'count']) => {
       const agg = new Map();
       for (const r of rows) {
         if (r.metric !== metric) continue;

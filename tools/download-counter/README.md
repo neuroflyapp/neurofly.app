@@ -72,5 +72,17 @@ honours Global Privacy Control; Clarity only loads after explicit consent.
 Navigation load time and request-to-first-byte time are summed by page and
 reported as averages, not labelled as Core Web Vitals. Missing 404 paths are
 stored only as coarse types to avoid retaining accidental tokens or addresses.
+The performance beacon is feature-gated in `docs/assets/site.js` until this
+Worker version is deployed; enable `CONFIG.performanceTelemetry` afterward.
+
+## Deployment state (29 September 2026)
+
+The website and dashboard UI changes are committed on `main`. The counter
+Worker changes in this directory still need a production deploy: the available
+Wrangler CLI session was not authenticated. `CONFIG.performanceTelemetry` is
+therefore `false`, so the live site does not send data the old Worker would
+ignore. Before enabling it, sign in to Wrangler, run `npm test`, deploy with
+`npm run deploy:counter`, verify `/collect` accepts `perf` and groups 404s,
+then set the flag to `true` and publish that small website change.
 
 When releasing a new version, link the button to `https://get.neurofly.app/v<new version>`.

@@ -14,6 +14,8 @@ const CONFIG = {
   contactEmail: 'contact@neuro-cause.com',
   statistics: { src: 'https://www.clarity.ms/tag/ypl7e33gz2' },
   collector: 'https://get.neurofly.app/collect',
+  // Enable only after deploying the matching Worker code.
+  performanceTelemetry: false,
   // Donations: verified live Stripe Payment Links only. `onceOther` is a link
   // where the donor chooses the amount. Stripe handles confirmation and receipts.
   // The support section and its menu link stay hidden until a link is filled in.
@@ -59,7 +61,9 @@ const collect = (() => {
   const notFound = document.documentElement.dataset.page === '404';
   const p = notFound ? '/404' : location.pathname;
   const q = new URLSearchParams(location.search);
-  const pageview = () => send({ t: 'pv', p, nf: notFound ? location.pathname : undefined, r: document.referrer || '', w: screen.width,
+  const missingType = !notFound ? undefined : location.pathname.toLowerCase().endsWith('.html')
+    ? '/unknown.html' : /\.[a-z0-9]{1,6}$/i.test(location.pathname) ? '/unknown.bin' : '/unknown';
+  const pageview = () => send({ t: 'pv', p, nf: missingType, r: document.referrer || '', w: screen.width,
     us: q.get('utm_source') || undefined, um: q.get('utm_medium') || undefined, uc: q.get('utm_campaign') || undefined });
   if (document.prerendering) document.addEventListener('prerenderingchange', pageview, { once: true });
   else pageview();
@@ -72,8 +76,10 @@ const collect = (() => {
     send({ t: 'perf', p, ms: Math.round(n.loadEventEnd),
       ttfb: Math.round(n.responseStart - n.requestStart) });
   };
-  if (document.readyState === 'complete') setTimeout(reportLoad, 0);
-  else addEventListener('load', () => setTimeout(reportLoad, 0), { once: true });
+  if (CONFIG.performanceTelemetry) {
+    if (document.readyState === 'complete') setTimeout(reportLoad, 0);
+    else addEventListener('load', () => setTimeout(reportLoad, 0), { once: true });
+  }
 
   let since = document.visibilityState === 'visible' ? performance.now() : null, first = true, depth = 0;
   const measure = () => {
