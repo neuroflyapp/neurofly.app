@@ -67,5 +67,10 @@ D1 copy; create the tables there with `--local`).
 Site statistics (`POST /collect`) keep daily totals in `stats` (metric, key,
 count, sum); `visitors` and `salts` hold the per-day visitor hashes and salt and
 are emptied by the hourly cron once the UTC day is over.
+The website exposes an independent opt-out for this cookieless measurement and
+honours Global Privacy Control; Clarity only loads after explicit consent.
+Navigation load time and request-to-first-byte time are summed by page and
+reported as averages, not labelled as Core Web Vitals. Missing 404 paths are
+stored only as coarse types to avoid retaining accidental tokens or addresses.
 
 When releasing a new version, link the button to `https://get.neurofly.app/v<new version>`.

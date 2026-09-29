@@ -34,6 +34,15 @@ const CONFIG = {
   },
 };
 
+// A separate opt-out for our aggregate, cookieless measurement. Honour the
+// browser's Global Privacy Control signal as well as the visitor's choice.
+const OWN_MEASUREMENT_OPTOUT_KEY = 'neurocause-measurement-optout';
+function ownMeasurementEnabled() {
+  if (navigator.globalPrivacyControl === true) return false;
+  try { return localStorage.getItem(OWN_MEASUREMENT_OPTOUT_KEY) !== '1'; }
+  catch { return true; }
+}
+
 // ---- our own statistics ---------------------------------------------------------------------------
 // Each page tells our counter what it is, where the visit came from (referring
 // site, campaign parameters), the screen's width, how long it was looked at and
@@ -43,7 +52,10 @@ const CONFIG = {
 // prerendered page only once it is shown.
 const collect = (() => {
   if (location.hostname !== 'neuro-cause.com') return () => {};
-  const send = (m) => { try { navigator.sendBeacon(CONFIG.collector, JSON.stringify(m)); } catch { /* not counted */ } };
+  const send = (m) => {
+    if (!ownMeasurementEnabled()) return;
+    try { navigator.sendBeacon(CONFIG.collector, JSON.stringify(m)); } catch { /* not counted */ }
+  };
   const notFound = document.documentElement.dataset.page === '404';
   const p = notFound ? '/404' : location.pathname;
   const q = new URLSearchParams(location.search);
@@ -51,6 +63,17 @@ const collect = (() => {
     us: q.get('utm_source') || undefined, um: q.get('utm_medium') || undefined, uc: q.get('utm_campaign') || undefined });
   if (document.prerendering) document.addEventListener('prerenderingchange', pageview, { once: true });
   else pageview();
+
+  // Aggregate navigation timings by page. These are operational load metrics,
+  // not Core Web Vitals; no raw timing or visitor identifier is retained.
+  const reportLoad = () => {
+    const n = performance.getEntriesByType?.('navigation')?.[0];
+    if (!n || !Number.isFinite(n.loadEventEnd) || n.loadEventEnd <= 0) return;
+    send({ t: 'perf', p, ms: Math.round(n.loadEventEnd),
+      ttfb: Math.round(n.responseStart - n.requestStart) });
+  };
+  if (document.readyState === 'complete') setTimeout(reportLoad, 0);
+  else addEventListener('load', () => setTimeout(reportLoad, 0), { once: true });
 
   let since = document.visibilityState === 'visible' ? performance.now() : null, first = true, depth = 0;
   const measure = () => {
@@ -121,11 +144,15 @@ function loadStatistics() {
   s.async = true;
   document.head.append(s);
 }
-function saveConsent(statistics) {
+function saveConsent(statistics, ownMeasurement = ownMeasurementEnabled()) {
   const before = readConsent();
   storage.set(CONSENT_KEY, JSON.stringify({ statistics, at: Date.now(), v: 3 }));
+  if (ownMeasurement && navigator.globalPrivacyControl !== true) storage.del(OWN_MEASUREMENT_OPTOUT_KEY);
+  else storage.set(OWN_MEASUREMENT_OPTOUT_KEY, '1');
   document.querySelector('.consent')?.remove();
   for (const n of document.querySelectorAll('[data-consent-state]')) n.textContent = statistics ? 'accepted' : 'declined';
+  for (const n of document.querySelectorAll('[data-own-measurement-state]'))
+    n.textContent = ownMeasurementEnabled() ? 'on' : 'off';
   if (statistics) loadStatistics();
   else {
     if (statisticsLoaded) window.clarity?.('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
@@ -139,12 +166,12 @@ function consentBanner() {
   box.className = 'consent';
   box.setAttribute('aria-label', 'Cookies');
   box.innerHTML = `
-    <p><b>Cookies on ${location.hostname}</b><br>We use cookies and similar technologies. Necessary ones keep the site working; with your
-      consent we also use statistics to see which pages are read. You can change your choice at any time under Privacy settings.
+    <p><b>Cookies on ${location.hostname}</b><br>Our own aggregate audience count works without cookies; you can turn it off in Settings.
+      With your consent, Microsoft Clarity adds heatmaps and masked recordings. You can change your choice at any time under Privacy settings.
       <a href="cookies.html">More</a></p>
     <div class="consent-actions">
       <button type="button" class="linklike ink" data-consent="settings">Settings</button>
-      <button type="button" class="btn secondary" data-consent="necessary">Only necessary</button>
+      <button type="button" class="btn secondary" data-consent="necessary">No optional cookies</button>
       <button type="button" class="btn primary" data-consent="all">Accept all</button>
     </div>`;
   box.addEventListener('click', (e) => {
@@ -173,6 +200,11 @@ function consentSettings() {
           <label class="switch"><input type="checkbox" checked disabled><span aria-hidden="true"></span><em>Always on</em></label>
         </div>
         <div class="consent-cat">
+          <div><h3>Own audience measurement</h3><p>Daily, aggregate page and usage statistics without cookies or cross-site profiles.
+            You may object to this separate measurement here; it is not tied to Clarity consent.</p></div>
+          <label class="switch"><input type="checkbox" name="own-measurement" aria-label="Allow own audience measurement"><span aria-hidden="true"></span><em>Opt out anytime</em></label>
+        </div>
+        <div class="consent-cat">
           <div><h3>Statistics</h3><p>Microsoft Clarity helps us understand how visitors use pages through
             heatmaps and masked session recordings. It may set analytics cookies and process device, page and interaction data.
             It loads only if you allow statistics. Advertising storage remains disabled.</p></div>
@@ -189,12 +221,15 @@ function consentSettings() {
       if (!b) return;
       e.preventDefault();
       const statistics = b.value === 'all' || dlg.querySelector('[name=statistics]').checked;
+      const ownMeasurement = b.value === 'all' || dlg.querySelector('[name=own-measurement]').checked;
       dlg.close();
-      saveConsent(statistics);
+      saveConsent(statistics, ownMeasurement);
     });
     document.body.append(dlg);
   }
   dlg.querySelector('[name=statistics]').checked = !!readConsent()?.statistics;
+  dlg.querySelector('[name=own-measurement]').checked = ownMeasurementEnabled();
+  dlg.querySelector('[name=own-measurement]').disabled = navigator.globalPrivacyControl === true;
   dlg.showModal();
 }
 {
@@ -212,6 +247,8 @@ for (const n of document.querySelectorAll('[data-consent-state]')) {
   const c = readConsent();
   n.textContent = c?.statistics ? 'accepted' : c ? 'declined' : 'not yet chosen';
 }
+for (const n of document.querySelectorAll('[data-own-measurement-state]'))
+  n.textContent = ownMeasurementEnabled() ? 'on' : 'off';
 
 // ---- statistics events (only if the visitor allowed statistics) --------------------------------
 function track(name, props) {

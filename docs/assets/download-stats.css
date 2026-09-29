@@ -4,6 +4,10 @@
 .dl-head h1 { font-size: clamp(32px, 4.4vw, 46px); margin: 6px 0 0; }
 .dl-head .meta { font-size: 14px; color: var(--muted); }
 .dl-main { padding-block: 28px 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.source-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 13px; color: var(--muted); }
+.source-strip span::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; background: var(--accent); vertical-align: 1px; }
+.source-strip span[data-ok="false"]::before { background: var(--warn); }
+.source-strip a { color: var(--accent); }
 .dl-section { font-size: 26px; margin: 20px 0 -6px; }
 .dl-section:first-of-type { margin-top: 0; }
 .dl-facts { margin-top: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card); overflow: hidden; }

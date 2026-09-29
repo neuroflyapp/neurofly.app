@@ -7,7 +7,8 @@
 // POST /collect site statistics without cookies (docs/assets/site.js sends
 //               them with navigator.sendBeacon): page views, visits, visitors,
 //               referrers, campaigns, approximate location, device, browser,
-//               system, screen, language, time on page, scrolling and events.
+//               system, screen, language, time on page, scrolling, events and
+//               aggregate navigation timings. Visitors can opt out.
 //               Only daily totals are stored. Visitors are told apart for one
 //               UTC day by a hash of a random daily salt, the IP address and the
 //               browser's user agent; the salt and the hashes are deleted after
@@ -116,7 +117,12 @@ async function collect(text, request, env, day) {
     const newVisit = !seen || now - seen.last > VISIT_GAP_MS;
     add('pv', p);
     add('hour', String(new Date(now).getUTCHours()).padStart(2, '0'));
-    if (m.nf) add('404', label(m.nf, 80));
+    // A missing URL can contain an email address or access token. Keep only a
+    // coarse type, never the visitor-supplied path itself.
+    if (m.nf) {
+      const missing = String(m.nf).toLowerCase();
+      add('404', missing.endsWith('.html') ? 'HTML' : /\.[a-z0-9]{1,6}$/.test(missing) ? 'Datei' : 'Pfad');
+    }
     if (!seen) {
       const cf = request.cf || {};
       add('visitors', '');
@@ -151,6 +157,14 @@ async function collect(text, request, env, day) {
       add('scroll', p, 1, sc);
       add('scrolldepth', sc >= 90 ? '90–100 %' : sc >= 75 ? '75–89 %' : sc >= 50 ? '50–74 %' : sc >= 25 ? '25–49 %' : '0–24 %');
     }
+  } else if (m.t === 'perf') {
+    const ms = Math.round(Number(m.ms));
+    const ttfb = Math.round(Number(m.ttfb));
+    if (ms > 0 && ms <= 120000) {
+      add('perf_load', p, 1, ms);
+      add('perf_bucket', ms < 1000 ? '< 1 s' : ms < 3000 ? '1–3 s' : ms < 10000 ? '3–10 s' : '≥ 10 s');
+    }
+    if (ttfb >= 0 && ttfb <= 120000) add('perf_ttfb', p, 1, ttfb);
   } else if (m.t === 'ev') {
     const name = token(m.n, 30);
     if (!name) return;

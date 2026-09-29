@@ -18,6 +18,12 @@
 </header>
 <main class="wrap dl-main">
   <p class="status" id="status" hidden></p>
+  <div class="source-strip" aria-label="Datenquellen">
+    <span id="source-own">Eigener Zähler: wird geladen</span>
+    <span id="source-gh">GitHub: wird geladen</span>
+    <a href="https://dash.cloudflare.com/74798c6eac0429dbc713154c5e6d8ee0/neuro-cause.com/analytics/traffic" target="_blank" rel="noopener noreferrer">Cloudflare: Edge-Traffic ↗</a>
+    <a href="https://clarity.microsoft.com/projects/view/ypl7e33gz2/gettingstarted" target="_blank" rel="noopener noreferrer">Clarity: Analysen nach Einwilligung ↗</a>
+  </div>
 
   <div class="dl-sectionbar">
     <h2 class="dl-section">Besucher</h2>
@@ -26,7 +32,7 @@
     </div>
   </div>
   <section class="dl-facts facts" aria-label="Besucher, Übersicht">
-    <div class="fact total"><b id="s-visitors">–</b><span>Besucher</span><div class="src" id="s-visitors-sub">–</div></div>
+    <div class="fact total"><b id="s-visitors">–</b><span>Tagesunikate</span><div class="src" id="s-visitors-sub">–</div></div>
     <div class="fact"><b id="s-visits">–</b><span>Besuche</span><div class="src" id="s-visits-sub">–</div></div>
     <div class="fact"><b id="s-pv">–</b><span>Seitenaufrufe</span><div class="src" id="s-pv-sub">–</div></div>
     <div class="fact"><b id="s-bounce">–</b><span>Absprungrate</span><div class="src" id="s-time">–</div></div>
@@ -74,7 +80,7 @@
     </div>
   </section>
   <ul class="notes">
-    <li>Besucherzahlen kommen aus unserem eigenen Zähler, unabhängig von der Cookie-Wahl: gespeichert werden nur Tagessummen.
+    <li>Eigene Besucherzahlen kommen aus unserem cookielosen Zähler, sofern Besucher ihm nicht widersprechen oder Global Privacy Control nutzen. Gespeichert werden Tagessummen.
       Besucher werden je UTC-Tag unterschieden (über einen täglich neuen, danach gelöschten Zufallswert, nie über Cookies
       oder gespeicherte IP-Adressen); über mehrere Tage summiert, zählt ein wiederkehrender Besucher also mehrfach. Ein Besuch
       endet nach 30 Minuten ohne Seitenaufruf; «Absprung» ist ein Besuch mit nur einer Seite. Suchmaschinen und Bots werden
@@ -85,6 +91,8 @@
       und Prüfdienste werden nicht gezählt. Gespeichert werden nur Datum und Datei.</li>
     <li>„Direkt auf GitHub“ ist die Differenz der beiden. Sie kann kurzzeitig leicht abweichen, wenn ein Download über
       die Webseite gestartet, aber nicht abgeschlossen wurde.</li>
+    <li>„Ladezeit“ ist das Browser-Ereignis <code>load</code>, „Antwortzeit“ die Spanne vom Request bis zum ersten Antwort-Byte.
+      Beides sind aggregierte Diagnosewerte, keine Core Web Vitals; ältere Besuche und Browser ohne Performance-API fehlen.</li>
   </ul>
 </main>`;
 
@@ -97,6 +105,7 @@
   const version = (file) => (file.match(/(?:NeuroCause|NeuroFly)-(\d+\.\d+\.\d+)-/) || [])[1] || file;
   const dayLabel = (d) => `${d.slice(8, 10)}.${d.slice(5, 7)}.`;
   const duration = (ms) => { const s = Math.round(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} min` : `${s} s`; };
+  const milliseconds = (ms) => ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toLocaleString('de-CH', { maximumFractionDigits: 1 })} s`;
   const regionNames = new Intl.DisplayNames(['de-CH'], { type: 'region' });
   const languageNames = new Intl.DisplayNames(['de-CH'], { type: 'language' });
   const flag = (cc) => (/^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '');
@@ -111,7 +120,9 @@
     ['country', 'Länder', country], ['region', 'Regionen', place], ['city', 'Orte', place],
     ['device', 'Geräte'], ['browser', 'Browser'], ['os', 'Betriebssysteme'], ['screen', 'Bildschirmbreite'], ['lang', 'Sprachen', language],
     ['engaged', 'Lesezeit pro Seite', pageName, 'time'], ['scroll', 'Gelesen (Scrolltiefe) pro Seite', pageName, 'percent'],
-    ['scrolldepth', 'Scrolltiefe'], ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
+    ['scrolldepth', 'Scrolltiefe'], ['perf_load', 'Ladezeit pro Seite', pageName, 'milliseconds'],
+    ['perf_ttfb', 'Antwortzeit pro Seite', pageName, 'milliseconds'], ['perf_bucket', 'Ladezeit-Verteilung'],
+    ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
   ];
 
   const VERSION_COLORS = ['#0a7625', '#2a78d6', '#eb6834', '#9b59b6', '#c9a227', '#1baf7a', '#7f8c8d'];
@@ -170,7 +181,7 @@
     const engagedN = engaged.reduce((s, r) => s + r.n, 0), engagedMs = engaged.reduce((s, r) => s + r.sum, 0);
     const perDay = (x) => (period > 1 ? `Ø ${fmt(Math.round(x / period))} pro Tag` : 'heute (UTC)');
     $('s-visitors').textContent = fmt(visitors);
-    $('s-visitors-sub').textContent = period > 1 ? `${perDay(visitors)} · je Tag eindeutig` : 'heute, eindeutig';
+    $('s-visitors-sub').textContent = period > 1 ? `${perDay(visitors)} · Tageswerte addiert, nicht über den Zeitraum eindeutig` : 'heute, je Tag eindeutig';
     $('s-visits').textContent = fmt(visits);
     $('s-visits-sub').textContent = visits ? `Ø ${(pvWithVisits / visits).toLocaleString('de-CH', { maximumFractionDigits: 1 })} Seiten pro Besuch` : '–';
     $('s-pv').textContent = fmt(pv);
@@ -217,7 +228,9 @@
         const li = document.createElement('li');
         const label = document.createElement('span'); label.className = 'k'; label.textContent = name(key) || '–'; label.title = key;
         const val = document.createElement('span'); val.className = 'v';
-        val.textContent = value === 'time' ? duration(a.sum / a.n) : value === 'percent' ? `${Math.round(a.sum / a.n)} %` : `${fmt(a.n)} · ${pct(a.n / sumN)}`;
+        val.textContent = value === 'time' ? duration(a.sum / a.n)
+          : value === 'milliseconds' ? milliseconds(a.sum / a.n)
+            : value === 'percent' ? `${Math.round(a.sum / a.n)} %` : `${fmt(a.n)} · ${pct(a.n / sumN)}`;
         const bar = document.createElement('i'); bar.style.setProperty('--w', (a.n / max).toFixed(3));
         li.append(label, val, bar);
         list.append(li);
@@ -234,14 +247,27 @@
     for (const r of releases) for (const a of r.assets) if (ZIP.test(a.name)) files.push({ file: a.name, total: a.download_count });
     // Only published files count: the test path v0.0.0 and mistyped versions are not downloads.
     const published = new Set(files.map((f) => f.file));
-    const web = stats.website.filter((row) => published.has(row.file));
+    const web = (stats?.website || []).filter((row) => published.has(row.file));
     const webBy = (file) => web.filter((r) => r.file === file).reduce((s, r) => s + r.n, 0);
 
     const total = files.reduce((s, f) => s + f.total, 0);
     const webTotal = web.reduce((s, r) => s + r.n, 0);
     $('f-total').textContent = fmt(total);
-    $('f-web').textContent = fmt(webTotal);
-    $('f-gh').textContent = fmt(Math.max(0, total - webTotal));
+    $('f-web').textContent = stats ? fmt(webTotal) : '–';
+    $('f-gh').textContent = stats ? fmt(Math.max(0, total - webTotal)) : '–';
+    if (!stats) {
+      $('f-today').textContent = '–';
+      $('f-today-split').textContent = 'Eigener Zähler nicht erreichbar';
+      $('chart').replaceChildren();
+      $('chart-versions').replaceChildren();
+      $('version-legend').replaceChildren();
+      $('versions').replaceChildren(...(files.length ? files.map((f) => {
+        const release = releases.find((r) => r.assets.some((a) => a.name === f.file));
+        const at = release?.published_at;
+        return tableRow([version(f.file), at ? new Date(at).toLocaleDateString('de-CH') : '–', fmt(f.total), '–', '–', '–']);
+      }) : [emptyRow(6, 'Noch keine Veröffentlichung')]));
+      return;
+    }
 
     // Per day and file: direct GitHub downloads so far = GitHub's total - website downloads so far;
     // a day's share is the growth since the previous stored total (all earlier ones land on the
@@ -349,14 +375,28 @@
         getJSON('/data.json'),
       ]);
       const stats = site.status === 'fulfilled' ? site.value : null;
-      if (stats) { data = { site: siteRows(stats) }; renderSite(); }
-      else problems.push('Die eigenen Zahlen (Besucher, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
+      $('source-own').textContent = `Eigener Zähler: ${stats ? 'aktuell' : 'nicht erreichbar'}`;
+      $('source-gh').textContent = `GitHub: ${gh.status === 'fulfilled' ? 'aktuell' : 'nicht erreichbar'}`;
+      $('source-own').dataset.ok = String(!!stats);
+      $('source-gh').dataset.ok = String(gh.status === 'fulfilled');
+      data = stats ? { site: siteRows(stats) } : null;
+      if (data) renderSite();
+      else {
+        for (const id of ['s-visitors', 's-visits', 's-pv', 's-bounce']) $(id).textContent = '–';
+        for (const id of ['s-visitors-sub', 's-visits-sub', 's-pv-sub', 's-time']) $(id).textContent = 'Keine aktuellen Daten';
+        $('chart-views').replaceChildren(); $('chart-hours').replaceChildren(); $('lists').replaceChildren();
+        problems.push('Die eigenen Zahlen (Besucher, Webseiten-Downloads) sind gerade nicht abrufbar – Anmeldung abgelaufen? Seite neu laden.');
+      }
       if (gh.status === 'fulfilled') {
         if (data) { data.releases = gh.value; renderSite(); }
         // Without the counter's figures, GitHub's totals still show; the split waits for them.
-        renderDownloads(gh.value, stats || { website: [], github: [] });
+        renderDownloads(gh.value, stats);
         storeSnapshot(gh.value);
       } else {
+        for (const id of ['f-total', 'f-web', 'f-gh', 'f-today']) $(id).textContent = '–';
+        $('f-today-split').textContent = 'GitHub nicht erreichbar';
+        for (const id of ['chart', 'chart-versions', 'version-legend']) $(id).replaceChildren();
+        $('versions').replaceChildren(emptyRow(6, 'GitHub-Zahlen derzeit nicht verfügbar'));
         problems.push(`GitHubs Download-Zahlen konnten nicht geladen werden: ${gh.reason.message}.`);
       }
       $('updated').textContent = `Stand ${new Date().toLocaleString('de-CH')}` + (gh.status === 'fulfilled' ? ' · GitHub live' : '')

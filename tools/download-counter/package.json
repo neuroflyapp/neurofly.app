@@ -1,8 +1,10 @@
 {
   "private": true,
+  "type": "module",
   "name": "neurofly-counters",
   "description": "Deploys the Cloudflare Workers neurofly-downloads and neurofly-stats",
   "scripts": {
+    "test": "node --test --test-isolation=none",
     "deploy:counter": "wrangler deploy -c wrangler.counter.toml",
     "deploy:stats": "wrangler deploy -c wrangler.stats.toml"
   },
