@@ -536,6 +536,7 @@ if (support) {
     const go = support.querySelector('[data-support-go]');
     const freqButtons = [...support.querySelectorAll('[data-freq]')];
     let freq = offers.once.length ? 'once' : 'monthly', choice = null;
+    for (const b of freqButtons) b.disabled = !offers[b.dataset.freq]?.length;
     if (!offers.once.length || !offers.monthly.length) freqButtons[0].parentElement.hidden = true;
     if (offers.once.length === 1 && offers.once[0].amount === null && !offers.monthly.length) amounts.hidden = true;
     const render = () => {
@@ -559,7 +560,11 @@ if (support) {
       go.textContent = choice.amount === null ? 'Support the research →'
         : `Donate ${D.currency} ${choice.amount}${freq === 'monthly' ? ' a month' : ''}`;
     };
-    for (const b of freqButtons) b.addEventListener('click', () => { freq = b.dataset.freq; render(); });
+    for (const b of freqButtons) b.addEventListener('click', () => {
+      if (!offers[b.dataset.freq]?.length) return;
+      freq = b.dataset.freq;
+      render();
+    });
     go.addEventListener('click', () => collect('donate', `${freq} ${choice.amount ?? 'other'}`));
     render();
   }

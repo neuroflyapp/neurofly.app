@@ -518,6 +518,7 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .support-card { background: rgba(14, 22, 20, .86); border: 1px solid #22322d; border-radius: 18px; padding: clamp(20px, 3vw, 30px);
   box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), 0 0 0 1px rgba(109, 255, 160, .04) inset; }
 .support-freq { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: #0b1311; border: 1px solid #1f2d29; margin-bottom: 16px; }
+.support-freq[hidden] { display: none; }
 .support-freq button { font: 620 15px/1 var(--sans); padding: 12px; border-radius: 9px; border: 0; background: transparent; color: #9aaaa4; cursor: pointer; }
 .support-freq button[aria-pressed="true"] { background: #17231f; color: #f4faf7; box-shadow: inset 0 0 0 1px #2b3e38; }
 .support-amounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px; }
