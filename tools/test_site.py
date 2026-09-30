@@ -1,11 +1,25 @@
 """Small regression checks for the static site's critical visitor paths."""
 
 from pathlib import Path
+from html.parser import HTMLParser
 import re
 import unittest
+from urllib.parse import unquote, urlsplit
 
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
+
+
+class LinkReader(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            href = dict(attrs).get("href")
+            if href:
+                self.links.append(href)
 
 
 class VisitorPathTests(unittest.TestCase):
@@ -38,6 +52,30 @@ class VisitorPathTests(unittest.TestCase):
                 page = (DOCS / name).read_text(encoding="utf-8")
                 self.assertIn('<video controls muted loop', page)
                 self.assertNotIn('data-autoplay', page)
+
+    def test_local_navigation_targets_exist(self):
+        root = DOCS.resolve()
+        for source in DOCS.glob("*.html"):
+            reader = LinkReader()
+            reader.feed(source.read_text(encoding="utf-8"))
+            for href in reader.links:
+                url = urlsplit(href)
+                if url.scheme or url.netloc:
+                    continue
+                path = unquote(url.path)
+                target = root / path.lstrip("/") if path.startswith("/") else source.parent / path
+                if not path or path.endswith("/"):
+                    target = target / "index.html" if path else source
+                target = target.resolve()
+                with self.subTest(source=source.name, href=href):
+                    self.assertTrue(target.is_relative_to(root), "link escapes the site")
+                    self.assertTrue(target.is_file(), "local target missing")
+                    if url.fragment and target.suffix == ".html":
+                        html = target.read_text(encoding="utf-8")
+                        anchor = re.escape(unquote(url.fragment))
+                        has_anchor = re.search(rf'\bid=["\']{anchor}["\']', html)
+                        has_tab = re.search(rf'\bdata-hash=["\']{anchor}["\']', html)
+                        self.assertTrue(has_anchor or has_tab, "anchor missing")
 
 
 if __name__ == "__main__":
