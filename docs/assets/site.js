@@ -2,6 +2,16 @@
 // Baseline audience counts are separate from optional detailed statistics;
 // Clarity never loads before consent.
 
+// The storage choice is kept under 'neurocause-consent'. A choice stored under
+// the site's former key is carried over once, so no visitor is asked again.
+try {
+  const former = localStorage.getItem('neurofly-consent');
+  if (former !== null) {
+    if (localStorage.getItem('neurocause-consent') === null) localStorage.setItem('neurocause-consent', former);
+    localStorage.removeItem('neurofly-consent');
+  }
+} catch { /* storage unavailable */ }
+
 // ---- configuration ------------------------------------------------------------------------------
 // formEmail: the address the forms deliver to through Airform (https://airform.io/<address>).
 //   Airform receives a normal HTML form POST; the visitor sees Airform's confirmation page.
@@ -29,7 +39,7 @@ function ownMeasurementEnabled() {
 // A cookie-free beacon is not automatically exempt from consent requirements.
 function detailedMeasurementEnabled() {
   try {
-    const c = JSON.parse(localStorage.getItem('neurofly-consent'));
+    const c = JSON.parse(localStorage.getItem('neurocause-consent'));
     return c?.v === 3 && c.statistics === true && Number.isFinite(c.at)
       && c.at <= Date.now() && Date.now() - c.at < 365 * 24 * 3600 * 1000;
   } catch { return false; }
@@ -145,10 +155,10 @@ if (toggle && nav) {
 
 // ---- statistics and storage choices ---------------------------------------------------------------
 // A conventional banner: accept all, only necessary, or settings with one switch
-// per category. Necessary storage (the choice itself, 'neurofly-consent') is
+// per category. Necessary storage (the choice itself, 'neurocause-consent') is
 // always on; Clarity and our detailed tier start only after statistics consent. The choice is asked
 // again after 12 months and can be changed under "Privacy settings".
-const CONSENT_KEY = 'neurofly-consent';
+const CONSENT_KEY = 'neurocause-consent';
 const CONSENT_MAX_AGE = 365 * 24 * 3600 * 1000;
 const storage = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -228,7 +238,7 @@ function consentSettings() {
         <p>Choose which cookies and similar technologies this website may use in your browser. Details are in our
           <a href="cookies.html">cookie</a> and <a href="privacy.html">privacy</a> notices.</p>
         <div class="consent-cat">
-          <div><h3>Necessary</h3><p>Stores your choice on this page (<code>neurofly-consent</code>). Needed for the site to respect it;
+          <div><h3>Necessary</h3><p>Stores your choice on this page (<code>neurocause-consent</code>). Needed for the site to respect it;
             contains no personal data.</p></div>
           <label class="switch"><input type="checkbox" checked disabled><span aria-hidden="true"></span><em>Always on</em></label>
         </div>

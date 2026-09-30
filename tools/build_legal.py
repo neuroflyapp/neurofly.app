@@ -334,7 +334,7 @@ cookies = f"""
       <table class="spec legal-table">
         <thead><tr><th>Name</th><th>Provider</th><th>Purpose</th><th>Duration</th></tr></thead>
         <tbody>
-          <tr><td><code>neurofly-consent</code></td><td>{DOMAIN}</td><td>Stores your cookie choice and when you made it</td>
+          <tr><td><code>neurocause-consent</code></td><td>{DOMAIN}</td><td>Stores your cookie choice and when you made it</td>
             <td>12 months, then we ask again</td></tr>
         </tbody>
       </table>

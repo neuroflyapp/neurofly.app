@@ -48,7 +48,7 @@ class VisitorPathTests(unittest.TestCase):
         self.assertIn('src="media/hero-1080.mp4"', home)
         # Narrow screens take the 720p H.264 film (4 MB instead of 8 MB).
         self.assertIn('<source src="media/hero-720.mp4" type="video/mp4" media="(max-width: 900px)">', home)
-        self.assertIn('src="assets/site.js?v=hero-20260930"', home)
+        self.assertIn('src="assets/site.js?v=20260930-consent"', home)
         self.assertIn('userPaused', script)
         self.assertIn('hero.pause()', script)
 
