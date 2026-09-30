@@ -37,6 +37,7 @@ class VisitorPathTests(unittest.TestCase):
             if '<nav class="site-nav"' in page:
                 with self.subTest(page=path.name):
                     self.assertIn('<a href="./#support">Support</a>', page)
+                    self.assertIn('class="mobile-support" href="./#support"', page)
                     self.assertNotIn('data-support-link hidden', page)
 
     def test_background_film_can_be_paused(self):
