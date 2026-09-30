@@ -189,9 +189,8 @@ function consentBanner() {
   box.className = 'consent';
   box.setAttribute('aria-label', 'Cookies');
   box.innerHTML = `
-    <p><b>Privacy choices on ${location.hostname}</b><br>Basic page counts work without cookies; you can turn them off in Settings.
-      With your consent, detailed audience statistics and Microsoft Clarity add usage breakdowns, heatmaps and masked recordings. Change your choice anytime under Privacy settings.
-      <a href="cookies.html">More</a></p>
+    <p><b>Privacy choices</b><br>Basic page totals use no cookies; switch them off in Settings. With consent, detailed statistics
+      and Microsoft Clarity add usage data, heatmaps and masked recordings. <a href="cookies.html">Details and later changes</a></p>
     <div class="consent-actions">
       <button type="button" class="linklike ink" data-consent="settings">Settings</button>
       <button type="button" class="btn primary" data-consent="necessary">No optional cookies</button>

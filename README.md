@@ -58,6 +58,10 @@ counter with cookieless page statistics (`worker.js`) and the login-protected
 dashboard (`stats-worker.js`). Deploy with `npm run deploy:counter` and
 `npm run deploy:stats` from that folder.
 
+Run `python -m unittest discover -s tools -p 'test_*.py'` before publishing a
+site change. It checks that the support path works without JavaScript and that
+every page links to it.
+
 ## Licence
 
 © 2026 NeuroCause. The website's text, figures, films and design are not

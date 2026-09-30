@@ -363,8 +363,8 @@ dialog.reel-dialog::backdrop { background: rgba(3, 7, 6, .9); }
 }
 
 /* ---- cookie consent ------------------------------------------------------------------------- */
-.consent { position: fixed; z-index: 60; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  max-width: 620px; margin-inline: auto; background: var(--card); color: var(--ink); border: 1px solid var(--rule-2);
+.consent { position: fixed; z-index: 60; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: min(480px, calc(100vw - 32px)); background: var(--card); color: var(--ink); border: 1px solid var(--rule-2);
   border-radius: 12px; padding: 18px 20px 16px; box-shadow: 0 24px 60px -24px rgba(12, 19, 17, .45); font-size: 15px; line-height: 1.55;
   animation: consent-in .35s ease-out both; }
 .consent p { margin: 0 0 14px; color: var(--ink-2); }
@@ -401,7 +401,7 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .site-footer .legal-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 10px; }
 @media (prefers-reduced-motion: reduce) { .consent { animation: none; } }
 @media (max-width: 560px) {
-  .consent { left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 14px 16px 12px; font-size: 14px; line-height: 1.5; }
+  .consent { right: 10px; width: calc(100vw - 20px); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 14px 16px 12px; font-size: 14px; line-height: 1.5; }
   .consent p { margin-bottom: 10px; }
   .consent-actions .btn { flex: 1; justify-content: center; padding: 10px 12px; }
   .consent-actions .linklike { flex-basis: 100%; margin: 0 0 2px; text-align: left; }
