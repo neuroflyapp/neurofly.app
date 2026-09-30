@@ -15,24 +15,6 @@ const CONFIG = {
   collector: 'https://get.neurofly.app/collect',
   // Aggregate navigation timings are sent only after statistics consent.
   performanceTelemetry: true,
-  // Donations: verified live Stripe Payment Links only. `onceOther` is a link
-  // where the donor chooses the amount. Stripe handles confirmation and receipts.
-  // The support section and its menu link stay hidden until a link is filled in.
-  donate: {
-    currency: 'CHF',
-    once: [
-      { amount: 10, url: '', impact: 'Fuels another round of simulation runs.' },
-      { amount: 25, url: '', impact: 'Helps render the next film from a simulation run.', suggested: true },
-      { amount: 50, url: '', impact: 'Supports a new experiment in the in-silico lab.' },
-      { amount: 100, url: '', impact: 'Backs a whole release — free for everyone.' },
-    ],
-    onceOther: 'https://donate.stripe.com/8x200j7Ci1y3ftJ24TeEo00',
-    monthly: [
-      { amount: 5, url: '', impact: 'Keeps NeuroCause running, month after month.' },
-      { amount: 10, url: '', impact: 'Makes you part of every release.', suggested: true },
-      { amount: 25, url: '', impact: 'Carries the science forward, steadily.' },
-    ],
-  },
 };
 
 // A separate opt-out for our aggregate, cookieless measurement. Honour the
@@ -536,14 +518,28 @@ if (!reduceMotion && 'IntersectionObserver' in window) {
   });
 }
 
-// Hero film: the size that suits the screen and connection, set only after the
-// page has loaded, shown only once it can play through without stalling, and
-// paused while off-screen or in a hidden tab. The poster stays until then.
+// Hero film: keep the poster as a lightweight first frame, respect reduced
+// motion / data-saving requests, and give visitors an explicit pause control.
 const hero = document.querySelector('video[data-hero]');
 if (hero && !reduceMotion) {
   const conn = navigator.connection;
   const slow = conn && (conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || ''));
   if (!slow) {
+    const motion = document.querySelector('[data-hero-motion]');
+    let userPaused = false;
+    let heroVisible = true;
+    const syncMotion = () => {
+      if (!motion) return;
+      motion.textContent = userPaused ? 'Play animation' : 'Pause animation';
+      motion.setAttribute('aria-label', motion.textContent);
+    };
+    motion.hidden = false;
+    motion.addEventListener('click', () => {
+      userPaused = !userPaused;
+      syncMotion();
+      if (userPaused) hero.pause();
+      else if (heroVisible && !document.hidden) hero.play().catch(() => {});
+    });
     // The sharpest file this browser plays well for this screen: AV1, then
     // HEVC (Apple devices), then H.264; 1440p where the screen has the pixels.
     const px = Math.max(window.innerWidth, 1) * (window.devicePixelRatio || 1);
@@ -553,28 +549,27 @@ if (hero && !reduceMotion) {
       : can('video/mp4; codecs="av01.0.08M.08"') ? d.srcAv1
       : can('video/mp4; codecs="hvc1.1.6.L150.90"') && px > 1400 ? d.srcHevcXl
       : px > 1400 ? d.srcLarge : d.srcSmall;
+    const maybePlay = () => {
+      if (userPaused || !heroVisible || document.hidden) return;
+      hero.play().then(() => hero.classList.add('is-ready')).catch(() => {});
+    };
     const start = () => {
       hero.src = src;
-      hero.preload = 'auto';
-      hero.addEventListener('canplaythrough', () => {
-        hero.classList.add('is-ready');
-        if (heroVisible && !document.hidden) hero.play().catch(() => {});
-      }, { once: true });
+      hero.preload = 'metadata';
+      hero.addEventListener('error', () => { motion.hidden = true; }, { once: true });
       hero.load();
+      maybePlay();
     };
-    let heroVisible = true;
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => {
         heroVisible = e.isIntersecting;
-        if (!hero.classList.contains('is-ready')) return;
-        if (heroVisible && !document.hidden) hero.play().catch(() => {}); else hero.pause();
+        if (heroVisible) maybePlay(); else hero.pause();
       }, { threshold: 0.05 }).observe(hero);
     }
     document.addEventListener('visibilitychange', () => {
-      if (!hero.classList.contains('is-ready')) return;
-      if (document.hidden) hero.pause(); else if (heroVisible) hero.play().catch(() => {});
+      if (document.hidden) hero.pause(); else maybePlay();
     });
-    if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
+    start();
   }
 }
 
@@ -595,55 +590,4 @@ if (reelDialog) {
   reelDialog.querySelector('.close').addEventListener('click', closeFilm);
   reelDialog.addEventListener('click', (e) => { if (e.target === reelDialog) closeFilm(); });
   reelDialog.addEventListener('cancel', (e) => { e.preventDefault(); closeFilm(); });
-}
-
-// ---- support (donations) ----------------------------------------------------------------------------
-// Each amount opens a verified live Stripe Payment Link; checkout and payment
-// confirmation stay with Stripe so a query parameter cannot imply payment.
-const support = document.querySelector('[data-support]');
-if (support) {
-  const D = CONFIG.donate;
-  const offers = { once: D.once.filter((o) => o.url), monthly: D.monthly.filter((o) => o.url) };
-  if (D.onceOther) offers.once.push({ amount: null, url: D.onceOther,
-    impact: 'Choose an amount at Stripe checkout. Your support funds careful testing and open research resources.' });
-  if (offers.once.length || offers.monthly.length) {
-    support.hidden = false;
-    for (const a of document.querySelectorAll('[data-support-link]')) a.hidden = false;
-    const amounts = support.querySelector('[data-support-amounts]');
-    const impact = support.querySelector('[data-support-impact]');
-    const go = support.querySelector('[data-support-go]');
-    const freqButtons = [...support.querySelectorAll('[data-freq]')];
-    let freq = offers.once.length ? 'once' : 'monthly', choice = null;
-    for (const b of freqButtons) b.disabled = !offers[b.dataset.freq]?.length;
-    if (!offers.once.length || !offers.monthly.length) freqButtons[0].parentElement.hidden = true;
-    if (offers.once.length === 1 && offers.once[0].amount === null && !offers.monthly.length) amounts.hidden = true;
-    const render = () => {
-      const list = offers[freq];
-      if (!list.includes(choice)) choice = list.find((o) => o.suggested) || list[0];
-      for (const b of freqButtons) b.setAttribute('aria-pressed', String(b.dataset.freq === freq));
-      amounts.replaceChildren(...list.map((o) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.setAttribute('aria-pressed', String(o === choice));
-        if (o.amount === null) { b.className = 'other'; b.textContent = 'Choose amount on Stripe'; }
-        else {
-          b.textContent = `${D.currency} ${o.amount}`;
-          if (o.suggested) { const s = document.createElement('small'); s.textContent = 'Suggested'; b.append(s); }
-        }
-        b.addEventListener('click', () => { choice = o; render(); });
-        return b;
-      }));
-      impact.textContent = choice.impact;
-      go.href = choice.url;
-      go.textContent = choice.amount === null ? 'Support the research →'
-        : `Donate ${D.currency} ${choice.amount}${freq === 'monthly' ? ' a month' : ''}`;
-    };
-    for (const b of freqButtons) b.addEventListener('click', () => {
-      if (!offers[b.dataset.freq]?.length) return;
-      freq = b.dataset.freq;
-      render();
-    });
-    go.addEventListener('click', () => collect('donate', `${freq} ${choice.amount ?? 'other'}`));
-    render();
-  }
 }
