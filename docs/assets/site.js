@@ -507,61 +507,25 @@ for (const n of document.querySelectorAll('[data-contact-email]')) {
 // ---- videos -------------------------------------------------------------------------------------
 // Editorial films on the Methods and Vision pages have native controls and
 // only load when a visitor chooses to play them.
-const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-// Hero film: keep the poster as a lightweight first frame, respect reduced
-// motion / data-saving requests, and give visitors an explicit pause control.
+// The hero is a continuous, muted background film. Native autoplay and a
+// widely supported H.264 source make it work even if this script is delayed;
+// the script only adds an explicit pause control and resumes after tab return.
 const hero = document.querySelector('video[data-hero]');
-if (hero && !reduceMotion) {
-  const conn = navigator.connection;
-  const slow = conn && (conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || ''));
-  if (!slow) {
-    const motion = document.querySelector('[data-hero-motion]');
-    let userPaused = false;
-    let heroVisible = true;
-    const syncMotion = () => {
-      if (!motion) return;
-      motion.textContent = userPaused ? 'Play animation' : 'Pause animation';
-      motion.setAttribute('aria-label', motion.textContent);
-    };
-    motion.hidden = false;
-    motion.addEventListener('click', () => {
-      userPaused = !userPaused;
-      syncMotion();
-      if (userPaused) hero.pause();
-      else if (heroVisible && !document.hidden) hero.play().catch(() => {});
-    });
-    // The sharpest file this browser plays well for this screen: AV1, then
-    // HEVC (Apple devices), then H.264; 1440p where the screen has the pixels.
-    const px = Math.max(window.innerWidth, 1) * (window.devicePixelRatio || 1);
-    const can = (type) => hero.canPlayType?.(type) === 'probably';
-    const d = hero.dataset;
-    const src = can('video/mp4; codecs="av01.0.12M.08"') && px > 2000 ? d.srcAv1Xl
-      : can('video/mp4; codecs="av01.0.08M.08"') ? d.srcAv1
-      : can('video/mp4; codecs="hvc1.1.6.L150.90"') && px > 1400 ? d.srcHevcXl
-      : px > 1400 ? d.srcLarge : d.srcSmall;
-    const maybePlay = () => {
-      if (userPaused || !heroVisible || document.hidden) return;
-      hero.play().then(() => hero.classList.add('is-ready')).catch(() => {});
-    };
-    const start = () => {
-      hero.src = src;
-      hero.preload = 'metadata';
-      hero.addEventListener('error', () => { motion.hidden = true; }, { once: true });
-      hero.load();
-      maybePlay();
-    };
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([e]) => {
-        heroVisible = e.isIntersecting;
-        if (heroVisible) maybePlay(); else hero.pause();
-      }, { threshold: 0.05 }).observe(hero);
-    }
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) hero.pause(); else maybePlay();
-    });
-    start();
-  }
+if (hero) {
+  const motion = document.querySelector('[data-hero-motion]');
+  let userPaused = false;
+  const resume = () => { if (!userPaused) hero.play().catch(() => {}); };
+  motion.hidden = false;
+  motion.addEventListener('click', () => {
+    userPaused = !userPaused;
+    motion.textContent = userPaused ? 'Play animation' : 'Pause animation';
+    motion.setAttribute('aria-label', motion.textContent);
+    if (userPaused) hero.pause(); else resume();
+  });
+  hero.addEventListener('canplay', resume);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
+  resume();
 }
 
 // Reel gallery: the full film, with sound, in a dialog.

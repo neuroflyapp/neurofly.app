@@ -4,7 +4,10 @@ The website is the static `docs/` tree on the `main` branch. The latest tested
 change in this handoff is `a322b5c` (confirm the current head before editing).
 The work includes a JavaScript-independent one-time support path, a visible
 mobile Support link, explicit motion controls, a shorter landing message and
-static visitor-path regression tests.
+static visitor-path regression tests. The hero film must keep rotating by
+default: its H.264 source and muted autoplay are declared in HTML, with an
+explicit pause button. A local browser check confirmed playback time advancing
+from 5.49 s to 8.00 s over a 2.5-second observation window.
 
 ## Before changing the site
 

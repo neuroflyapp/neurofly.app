@@ -44,6 +44,8 @@ class VisitorPathTests(unittest.TestCase):
         home = (DOCS / "index.html").read_text(encoding="utf-8")
         script = (DOCS / "assets" / "site.js").read_text(encoding="utf-8")
         self.assertIn('data-hero-motion', home)
+        self.assertRegex(home, r'<video class="hero-video" autoplay muted loop playsinline')
+        self.assertIn('src="media/hero-1080.mp4"', home)
         self.assertIn('userPaused', script)
         self.assertIn('hero.pause()', script)
 
