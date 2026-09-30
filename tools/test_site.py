@@ -32,6 +32,13 @@ class VisitorPathTests(unittest.TestCase):
         self.assertIn('userPaused', script)
         self.assertIn('hero.pause()', script)
 
+    def test_editorial_films_wait_for_the_visitor(self):
+        for name in ("science.html", "vision.html"):
+            with self.subTest(page=name):
+                page = (DOCS / name).read_text(encoding="utf-8")
+                self.assertIn('<video controls muted loop', page)
+                self.assertNotIn('data-autoplay', page)
+
 
 if __name__ == "__main__":
     unittest.main()

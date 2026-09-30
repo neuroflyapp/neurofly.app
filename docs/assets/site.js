@@ -126,9 +126,20 @@ const collect = (() => {
 const toggle = document.querySelector('.nav-toggle');
 const nav = document.getElementById('site-nav');
 if (toggle && nav) {
+  const closeNav = () => {
+    nav.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
   toggle.addEventListener('click', () => {
     const open = nav.classList.toggle('open');
     toggle.setAttribute('aria-expanded', String(open));
+  });
+  nav.addEventListener('click', (e) => { if (e.target.closest('a')) closeNav(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nav.classList.contains('open')) { closeNav(); toggle.focus(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target) && !toggle.contains(e.target)) closeNav();
   });
 }
 
@@ -494,28 +505,9 @@ for (const n of document.querySelectorAll('[data-contact-email]')) {
 }
 
 // ---- videos -------------------------------------------------------------------------------------
-// Loops load only when they come into view, play muted, and pause off-screen and in hidden tabs.
-// With reduced motion requested, nothing plays by itself; the posters stay.
+// Editorial films on the Methods and Vision pages have native controls and
+// only load when a visitor chooses to play them.
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const loops = [...document.querySelectorAll('video[data-autoplay]')];
-const visibleLoops = new Set();
-const playLoop = (v) => {
-  if (!v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
-  v.play().catch(() => { /* autoplay refused: the poster stays */ });
-};
-if (!reduceMotion && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) { visibleLoops.add(e.target); if (!document.hidden) playLoop(e.target); }
-      else { visibleLoops.delete(e.target); e.target.pause(); }
-    }
-  }, { threshold: 0.2 });
-  loops.forEach((v) => io.observe(v));
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) loops.forEach((v) => v.pause());
-    else visibleLoops.forEach(playLoop);
-  });
-}
 
 // Hero film: keep the poster as a lightweight first frame, respect reduced
 // motion / data-saving requests, and give visitors an explicit pause control.
