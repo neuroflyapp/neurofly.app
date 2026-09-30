@@ -46,6 +46,7 @@ class VisitorPathTests(unittest.TestCase):
         self.assertIn('data-hero-motion', home)
         self.assertRegex(home, r'<video class="hero-video" autoplay muted loop playsinline')
         self.assertIn('src="media/hero-1080.mp4"', home)
+        self.assertIn('src="assets/site.js?v=hero-20260930"', home)
         self.assertIn('userPaused', script)
         self.assertIn('hero.pause()', script)
 
