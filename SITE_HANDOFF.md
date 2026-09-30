@@ -21,14 +21,16 @@ static visitor-path regression tests.
 
 ## External checks still needed
 
-- A Git push to `main` succeeded and the remote branch was verified. Confirm
-  that GitHub Pages has published that commit before announcing the live site
-  as updated; no Pages build status was available in this environment.
+- Git push and remote-branch verification succeeded. A later read-only request
+  to `https://neuro-cause.com/` returned HTTP 200 with the new support section
+  and mobile header link; the updated Methods and Vision pages also returned
+  HTTP 200. The GitHub Pages build dashboard itself was not inspected.
 - The one-time donation button uses the existing Stripe Payment Link in
-  `docs/index.html`. Its hosted checkout and a completed payment were **not**
-  tested here. Check the link manually in a normal browser without submitting
-  a payment. Do not show a monthly option until a real, verified recurring
-  Stripe link exists.
+  `docs/index.html`. The link returned HTTP 200 and was not marked inactive in
+  the returned HTML. The checkout's visual content, recipient account and a
+  completed payment were **not** independently tested. Check those in a normal
+  browser; do not show a monthly option until a real, verified recurring Stripe
+  link exists.
 - Confirm the final mobile layout on a physical narrow-screen device. Local
   headless Chrome was visually checked at a 500-pixel viewport, but its window
   minimum prevented a reliable 390-pixel capture.
