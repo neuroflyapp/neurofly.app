@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neurofly.app; img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neuro-cause.com; img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
 <title>Privacy notice — NeuroCause</title>
 <meta name="description" content="How NeuroCause handles personal data on neuro-cause.com, in messages and in the NeuroCause software.">
 <meta name="robots" content="index, follow">
@@ -13,7 +13,7 @@
 <link rel="icon" href="brand/neurocause-favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=20261001">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -48,7 +48,7 @@
 <section class="block">
   <div class="wrap prose legal">
 
-    <p class="small">Effective 29 September 2026.</p>
+    <p class="small">Effective 1 October 2026.</p>
     <p>This notice explains which personal data NeuroCause processes when you visit neuro-cause.com, write to us, or use the NeuroCause
       software, why, and what you can do about it. It follows the Swiss Federal Act on Data Protection (FADP) and, where it
       applies to you, the EU General Data Protection Regulation (GDPR).</p>
@@ -60,23 +60,24 @@
     <h2 id="overview">2. What we process, and why</h2>
     <div class="facts-list">
       <div class="fact-item"><h3>When you visit the website</h3><dl>
-        <dt>Data</dt><dd>Our hosting providers process technical request data needed to deliver and secure the site, including the IP address.
-          Our own basic audience counter stores daily page and hour totals and a coarse type for missing pages. It does not create
-          a visitor identifier, store an IP address, or record referrals, campaigns, devices or interactions without consent.</dd>
-        <dt>Purpose and basis</dt><dd>Delivering and securing the website and measuring basic audience size; our legitimate interest
-          (GDPR Art. 6(1)(f)), subject to applicable rules on access to terminal equipment. Our basic counter uses no analytics
-          cookies or browser identifiers. You can object at any time in <button type="button" class="linklike ink"
-          data-privacy-settings>privacy settings</button>; we also honour a browser Global Privacy Control signal.</dd>
+        <dt>Data</dt><dd>Our hosting providers process technical request data needed to deliver and secure the site, including the IP
+          address. Our own audience measurement (section 3) records the page, the referring site, campaign parameters, a screen-width
+          class, reading time and scroll depth, the sections viewed, clicks on downloads, donations, email and links to other sites,
+          form submissions, load timings and Core Web Vitals. From the request itself it derives the approximate location (country,
+          region, city), device type, browser, operating system and language. Visits are told apart for one UTC day by a pseudonymous
+          value computed from a random daily salt, the IP address and the browser identification; the value and the salt are deleted
+          after that day, and the IP address itself is not stored. Only daily totals are kept.</dd>
+        <dt>Purpose and basis</dt><dd>Delivering and securing the website, measuring its reach and use, and improving its content,
+          design and performance: our legitimate interest (GDPR Art. 6(1)(f)). The measurement sets no cookies and stores nothing in
+          your browser to recognise you. You can object at any time in <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>; we also treat a browser Global Privacy Control
+          signal as an objection.</dd>
         <dt>Recipients</dt><dd>Our hosting and infrastructure providers, GitHub (GitHub Pages) and Cloudflare.</dd></dl></div>
-      <div class="fact-item"><h3>When you accept detailed statistics</h3><dl>
-        <dt>Data</dt><dd>Our own counter then also records daily visitor and visit estimates, referral domains, campaign parameters,
-          coarse device and location categories, page time, scroll depth, navigation load timings and selected interaction counts. It briefly uses a
-          pseudonymous daily value derived from IP address and browser details; this value and its daily salt are deleted after
-          that UTC day. Microsoft Clarity processes page and interaction data, heatmaps and masked session recordings, and may
-          set analytics cookies or similar identifiers.</dd>
-        <dt>Purpose and basis</dt><dd>Understanding which pages are read and how they work, to improve them. Only with your consent (GDPR Art. 6(1)(a)),
-          which you can withdraw at any time under <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>.</dd>
-        <dt>Recipients</dt><dd>Cloudflare for our own counter, and Microsoft Clarity (Microsoft Corporation). See section 3.</dd></dl></div>
+      <div class="fact-item"><h3>When you allow Microsoft Clarity</h3><dl>
+        <dt>Data</dt><dd>Page and interaction data, heatmaps and masked session recordings. Clarity may set analytics cookies or
+          similar identifiers.</dd>
+        <dt>Purpose and basis</dt><dd>Understanding in detail how pages are used, to improve them. Only with your consent (GDPR
+          Art. 6(1)(a)), which you can withdraw at any time under <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>.</dd>
+        <dt>Recipients</dt><dd>Microsoft Corporation (Microsoft Clarity). See section 3.</dd></dl></div>
       <div class="fact-item"><h3>When you use the contact or suggestion form</h3><dl>
         <dt>Data</dt><dd>What you enter: name, email address, organisation, role, topic and message, or your suggestion and reference.</dd>
         <dt>Purpose and basis</dt><dd>Answering you and reviewing suggestions and scientific corrections: our legitimate interest in
@@ -91,8 +92,11 @@
         <dt>Data</dt><dd>What you enter at checkout, such as name, email address, billing details and payment method, and the amount,
           date and status of the donation.</dd>
         <dt>Purpose and basis</dt><dd>Processing the donation, thanking you, bookkeeping and legal obligations; steps you ask for
-          (GDPR Art. 6(1)(b)), legal obligations (Art. 6(1)(c)) and our legitimate interest (Art. 6(1)(f)). Records are kept for
-          as long as the law requires, for accounting records generally ten years.</dd>
+          (GDPR Art. 6(1)(b)), legal obligations (Art. 6(1)(c)) and our legitimate interest (Art. 6(1)(f)). We may also use the
+          email address given at checkout to invite you to try pre-releases of the software and to tell you about the project:
+          our legitimate interest in keeping in touch with the people who support it (Art. 6(1)(f)). You can object to such emails
+          at any time by replying to one of them or by writing to us. Records are kept for as long as the law requires, for
+          accounting records generally ten years.</dd>
         <dt>Recipients</dt><dd>Stripe, which processes the payment, partly as a controller in its own right (for example to prevent
           fraud), and the payment method you choose (for example TWINT or your card issuer).</dd></dl></div>
       <div class="fact-item"><h3>When you download the NeuroCause software</h3><dl>
@@ -100,7 +104,8 @@
           For a download started on this website we record only the date and the file name, to count downloads; no IP address,
           cookie or other identifier is stored for this.</dd>
         <dt>Purpose and basis</dt><dd>Delivering the download and counting downloads; legitimate interest (GDPR Art. 6(1)(f)).</dd>
-        <dt>Recipients</dt><dd>Cloudflare, which runs our download counter at get.neurofly.app and forwards you to the file, and
+        <dt>Recipients</dt><dd>Cloudflare, which runs our download counter at get.neuro-cause.com (formerly get.neurofly.app) and
+          forwards you to the file, and
           GitHub (GitHub Releases), which serves the file under its own privacy statement.</dd></dl></div>
       <div class="fact-item"><h3>When you use the NeuroCause software on your computer</h3><dl>
         <dt>Data</dt><dd>Your settings, simulation runs, recordings and exports.</dd>
@@ -109,12 +114,15 @@
     </div>
     <p>Fields marked as required on the forms are needed to process your request; without a return address we cannot reply.</p>
 
-    <h2 id="statistics">3. Page statistics</h2>
-    <p>Our own basic page-count measurement is on by default without analytics cookies, but you can switch it off in
-      <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>. Current setting in this browser:
-      <b data-own-measurement-state>on</b>. In addition, you can allow Microsoft Clarity. Its code is not loaded until
-      you choose <em>Accept all</em> or enable detailed statistics in the <button type="button" class="linklike ink"
-      data-privacy-settings>privacy settings</button>. A previous choice for the former analytics provider is not reused.</p>
+    <h2 id="statistics">3. Audience measurement and statistics</h2>
+    <p>Our own audience measurement is first-party and aggregate. It sets no cookies, stores nothing in your browser to recognise
+      you, builds no profile across websites or days and is not used for advertising. It is on by default, based on our legitimate
+      interest in knowing how the website is found and used. You can object at any time in <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>; your objection is then
+      remembered in your browser (see the <a href="cookies.html">cookie notice</a>). Current setting in this browser:
+      <b data-own-measurement-state>on</b>. Aggregate daily totals do not identify anyone and are kept for as long as they are useful
+      for the project.</p>
+    <p>In addition, you can allow Microsoft Clarity. Its code is not loaded until you choose <em>Accept all</em> or enable
+      Clarity in the <button type="button" class="linklike ink" data-privacy-settings>privacy settings</button>.</p>
     <p>Clarity helps us inspect page usage through heatmaps and session recordings. It processes the information listed above;
       recordings mask sensitive content by default, and we also mask form fields. Do not enter confidential information elsewhere
       on the site. We tell Clarity that analytics storage is allowed only after your choice and that advertising storage is denied.
@@ -140,9 +148,9 @@
       contribution. If you do not want to be named, please say so in your message.</p>
 
     <h2 id="software">5. The NeuroCause software</h2>
-    <p>The NeuroCause software for Windows runs on your computer. The current version (2.2) contains no telemetry, crash reporting, update check,
-      advertising or account, and sends no data to us. Links to scientific publications in the application open in your web browser,
-      and only when you click them.</p>
+    <p>The NeuroCause software for Windows runs on your computer. It contains no telemetry, crash reporting, update check,
+      advertising or account, and sends no data to us. Links to scientific publications and to our website in the application open
+      in your web browser, and only when you click them.</p>
     <p>The application keeps your interface settings (for example language and panel choices) in its own local storage on your
       device. Recordings and exports are written only where you save them. Deleting those files, or uninstalling the application
       and its data folder, removes them. Do not place other people’s personal or confidential data in experiment notes unless you
@@ -206,17 +214,17 @@
   <div class="wrap">
     <div class="cols">
       <div><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="139" height="26"><p>In-silico experiments on measured nervous systems. Our first model is the fruit fly <i>Drosophila melanogaster</i>. Independent research and teaching, from Zurich.</p>
-        <ul class="social" aria-label="NeuroCause on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroCause on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroCause on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+        <ul class="social" aria-label="NeuroCause on social media"><li><a href="https://www.instagram.com/neurocauseofficial/" target="_blank" rel="me noopener" aria-label="NeuroCause on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/neurocause" target="_blank" rel="me noopener" aria-label="NeuroCause on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
       <div><h4>NeuroCause</h4><ul><li><a href="./#models">Models</a></li><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
-      <div><h4>Get involved</h4><ul><li><a href="./#support">Support the lab</a></li><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="./#support">Support the lab &amp; pre-releases</a></li><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
       <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
     </div>
-    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0); MaleCNS v1.0, BANC v888, MANC v1.0 and the male optic lobe v1.1 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
       NeuroCause is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
       measured; neural dynamics, senses, body and behaviour are models, and NeuroCause makes no claim that any model feels anything.
       © 2026 NeuroCause.</p>
   </div>
 </footer>
-<script src="assets/site.js" defer></script>
+<script src="assets/site.js?v=20261001" defer></script>
 </body>
 </html>

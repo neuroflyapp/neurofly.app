@@ -74,9 +74,29 @@ test('detail beacon keeps audience breakdown separate from pageviews', async () 
   assert.ok(!metrics.includes('hour'));
 });
 
-test('stale detail clients without a consent flag write nothing', async () => {
-  const { writes } = await collect({ t: 'detail', p: '/science', r: 'https://example.org/post' });
-  assert.equal(writes.length, 0);
+test('audience breakdowns are accepted without a consent flag (own measurement is not consent-based)', async () => {
+  const { writes } = await collect({ t: 'detail', p: '/science', r: 'https://example.org/post', w: 1280 });
+  const metrics = writes.map((row) => row.values[1]);
+  assert.ok(metrics.includes('visits'));
+  assert.ok(metrics.includes('screen'));
+  assert.ok(!JSON.stringify(writes).includes('203.0.113.'));
+});
+
+test('core web vitals are summed per page and rated by the published thresholds', async () => {
+  const { writes } = await collect({ t: 'vital', p: '/', lcp: 1800, cls: 300, inp: 240 });
+  assert.deepEqual(writes.map((row) => row.values.slice(1)), [
+    ['vital_lcp', '/', 1, 1800], ['vital_rating', 'LCP gut', 1, 0],
+    ['vital_cls', '/', 1, 300], ['vital_rating', 'CLS schlecht', 1, 0],
+    ['vital_inp', '/', 1, 240], ['vital_rating', 'INP mittel', 1, 0],
+  ]);
+  assert.equal((await collect({ t: 'vital', p: '/', lcp: -5, cls: 99999, inp: 0 })).writes.length, 0);
+});
+
+test('sections seen are counted per page, other events by name', async () => {
+  const seen = await collect({ t: 'ev', p: '/', n: 'seen', v: 'support' });
+  assert.deepEqual(seen.writes.map((row) => row.values.slice(1, 3)), [['section', '/#support']]);
+  const donate = await collect({ t: 'ev', p: '/', n: 'donate' });
+  assert.deepEqual(donate.writes.map((row) => row.values.slice(1, 3)), [['event', 'donate']]);
 });
 
 test('private dashboard rejects requests without Cloudflare Access assertion', async () => {

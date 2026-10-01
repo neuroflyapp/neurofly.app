@@ -1,14 +1,17 @@
 // NeuroCause download counter and site statistics (Cloudflare Worker
-// `neurofly-downloads` at get.neurofly.app, D1 binding `DB`). Public: it holds
-// no figures anyone can read; the dashboard is `neurofly-stats` (stats-worker.js).
+// `neurofly-downloads` at get.neuro-cause.com and, for older links,
+// get.neurofly.app; D1 binding `DB`). Public: it holds no figures anyone can
+// read; the dashboard is `neurofly-stats` (stats-worker.js).
 //
 // GET  /v2.1.0  counts one website download of that release's Windows build
 //               (date and file name only) and redirects to the file on GitHub.
-// POST /collect baseline: page/hour totals and coarse 404 classes without
-//               consent. Detailed audience and interaction aggregates are
-//               accepted only when the site has a statistics choice. Visitors
-//               can object to both own-counter tiers independently.
-//               Only daily totals are stored. Visitors are told apart for one
+// POST /collect our own audience measurement: page views, referrers,
+//               campaigns, coarse audience breakdowns, reading time and depth,
+//               sections seen, clicks, load timings and Core Web Vitals. The
+//               site sends it without cookies on its legitimate interest;
+//               visitors object on the site (and by Global Privacy Control),
+//               which stops the beacons. Microsoft Clarity is separate and
+//               consent-based. Only daily totals are stored. Visitors are told apart for one
 //               UTC day by a hash of a random daily salt, the IP address and the
 //               browser's user agent; the salt and the hashes are deleted after
 //               that day (cron), the IP address is never stored.
@@ -102,9 +105,6 @@ async function collect(text, request, env, day) {
   let m;
   try { m = JSON.parse(text); } catch { return; }
   if (!m || typeof m.p !== 'string' || !PAGE_PATH.test(m.p)) return;
-  // The consent flag is a guard against stale or accidental clients, not a
-  // proof of consent; the first-party site is responsible for collecting it.
-  if (m.t !== 'pv' && m.c !== 1) return;
   const db = env.DB, p = page(m.p), now = Date.now();
   const rows = [];
   const add = (metric, key, n = 1, sum = 0) => rows.push(db.prepare(
@@ -168,10 +168,19 @@ async function collect(text, request, env, day) {
       add('perf_bucket', ms < 1000 ? '< 1 s' : ms < 3000 ? '1–3 s' : ms < 10000 ? '3–10 s' : '≥ 10 s');
     }
     if (ttfb >= 0 && ttfb <= 120000) add('perf_ttfb', p, 1, ttfb);
+  } else if (m.t === 'vital') {
+    // Core Web Vitals per page, with Google's published good/poor thresholds.
+    // CLS arrives multiplied by 1000.
+    const lcp = Math.round(Number(m.lcp)), cls = Math.round(Number(m.cls)), inp = Math.round(Number(m.inp));
+    const rate = (name, v, good, poor) => add('vital_rating', `${name} ${v <= good ? 'gut' : v <= poor ? 'mittel' : 'schlecht'}`);
+    if (lcp > 0 && lcp <= 120000) { add('vital_lcp', p, 1, lcp); rate('LCP', lcp, 2500, 4000); }
+    if (cls >= 0 && cls <= 10000) { add('vital_cls', p, 1, cls); rate('CLS', cls, 100, 250); }
+    if (inp > 0 && inp <= 60000) { add('vital_inp', p, 1, inp); rate('INP', inp, 200, 500); }
   } else if (m.t === 'ev') {
     const name = token(m.n, 30);
     if (!name) return;
     if (name === 'outbound') add('outbound', label(m.v, 60));
+    else if (name === 'seen') { const id = token(m.v, 30); if (id) add('section', `${p}#${id}`); }
     else add('event', m.v ? `${name} · ${label(m.v, 50)}` : name);
   } else return;
   if (rows.length) await db.batch(rows);

@@ -1,4 +1,4 @@
-# NeuroCause website handoff — 30 September 2026
+# NeuroCause website handoff — 1 October 2026
 
 The website is the static `docs/` tree on the `main` branch. The latest tested
 change in this handoff is `a322b5c` (confirm the current head before editing).
@@ -8,6 +8,34 @@ static visitor-path regression tests. The hero film must keep rotating by
 default: its H.264 source and muted autoplay are declared in HTML, with an
 explicit pause button. A local browser check confirmed playback time advancing
 from 5.49 s to 8.00 s over a 2.5-second observation window.
+
+## Changes on 1 October 2026 (release 2.3.0)
+
+- Own audience measurement is no longer consent-gated: legitimate interest,
+  no cookies, nothing stored in the browser except an objection
+  (`neurocause-measurement-optout`; Global Privacy Control counts as one).
+  It adds Core Web Vitals (LCP/CLS/INP) and sections seen. Only Microsoft
+  Clarity asks for consent. Collector: `get.neuro-cause.com/collect` (the
+  Worker `neurofly-downloads` now also answers on get.neuro-cause.com;
+  get.neurofly.app keeps old links working). Dashboard lists for the new
+  metrics; Worker tests 9/9.
+- Social profiles: Instagram `neurocauseofficial`, X `neurocause`, TikTok
+  `@neurofly` (footer via `tools/build_legal.py`, follow strip, contact page,
+  schema.org `sameAs`).
+- Hero film always plays: the pause control is gone; the script only
+  restarts the film when the browser stopped it.
+- Supporter perk everywhere: supporters may be invited to pre-releases
+  (support card, hero link, download section, footer, contact page, app's
+  Model workspace); terms of use 13 (#prereleases), software terms 5
+  (pre-releases) and 10 (termination), privacy notice (supporter emails).
+- Release 2.3.0: download `get.neuro-cause.com/v2.3.0`, SHA-256
+  `2c60748e9fc302209acb442b50f25b6af73e4e4a8b7dbebc7ad7927bf21b2158`, 181 MB;
+  "New in 2.3" list; version references updated (31 test suites).
+- New screenshots from the 2.3.0 app (English UI, follow camera, 1.00x real
+  time) at 1x and 2x (`srcset`); the drop film is the first reel.
+- Legal: MANC v1.0 and the male optic lobe v1.1 credited (CC BY 4.0) in the
+  credits, imprint, footer and software terms; all legal dates 1 October 2026.
+- `site.js?v=20261001` / `site.css?v=20261001` on every page.
 
 ## Changes on 30 September 2026 (later the same day)
 

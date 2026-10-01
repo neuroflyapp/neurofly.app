@@ -1,7 +1,11 @@
 # Worker neurofly-downloads (worker.js): download counter and site statistics.
 name = "neurofly-downloads"
 main = "worker.js"
-routes = [{ pattern = "get.neurofly.app", custom_domain = true }]
+# get.neuro-cause.com is the current address; get.neurofly.app keeps older links working.
+routes = [
+  { pattern = "get.neuro-cause.com", custom_domain = true },
+  { pattern = "get.neurofly.app", custom_domain = true },
+]
 compatibility_date = "2026-09-01"
 workers_dev = false
 preview_urls = false

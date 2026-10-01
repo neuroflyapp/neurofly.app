@@ -53,7 +53,7 @@
   <h2 class="dl-section">Downloads</h2>
   <section class="dl-facts facts" aria-label="Downloads, Übersicht">
     <div class="fact total"><b id="f-total">–</b><span>Downloads insgesamt</span><div class="src">GitHub-Zähler, live</div></div>
-    <div class="fact"><b id="f-web">–</b><span>über die Webseite</span><div class="src">get.neurofly.app</div></div>
+    <div class="fact"><b id="f-web">–</b><span>über die Webseite</span><div class="src">get.neuro-cause.com</div></div>
     <div class="fact"><b id="f-gh">–</b><span>direkt auf GitHub</span><div class="src">insgesamt − Webseite</div></div>
     <div class="fact"><b id="f-today">–</b><span>heute (UTC)</span><div class="src" id="f-today-split">Webseite / GitHub</div></div>
   </section>
@@ -122,6 +122,10 @@
     ['engaged', 'Lesezeit pro Seite', pageName, 'time'], ['scroll', 'Gelesen (Scrolltiefe) pro Seite', pageName, 'percent'],
     ['scrolldepth', 'Scrolltiefe'], ['perf_load', 'Ladezeit pro Seite', pageName, 'milliseconds'],
     ['perf_ttfb', 'Antwortzeit pro Seite', pageName, 'milliseconds'], ['perf_bucket', 'Ladezeit-Verteilung'],
+    ['vital_lcp', 'LCP pro Seite (grösster Inhalt sichtbar)', pageName, 'milliseconds'],
+    ['vital_inp', 'INP pro Seite (langsamste Interaktion)', pageName, 'milliseconds'],
+    ['vital_cls', 'CLS pro Seite (Layout-Verschiebung)', pageName, 'cls'], ['vital_rating', 'Core Web Vitals · Bewertung'],
+    ['section', 'Gesehene Abschnitte', (k) => k.replace(/^\/#/, 'Startseite · #')],
     ['event', 'Ereignisse'], ['outbound', 'Links zu anderen Seiten'], ['404', 'Nicht gefunden (404)'],
   ];
 
@@ -209,7 +213,7 @@
     for (const r of rows) if (r.metric === 'hour') hours[hourOf(r.key)] += r.n;
     drawChart($('chart-hours'), hours.map((v, h) => ({ parts: [v], label: h % 3 === 0 ? `${String(h).padStart(2, '0')}` : null })), ['var(--accent)'], { height: 200 });
 
-    $('lists').replaceChildren(...LISTS.filter(([metric]) => !metric.startsWith('perf_') || rows.some((r) => r.metric === metric))
+    $('lists').replaceChildren(...LISTS.filter(([metric]) => !/^(perf|vital)_/.test(metric) || rows.some((r) => r.metric === metric))
       .map(([metric, title, name = (k) => k, value = 'count']) => {
       const agg = new Map();
       for (const r of rows) {
@@ -231,6 +235,7 @@
         const val = document.createElement('span'); val.className = 'v';
         val.textContent = value === 'time' ? duration(a.sum / a.n)
           : value === 'milliseconds' ? milliseconds(a.sum / a.n)
+            : value === 'cls' ? (a.sum / a.n / 1000).toFixed(3)
             : value === 'percent' ? `${Math.round(a.sum / a.n)} %` : `${fmt(a.n)} · ${pct(a.n / sumN)}`;
         const bar = document.createElement('i'); bar.style.setProperty('--w', (a.n / max).toFixed(3));
         li.append(label, val, bar);

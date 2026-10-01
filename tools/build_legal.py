@@ -6,16 +6,20 @@ Run from the repository root:  python tools/build_legal.py
 Facts behind the wording (checked 23 September 2026; re-check before changing):
 - Hosting: GitHub Pages. GitHub logs visitor IP addresses for security and
   participates in the EU-U.S. and Swiss-U.S. Data Privacy Frameworks.
-- Own statistics (since 25/26 September 2026): assets/site.js sends page views,
-  referrer, campaign parameters, screen width, time on page, scroll depth and
-  clicks (downloads, films, forms, links) to get.neurofly.app/collect; the
-  Cloudflare Worker adds country/region/city, device, browser, system and
-  language from the request and stores daily totals only (D1). Visitors are told
-  apart per UTC day by a hash of a random daily salt, IP and user agent; salt and
-  hashes are deleted after the day, the IP is never stored. No cookies, nothing
-  in the browser.
+- Own audience measurement (since 25/26 September 2026; consent-free since
+  1 October 2026, legitimate interest with objection switch and GPC): assets/site.js
+  sends page views, referrer, campaign parameters, screen width, time on page,
+  scroll depth, sections seen, clicks (downloads, donations, films, forms, links),
+  load timings and Core Web Vitals to get.neuro-cause.com/collect; the Cloudflare
+  Worker adds country/region/city, device, browser, system and language from the
+  request and stores daily totals only (D1). Visitors are told apart per UTC day
+  by a hash of a random daily salt, IP and user agent; salt and hashes are
+  deleted after the day, the IP is never stored. No cookies, nothing stored in
+  the browser except a visitor's objection.
 - Donations: a one-time Stripe Payment Link in docs/index.html; visitors choose
   their amount at Stripe checkout. The support section works without JavaScript.
+  Supporters may be invited to pre-releases (a discretionary courtesy, never a
+  claim; terms of use 13, software terms 5, privacy notice "When you donate").
 - Optional statistics: Microsoft Clarity (project ypl7e33gz2), loaded only
   after fresh consent. Heatmaps and masked session recordings are disclosed;
   ad storage is denied through Consent V2.
@@ -23,7 +27,7 @@ Facts behind the wording (checked 23 September 2026; re-check before changing):
   Cloudflare.
 - Mail: the contact address is hosted by Apple iCloud Mail (MX records);
   Apple uses standard contractual clauses for EEA/UK/CH transfers.
-- Desktop app 2.2.0 (as 2.1.0): no network code; runtime test with all workspaces made
+- Desktop app 2.3.0 (as 2.1.0/2.2.0): no network code; runtime test with all workspaces made
   0 network requests. UI preferences are kept in the app's own local storage;
   exports go only where the user saves them.
 """
@@ -31,9 +35,9 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / 'docs'
-UPDATED = '29 September 2026'
-PRIVACY_UPDATED = '29 September 2026'
-TERMS_UPDATED = '28 September 2026'     # terms of use: NeuroCause
+UPDATED = '1 October 2026'
+PRIVACY_UPDATED = '1 October 2026'
+TERMS_UPDATED = '1 October 2026'       # terms of use
 
 # Who operates the site, where, and how to reach us. The domain switch to
 # neuro-cause.com changes these two lines only (and docs/CNAME).
@@ -43,7 +47,7 @@ EMAIL = 'contact@neuro-cause.com'
 MAILTO = f'<a href="mailto:{EMAIL}">{EMAIL}</a>'
 
 CSP = ("default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; "
-       "connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neurofly.app; "
+       "connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neuro-cause.com; "
        "img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; "
        "style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; "
        "base-uri 'self'; object-src 'none'")
@@ -52,12 +56,12 @@ FOOTER = """<footer class="site-footer">
   <div class="wrap">
     <div class="cols">
       <div><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="139" height="26"><p>In-silico experiments on measured nervous systems. Our first model is the fruit fly <i>Drosophila melanogaster</i>. Independent research and teaching, from Zurich.</p>
-        <ul class="social" aria-label="NeuroCause on social media"><li><a href="https://www.instagram.com/neurofly.app/" target="_blank" rel="me noopener" aria-label="NeuroCause on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/NeuroFlyApp" target="_blank" rel="me noopener" aria-label="NeuroCause on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
+        <ul class="social" aria-label="NeuroCause on social media"><li><a href="https://www.instagram.com/neurocauseofficial/" target="_blank" rel="me noopener" aria-label="NeuroCause on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/neurocause" target="_blank" rel="me noopener" aria-label="NeuroCause on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
       <div><h4>NeuroCause</h4><ul><li><a href="./#models">Models</a></li><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
-      <div><h4>Get involved</h4><ul><li><a href="./#support">Support the lab</a></li><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
+      <div><h4>Get involved</h4><ul><li><a href="./#support">Support the lab &amp; pre-releases</a></li><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
       <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
     </div>
-    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0), MaleCNS v1.0 and BANC v888 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
+    <p class="fine">Data: FlyWire FAFB v783 (CC BY-NC 4.0); MaleCNS v1.0, BANC v888, MANC v1.0 and the male optic lobe v1.1 (CC BY 4.0); see <a href="legal.html#licences">licences &amp; credits</a>.
       NeuroCause is not affiliated with or endorsed by the institutions that produced these datasets. Wiring and synapse counts are
       measured; neural dynamics, senses, body and behaviour are models, and NeuroCause makes no claim that any model feels anything.
       © 2026 NeuroCause.</p>
@@ -105,7 +109,7 @@ def page(name, title, description, kicker, h1, lead, body, robots='index, follow
 <link rel="icon" href="brand/neurocause-favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=20261001">
 </head>
 <body>
 {HEADER}
@@ -122,7 +126,7 @@ def page(name, title, description, kicker, h1, lead, body, robots='index, follow
 </main>
 
 {FOOTER}
-<script src="assets/site.js" defer></script>
+<script src="assets/site.js?v=20261001" defer></script>
 </body>
 </html>
 """
@@ -163,9 +167,9 @@ page('imprint.html', 'Imprint', 'Imprint of the NeuroCause website and software.
       exclusively to {ORG} or the specifically named rights holders. Reproduction of any element requires the prior written
       consent of the rights holder, except where material is expressly published under a licence that permits it. The {ORG}
       program code is licensed under the PolyForm Noncommercial License 1.0.0; commercial use requires a separate licence from
-      {ORG}. The scientific datasets keep their own licences: FlyWire FAFB v783 under CC BY-NC 4.0,
-      MaleCNS v1.0 and BANC v888 under CC BY 4.0; see <a href="legal.html#licences">licences &amp; credits</a>. Naming a dataset or
-      publication does not imply that its authors endorse {ORG}.</p>
+      {ORG}. The scientific datasets keep their own licences: FlyWire FAFB v783 under CC BY-NC 4.0; MaleCNS v1.0, BANC v888,
+      MANC v1.0 and the male optic lobe v1.1 under CC BY 4.0; see <a href="legal.html#licences">licences &amp; credits</a>. Naming
+      a dataset or publication does not imply that its authors endorse {ORG}.</p>
 
     <h2>Related documents</h2>
     <p><a href="privacy.html">Privacy notice</a> · <a href="cookies.html">Cookies</a> · <a href="terms.html">Terms of
@@ -367,8 +371,9 @@ terms = f"""
     <p class="small">Effective {TERMS_UPDATED}.</p>
     <p>These terms of use (“terms”) govern your access to and use of {DOMAIN} and its content (the “website”), operated by
       {ORG}, Zurich, Switzerland (“{ORG}”, “we”, “us”; see the <a href="imprint.html">imprint</a>). By accessing or using the
-      website you accept these terms. If you do not accept them, do not use the website. The {ORG} application is governed by
-      the separate <a href="software-terms.html">software terms</a>.</p>
+      website you accept these terms. If you do not accept them, do not use the website. If you use the website on behalf of an
+      organisation, you accept these terms for it and confirm that you are authorised to do so. The {ORG} application is governed
+      by the separate <a href="software-terms.html">software terms</a>.</p>
 
     <h2>1. The website</h2>
     <p>The website provides information about {ORG}, an independent research and teaching project, and its models, free of charge. Plans,
@@ -441,7 +446,7 @@ terms = f"""
       a provision is not a waiver of it. We may transfer our rights and obligations under these terms. These terms are the entire
       agreement between you and us regarding the website. The English version is authoritative.</p>
 
-    <h2 id="donations">13. Donations</h2>
+    <h2 id="donations">13. Donations and supporter pre-releases</h2>
     <p>Donations to {ORG} are voluntary gifts. They are not payment for goods, services, content or rights and create no claim
       against {ORG}, in particular not to any feature, release, update, support or availability of the website or the software,
       nor to a particular use of the funds; {ORG} decides on their use at its sole discretion. {ORG} is not a registered
@@ -449,6 +454,14 @@ terms = f"""
       where mandatory law requires otherwise or in the case of an obvious error reported to us within 14 days. Payments are
       processed by Stripe under its own terms; {ORG} is not responsible for the payment service. A monthly donation can be
       ended at any time with effect for the future by writing to {MAILTO}.</p>
+    <p id="prereleases">{ORG} may, at its sole discretion, invite people who have donated to try versions of the software before
+      their public release (“pre-releases”). Such an invitation is a voluntary courtesy and not consideration for a donation.
+      There is no claim to an invitation, to any particular pre-release, or to its timing, content, quality or continued
+      availability. {ORG} decides whom to invite, may set conditions, limit numbers or the duration of access, and may change or
+      end the programme at any time without notice and without giving reasons. An invitation lapses if the donation is reversed,
+      refunded or charged back. Pre-releases are governed by the <a href="software-terms.html#prereleases">software terms</a>;
+      access is personal and may not be transferred. Invitations are sent to the email address given at checkout; see the
+      <a href="privacy.html#donations">privacy notice</a>.</p>
 """
 page('terms.html', 'Terms of use', f'Terms of use of the {ORG} website.', 'Legal', 'Terms of use', '', section(terms))
 
@@ -471,7 +484,7 @@ software = f"""
       Noncommercial License 1.0.0</a>, which permits non-commercial use only; any commercial use requires a separate written
       licence from {ORG}. Third-party components are licensed under their own licences; the licence texts and notices are
       included with the software. The datasets remain subject to their licences: FlyWire FAFB v783 under CC BY-NC 4.0
-      (non-commercial use only), MaleCNS v1.0 and BANC v888 under CC BY 4.0. Where such a licence grants you rights in the material
+      (non-commercial use only); MaleCNS v1.0, BANC v888, MANC v1.0 and the male optic lobe v1.1 under CC BY 4.0. Where such a licence grants you rights in the material
       it covers, that licence applies to that material; these terms apply in addition. No rights in the {ORG} name or logo are
       granted. You are solely responsible for complying with all licences that apply to your use.</p>
 
@@ -487,13 +500,22 @@ software = f"""
     <p>We have no obligation to provide support, maintenance, corrections, updates or new versions. Any we provide are voluntary,
       may be discontinued at any time and are governed by these terms.</p>
 
-    <h2>5. No warranty</h2>
+    <h2 id="prereleases">5. Pre-releases</h2>
+    <p>Versions made available before their public release (“pre-releases”), for example to invited supporters, are
+      experimental. They may be incomplete, unstable or incompatible, may lose or corrupt data, and may be changed or withdrawn at
+      any time. They are provided solely for your personal evaluation under these terms, which apply to them without restriction;
+      sections 6 and 7 apply to them in particular. Unless {ORG} agrees otherwise in writing, you may not
+      share, redistribute or publish a pre-release, its download link or access credentials. Your feedback on a pre-release is a
+      submission within the meaning of the terms of use. Access to a pre-release ends when {ORG} withdraws it or publishes the
+      corresponding release.</p>
+
+    <h2>6. No warranty</h2>
     <p>To the maximum extent permitted by applicable law, the software is provided “as is” and “as available”, with all faults and
       without any warranty or representation of any kind, whether express, implied or statutory, including any warranty of
       correctness, scientific validity, reliability, availability, compatibility, security, freedom from errors or harmful
       components, merchantability, fitness for a particular purpose or non-infringement.</p>
 
-    <h2>6. Limitation of liability</h2>
+    <h2>7. Limitation of liability</h2>
     <p>To the maximum extent permitted by applicable law, {ORG}, its operators, contributors and licensors exclude all liability
       for any loss or damage of any kind, whether direct, indirect, incidental, consequential, special or punitive, including loss
       or corruption of data, damage to computer systems, loss of research results, profits, revenue or goodwill, and business
@@ -501,27 +523,33 @@ software = f"""
       its output, whatever the legal basis (contract, tort, statute or otherwise), even if we were advised of the possibility of
       such damage. Where liability cannot be excluded entirely, our total aggregate liability is limited to CHF 100.</p>
 
-    <h2>7. Indemnity</h2>
+    <h2>8. Indemnity</h2>
     <p>You agree to indemnify and hold harmless {ORG}, its operators, contributors and licensors from and against all claims,
       losses, damages, liabilities, costs and expenses, including reasonable legal fees, arising out of or in connection with your
       use of the software or its output, your breach of these terms or of any licence, or your violation of applicable law or the
       rights of others.</p>
 
-    <h2>8. Feedback</h2>
+    <h2>9. Feedback</h2>
     <p>Reports, suggestions and other submissions about the software are governed by the
       <a href="terms.html#submissions">submissions clause</a> of the terms of use.</p>
 
-    <h2>9. Changes to these terms</h2>
+    <h2>10. Termination</h2>
+    <p>Your right to use the software under these terms ends automatically, without notice, if you breach them or a licence that
+      applies to the software. {ORG} may also end your access to pre-releases at any time. On termination you must stop using
+      the software concerned and delete all copies in your possession. Sections that by their nature should survive termination,
+      in particular those on licences, warranty, liability, indemnity, governing law and jurisdiction, survive it.</p>
+
+    <h2>11. Changes to these terms</h2>
     <p>We may amend these terms at any time by publishing a new version on this page. The version published at the time of your
       download or use applies. Continued use of the software after a change constitutes acceptance of the amended terms.</p>
 
-    <h2>10. Governing law and exclusive jurisdiction</h2>
+    <h2>12. Governing law and exclusive jurisdiction</h2>
     <p>These terms and all disputes arising out of or in connection with the software or these terms are governed exclusively by
       the substantive law of Switzerland, excluding its conflict-of-laws rules and the United Nations Convention on Contracts for
       the International Sale of Goods (CISG). The exclusive place of jurisdiction is Zurich, Switzerland. {ORG} may also bring
       proceedings against you before the courts of your domicile or seat.</p>
 
-    <h2>11. General</h2>
+    <h2>13. General</h2>
     <p>If any provision of these terms is or becomes invalid or unenforceable, the remaining provisions remain in effect, and the
       provision concerned shall be replaced by a valid provision that comes closest to its intended purpose. Our failure to enforce
       a provision is not a waiver of it. We may transfer our rights and obligations under these terms. The English version is
@@ -561,6 +589,14 @@ hub = f"""
         Kim M, et al., <i>Nature</i> 656, 957–970 (2026), <a href="https://doi.org/10.1038/s41586-026-10735-w">doi:10.1038/s41586-026-10735-w</a>;
         data <a href="https://doi.org/10.7910/DVN/7WTH1N">doi:10.7910/DVN/7WTH1N</a>. Licence:
         <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</li>
+      <li><b>MANC v1.0</b> — adult male ventral nerve cord, an individual different from MaleCNS; the anatomy explorer. FlyEM,
+        HHMI Janelia, and collaborators; Takemura S, et al., <i>eLife</i> (2024),
+        <a href="https://doi.org/10.7554/eLife.97769">doi:10.7554/eLife.97769</a>. Licence:
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</li>
+      <li><b>Male optic lobe v1.1</b> — right optic lobe of the MaleCNS animal; the anatomy explorer. FlyEM, HHMI Janelia, and
+        collaborators; Nern A, et al., <i>Nature</i> 641, 1225–1237 (2025),
+        <a href="https://doi.org/10.1038/s41586-025-08746-0">doi:10.1038/s41586-025-08746-0</a>. Licence:
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</li>
     </ul>
     <p>Because the FlyWire data may be used only non-commercially, {ORG} is free of charge and carries no advertising.</p>
     <h3>Films and figures</h3>
@@ -592,6 +628,8 @@ for path in sorted(DOCS.glob('*.html')):
     s = s.replace('<meta name="theme-color" content="#0c1311">', '<meta name="theme-color" content="#080c0d">')
     s = re.sub(r' — NeuroFly(</title>|">)', r' — NeuroCause\1', s)
     s = s.replace('https://neurofly.app/', f'https://{DOMAIN}/')
+    s = re.sub(r'assets/site\.js(\?v=[^"]*)?"', 'assets/site.js?v=20261001"', s)
+    s = re.sub(r'assets/site\.css(\?v=[^"]*)?"', 'assets/site.css?v=20261001"', s)
     s = s.replace('mailto:contact@neurofly.app">contact@neurofly.app', f'mailto:{EMAIL}">{EMAIL}')
     path.write_text(s, encoding='utf-8')
 print('legal pages built;', len(list(DOCS.glob('*.html'))), 'pages updated')
