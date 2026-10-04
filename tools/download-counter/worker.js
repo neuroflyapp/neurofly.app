@@ -4,7 +4,8 @@
 // read; the dashboard is `neurofly-stats` (stats-worker.js).
 //
 // GET  /v2.1.0  counts one website download of that release's Windows build
-//               (date and file name only) and redirects to the file on GitHub.
+//               (date and file name only) and redirects to the file on GitHub;
+// GET  /v2.4.0/android  the same for the Android APK (from release 2.4.0).
 // POST /collect our own audience measurement: page views, referrers,
 //               campaigns, coarse audience breakdowns, reading time and depth,
 //               sections seen, clicks, load timings and Core Web Vitals. The
@@ -42,6 +43,11 @@ const releaseFile = (version) => {
   const [major, minor, patch] = version.split('.').map(Number);
   const former = major < 2 || (major === 2 && (minor < 2 || (minor === 2 && patch === 0)));
   return `${former ? 'NeuroFly' : 'NeuroCause'}-${version}-win-x64.zip`;
+};
+// The Android app exists from release 2.4.0 on.
+const androidFile = (version) => {
+  const [major, minor] = version.split('.').map(Number);
+  return major > 2 || (major === 2 && minor >= 4) ? `NeuroCause-${version}-android.apk` : null;
 };
 const NOT_A_VISITOR = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skype|monitor|pingdom|uptime|lighthouse|headless|python-requests|go-http-client|okhttp|curl|wget/i;
 const PAGE_PATH = /^\/(?:[a-z0-9-]{1,40}(?:\.html)?)?$/;
@@ -210,9 +216,10 @@ export default {
       return new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } });
     }
     if (url.pathname === '/stats' || url.pathname.startsWith('/stats/')) return Response.redirect('https://stats.neurofly.app/', 301);
-    const m = url.pathname.match(/^\/v(\d+\.\d+\.\d+)\/?$/);
+    const m = url.pathname.match(/^\/v(\d+\.\d+\.\d+)(\/android)?\/?$/);
     if (!m) return Response.redirect(`${SITE}/#get`, 302);
-    const file = releaseFile(m[1]);
+    const file = m[2] ? androidFile(m[1]) : releaseFile(m[1]);
+    if (!file) return Response.redirect(`${SITE}/#get`, 302);
     const target = `https://github.com/${REPO}/releases/download/v${m[1]}/${file}`;
     if (request.method === 'GET' && visitor) {
       ctx.waitUntil(env.DB.prepare(
@@ -236,7 +243,7 @@ export default {
     const rows = [];
     for (const release of await r.json()) {
       for (const asset of release.assets) {
-        if (!asset.name.endsWith('.zip')) continue;
+        if (!asset.name.endsWith('.zip') && !asset.name.endsWith('.apk')) continue;
         rows.push(env.DB.prepare(
           'INSERT INTO github_totals (day, file, total) VALUES (?1, ?2, ?3) ON CONFLICT (day, file) DO UPDATE SET total = MAX(total, excluded.total)',
         ).bind(day, asset.name, asset.download_count));

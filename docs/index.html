@@ -48,13 +48,13 @@
       "@type": "SoftwareApplication",
       "name": "NeuroCause",
       "applicationCategory": "ScienceApplication",
-      "operatingSystem": "Windows 10, Windows 11",
-      "softwareVersion": "2.3.0",
+      "operatingSystem": "Windows 10, Windows 11, Android 7.0 or later",
+      "softwareVersion": "2.4.0",
       "url": "https://neuro-cause.com/",
       "description": "Closed-loop simulation of Drosophila melanogaster on measured connectome data (FlyWire FAFB v783 brain, MaleCNS v1.0 nerve cord), with virtual genetics, transmitter-class pharmacology, guided assays and causal tracing.",
       "isAccessibleForFree": true,
-      "downloadUrl": "https://github.com/neuroflyapp/neurofly/releases/download/v2.3.0/NeuroCause-2.3.0-win-x64.zip",
-      "fileSize": "181 MB",
+      "downloadUrl": "https://github.com/neuroflyapp/neurofly/releases/download/v2.4.0/NeuroCause-2.4.0-win-x64.zip",
+      "fileSize": "183 MB",
       "license": "https://polyformproject.org/licenses/noncommercial/1.0.0",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
       "publisher": { "@id": "https://neuro-cause.com/#organization" },
@@ -120,7 +120,7 @@
       <div class="fact"><b>784,219</b><span>signed connections, weighted by measured synapse counts</span><span class="src">pair × neuropil · measured</span></div>
       <div class="fact"><b>1,045</b><span>nerve-cord neurons driving six legs</span><span class="src">MaleCNS v1.0 · measured</span></div>
       <div class="fact"><b>1 ms</b><span>neural time step; sensing, brain, body and feedback close at 120 Hz</span><span class="src">model</span></div>
-      <div class="fact"><b>31</b><span>automated test suites, all passing for release 2.3</span><span class="src">verification</span></div>
+      <div class="fact"><b>36</b><span>automated test suites, all passing for release 2.4</span><span class="src">verification</span></div>
     </div>
   </div>
 </div>
@@ -203,26 +203,25 @@
     </figure>
     <div class="grid two" style="margin-top:28px">
       <div class="card">
-        <p><span class="tag done">Available · release 2.3</span></p>
+        <p><span class="tag done">Available · release 2.4</span></p>
         <h3><i>Drosophila melanogaster</i>, brain and leg circuit</h3>
         <p>7,270 brain neurons of an adult female (FlyWire FAFB v783) and 1,045 nerve-cord neurons of an adult male (MaleCNS v1.0),
           joined by a modelled interface between identified descending cell types, in closed loop with a modelled body in a
           terrarium. She walks, grooms, tastes, sleeps and escapes; ten guided assays ship with their literature.</p>
-        <p><a href="#get">Download for Windows</a> · <a href="science.html">Methods</a> · <a href="evidence.html">Evidence</a></p>
+        <p><a href="#get">Download for Windows and Android</a> · <a href="science.html">Methods</a> · <a href="evidence.html">Evidence</a></p>
       </div>
       <div class="card">
-        <p><span class="tag progress">In development</span></p>
+        <p><span class="tag done">Available · release 2.4</span></p>
         <h3>One fly, brain and nerve cord from the same animal</h3>
-        <p>The BANC connectome maps the brain and the nerve cord of a single female fly. A model built on it removes today’s join
-          between two specimens. The data are acquired and already browsable as anatomy; the model is done when it passes the
-          current benchmarks end to end.</p>
+        <p>A male fly runs on the brain and nerve cord of one MaleCNS v1.0 animal, a female fly on those of one BANC v888 animal:
+          no join between two specimens, the cord’s descending and ascending cells are the brain’s own. Each carries documented
+          calibrations; the original model stays the reference for the published benchmarks.</p>
       </div>
       <div class="card">
-        <p><span class="tag progress">Next release</span></p>
+        <p><span class="tag progress">In preparation</span></p>
         <h3>Comparison connectomes</h3>
-        <p>The male nerve cord (MANC) and the male optic lobe join the anatomy explorer in the next release, each kept as its own
-          specimen and never wired into another. The hemibrain and a larval connectome follow once their redistribution terms are
-          confirmed. A cell type found in several animals lets an assay ask whether a result depends on the individual whose wiring
+        <p>The male nerve cord (MANC) and the male optic lobe are in the anatomy explorer, each kept as its own specimen and never
+          wired into another. The hemibrain and a larval connectome follow once their redistribution terms are confirmed. A cell type found in several animals lets an assay ask whether a result depends on the individual whose wiring
           was measured.</p>
       </div>
       <div class="card">
@@ -409,49 +408,55 @@
   <div class="wrap">
     <div class="section-head">
       <span class="kicker">Download</span>
-      <h2>NeuroCause for Windows · release 2.3</h2>
-      <p>The application with the fly model, free and without advertising, for Windows 10 and 11 (64-bit). Because the FlyWire
-        brain data carries a non-commercial licence, it is and remains free of charge. By downloading you accept the
-        <a href="software-terms.html">software terms</a>.</p>
+      <h2>NeuroCause for Windows and Android · release 2.4</h2>
+      <p>The application with the fly model, free and without advertising, for Windows 10 and 11 (64-bit) and for Android phones
+        and tablets. Because the FlyWire brain data carries a non-commercial licence, it is and remains free of charge. The
+        <a href="software-terms.html">software terms</a> apply to every download; both applications ask you to accept them
+        before they start.</p>
     </div>
     <div class="grid">
       <div class="card">
         <h3>Windows, portable</h3>
-        <p>Release 2.3.0 as a ZIP of about 181 MB. Unzip it anywhere and start <code>NeuroCause.exe</code>; nothing is installed
+        <p>Release 2.4.0 as a ZIP of about 183 MB. Unzip it anywhere and start <code>NeuroCause.exe</code>; nothing is installed
           and nothing connects to the internet. Settings from earlier versions carry over.</p>
-        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.3.0" rel="nofollow" data-track="download-zip">Download for Windows</a></p>
+        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.4.0" rel="nofollow" data-track="download-zip">Download for Windows</a></p>
+      </div>
+      <div class="card">
+        <h3>Android, APK</h3>
+        <p>Release 2.4.0 for Android 7.0 or newer with OpenGL ES 3.0, about 28 MB. Open the file on your phone or tablet; Android
+          asks once to allow installs from your browser or file manager. The app runs entirely on the device and connects to
+          nothing.</p>
+        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.4.0/android" rel="nofollow" data-track="download-apk">Download for Android</a></p>
       </div>
       <div class="card">
         <h3>Source code</h3>
-        <p>Code, data pipeline, tests and the build script, public on GitHub under a non-commercial licence.</p>
+        <p>Code, data pipeline, tests and the Windows build script, public on GitHub under a non-commercial licence.</p>
         <p><a class="btn secondary" href="https://github.com/neuroflyapp/neurofly" data-track="get-github">View on GitHub</a></p>
       </div>
-      <div class="card">
-        <h3>Research and teaching</h3>
-        <p>Questions, a collaboration, or the fly model in a course? Write to us.</p>
-        <p><a class="btn secondary" href="contact.html" data-track="get-contact">Contact</a></p>
-      </div>
     </div>
-    <p class="note download-meta">The build is not code-signed yet: if Windows shows “Windows protected your PC”, choose
-      <em>More info</em>, then <em>Run anyway</em>. SHA-256 of the ZIP: <code>2c60748e9fc302209acb442b50f25b6af73e4e4a8b7dbebc7ad7927bf21b2158</code> ·
-      <a href="https://github.com/neuroflyapp/neurofly/releases/tag/v2.3.0">release notes</a> ·
-      <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a></p>
+    <p class="note download-meta">SHA-256 of the Windows ZIP: <code>b5ba3c181d983ab6a58f01d0dff4d6ea968ff9f6bbb394c575c82bea5d46c130</code> · of the Android APK:
+      <code>382fc6761bf25fcd00292e782e80aff1a50add5bf3c53aa98348ed76bb8dd9cc</code> ·
+      <a href="https://github.com/neuroflyapp/neurofly/releases/tag/v2.4.0">release notes</a> ·
+      <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a>. The Windows build is not code-signed yet: if
+      Windows shows “Windows protected your PC”, choose <em>More info</em>, then <em>Run anyway</em>. The APK is signed by
+      NeuroCause and is not in an app store yet: a new version is installed the same way, over the old one.</p>
     <div class="release-news">
-      <h3>New in 2.3</h3>
+      <h3>New in 2.4</h3>
       <ul>
-        <li><b>A calmer fly.</b> Left alone, she no longer flees threats that are not there: her eye now carries a modelled
-          efference copy of her own movement, and looming follows a silhouette’s real expansion rate.</li>
-        <li><b>Faster and steadier.</b> Start-up about 2.3 s quicker; under load the display skips frames before the simulation
-          loses real time. 0.25× and 0.5× are validated, gap-free research paces.</li>
-        <li><b>A crisp connectome</b> at the display’s native resolution.</li>
-        <li><b>More anatomy:</b> the male MANC nerve cord and the male optic lobe join BANC, MaleCNS and FAFB as separate
-          specimens.</li>
+        <li><b>NeuroCause for Android.</b> The complete Studio on phones and tablets: the same simulation, data and assays as on
+          Windows, with a touch layout.</li>
+        <li><b>Three flies.</b> Besides the original model, a male fly whose brain and nerve cord come from one MaleCNS animal and
+          a female fly whose brain and nerve cord come from one BANC animal. Choose the running fly in the ♀ / ♂ workspace.</li>
+        <li><b>Her vision no longer depends on your computer.</b> Her eye samples in simulated time, so a faster or slower machine
+          shows her the same world; start-up no longer freezes.</li>
+        <li><b>Clearer explanations.</b> A looming stimulus sent from the Stimulate panel is now named as such in the causal chain.</li>
       </ul>
       <p class="download-perk">Want the next version before everyone else? People who <a href="#support">support the lab</a>
         may be invited to try pre-releases.</p>
     </div>
     <p class="note intended-use">NeuroCause is a research and teaching tool. It is not validated for medical, veterinary,
-      regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance.</p>
+      regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance. Using it in
+      research or a course? <a href="contact.html">Write to us</a>.</p>
   </div>
 </section>
 

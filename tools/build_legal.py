@@ -27,17 +27,23 @@ Facts behind the wording (checked 23 September 2026; re-check before changing):
   Cloudflare.
 - Mail: the contact address is hosted by Apple iCloud Mail (MX records);
   Apple uses standard contractual clauses for EEA/UK/CH transfers.
-- Desktop app 2.3.0 (as 2.1.0/2.2.0): no network code; runtime test with all workspaces made
+- Desktop app 2.3.0/2.4.0 (as 2.1.0/2.2.0): no network code; runtime test with all workspaces made
   0 network requests. UI preferences are kept in the app's own local storage;
-  exports go only where the user saves them.
+  exports go only where the user saves them. From 2.4.0 both apps ask for the
+  software terms before they start and keep the accepted version and time in
+  that local storage only.
+- Android app 2.4.0 (APK, Capacitor WebView): no network code; CSP connect-src 'self';
+  only Android's INTERNET permission (Capacitor's, unused by the app); exports go
+  to the app's cache folder and leave only through the share sheet.
 """
 import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / 'docs'
 UPDATED = '1 October 2026'
-PRIVACY_UPDATED = '1 October 2026'
+PRIVACY_UPDATED = '4 October 2026'
 TERMS_UPDATED = '1 October 2026'       # terms of use
+SOFTWARE_UPDATED = '4 October 2026'    # software terms; = TERMS_EFFECTIVE in the app's renderer/ui/terms-text.js
 
 # Who operates the site, where, and how to reach us. The domain switch to
 # neuro-cause.com changes these two lines only (and docs/CNAME).
@@ -467,96 +473,62 @@ page('terms.html', 'Terms of use', f'Terms of use of the {ORG} website.', 'Legal
 
 # ---- software terms ------------------------------------------------------------------------
 software = f"""
-    <p class="small">Effective {UPDATED}. Applies to release 2.1.0 and all later releases, including those published under the earlier name NeuroFly.</p>
+    <p class="small">Effective {SOFTWARE_UPDATED}. These terms are shown and accepted in the applications from release 2.4.0;
+      they govern every release, including those published under the earlier name NeuroFly.</p>
 
-    <p>These software terms (“terms”) govern the {ORG} application for Windows, its installer, documentation and bundled data
-      (the “software”) as distributed by {ORG}, Zurich, Switzerland (“{ORG}”, “we”, “us”; see the
-      <a href="imprint.html">imprint</a>). By downloading, installing or using the software you accept these terms. If you do not
-      accept them, do not download, install or use the software.</p>
+    <p>These software terms (“terms”) govern the NeuroCause applications for Windows and Android, their archives, installation files, documentation and bundled data, in every version including pre-releases (together the “software”), as distributed by NeuroCause, Zurich, Switzerland (“NeuroCause”, “we”, “us”; see the <a href="imprint.html">imprint</a>).</p>
+    <p>By clicking “Accept” in the software, or by downloading, installing or using the software, you accept these terms and confirm that you have read them. If you do not accept them, you must not download, install or use the software. If you accept on behalf of an organisation, you confirm that you are authorised to bind it. You must be of legal age in your country of residence, and at least 18 years old, or use the software only with the consent and under the supervision of your legal guardian, who accepts these terms on your behalf.</p>
 
     <h2>1. The software</h2>
-    <p>The software is an experimental simulation and teaching tool. It simulates a fruit fly on measured connectome data with modelled
-      neural dynamics, senses and body. It is provided free of charge, in its current state, for experimental, research and teaching
-      use, and is distributed as downloads through GitHub (<a href="https://github.com/neuroflyapp/neurofly/releases">github.com/neuroflyapp/neurofly</a>). We may change, suspend or stop distributing the software, or any version or feature of it, at any time without notice.</p>
+    <p>The software is an experimental simulation and teaching tool. It simulates a fruit fly on measured connectome data with modelled neural dynamics, senses and body. It is provided free of charge, in its current state, for experimental, research and teaching use. It is distributed as downloads through our website and GitHub (<a href="https://github.com/neuroflyapp/neurofly/releases">github.com/neuroflyapp/neurofly</a>) and may in future be distributed through app stores, whose own terms then apply in addition between you and the store operator. We may change, suspend or stop distributing the software, or any version or feature of it, at any time without notice and without liability.</p>
 
-    <h2>2. Licences of code and data</h2>
-    <p>The {ORG} program code is licensed under the <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm
-      Noncommercial License 1.0.0</a>, which permits non-commercial use only; any commercial use requires a separate written
-      licence from {ORG}. Third-party components are licensed under their own licences; the licence texts and notices are
-      included with the software. The datasets remain subject to their licences: FlyWire FAFB v783 under CC BY-NC 4.0
-      (non-commercial use only); MaleCNS v1.0, BANC v888, MANC v1.0 and the male optic lobe v1.1 under CC BY 4.0. Where such a licence grants you rights in the material
-      it covers, that licence applies to that material; these terms apply in addition. No rights in the {ORG} name or logo are
-      granted. You are solely responsible for complying with all licences that apply to your use.</p>
+    <h2>2. Installation outside an app store</h2>
+    <p>The Android app may be distributed as an APK file outside an app store. Installing it requires you to allow installations from that source on your device. You do so at your own risk. You are responsible for obtaining the software only from our website or our GitHub releases, for verifying each file against the SHA-256 checksum we publish, and for the security settings of your device. The Windows application is distributed as a portable archive that is not code-signed; your operating system may warn you before starting it. The software does not update itself; installing a new version is your decision and responsibility.</p>
 
-    <h2>3. Your responsibility</h2>
-    <p>You use the software at your own risk and are solely responsible for its installation and use, for your computer system, for
-      backing up your data, and for any conclusions you draw from, or decisions you base on, its output. Simulated output is model
-      output, not an observation of a living animal. Pharmacology settings scale simulated transmitter classes and say nothing about
-      the effect, safety or dose of any substance. The software provides no medical, veterinary, scientific or other professional
-      advice and must not be used for diagnosis, treatment, regulatory submissions, safety-critical purposes or any purpose in
-      which an error could cause harm to people, animals or property.</p>
+    <h2>3. Licences of code and data</h2>
+    <p>The NeuroCause program code is licensed under the <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm Noncommercial License 1.0.0</a>, which permits non-commercial use only; any commercial use requires a separate written licence from NeuroCause. Third-party components are licensed under their own licences, whose texts and notices are included with the software. The datasets remain subject to their licences: FlyWire FAFB v783 under CC BY-NC 4.0 (non-commercial use only); MaleCNS v1.0, BANC v888, MANC v1.0 and the male optic lobe v1.1 under CC BY 4.0. Where such a licence grants you rights in the material it covers, that licence governs that material, and nothing in these terms restricts those rights. In all other respects these terms apply. No rights in the NeuroCause name, logo or other signs are granted. You are solely responsible for complying with all licences that apply to your use.</p>
 
-    <h2>4. No support or updates</h2>
-    <p>We have no obligation to provide support, maintenance, corrections, updates or new versions. Any we provide are voluntary,
-      may be discontinued at any time and are governed by these terms.</p>
+    <h2>4. Permitted use</h2>
+    <p>You may use the software only lawfully, non-commercially and in accordance with these terms and the licences in section 3. You must not present simulated output as an observation of a living animal or as an established scientific finding, remove or alter licence, copyright or attribution notices, use the NeuroCause name or logo or suggest that NeuroCause endorses you or your work, or use the software in violation of applicable law, including export control and sanctions law.</p>
 
-    <h2 id="prereleases">5. Pre-releases</h2>
-    <p>Versions made available before their public release (“pre-releases”), for example to invited supporters, are
-      experimental. They may be incomplete, unstable or incompatible, may lose or corrupt data, and may be changed or withdrawn at
-      any time. They are provided solely for your personal evaluation under these terms, which apply to them without restriction;
-      sections 6 and 7 apply to them in particular. Unless {ORG} agrees otherwise in writing, you may not
-      share, redistribute or publish a pre-release, its download link or access credentials. Your feedback on a pre-release is a
-      submission within the meaning of the terms of use. Access to a pre-release ends when {ORG} withdraws it or publishes the
-      corresponding release.</p>
+    <h2>5. Your responsibility</h2>
+    <p>You use the software at your own risk and are solely responsible for its installation and use, for your devices and their settings, for backing up your data, and for any conclusions you draw from, or decisions you base on, its output. The software uses substantial processing power, memory and battery and may make a device warm or slow. Simulated output is model output, not an observation of a living animal. Pharmacology settings scale simulated transmitter classes and say nothing about the effect, safety or dose of any substance. The software provides no medical, veterinary, scientific or other professional advice and must not be used for diagnosis, treatment, regulatory submissions, safety-critical purposes or any purpose in which an error could cause harm to people, animals or property.</p>
 
-    <h2>6. No warranty</h2>
-    <p>To the maximum extent permitted by applicable law, the software is provided “as is” and “as available”, with all faults and
-      without any warranty or representation of any kind, whether express, implied or statutory, including any warranty of
-      correctness, scientific validity, reliability, availability, compatibility, security, freedom from errors or harmful
-      components, merchantability, fitness for a particular purpose or non-infringement.</p>
+    <h2>6. Privacy</h2>
+    <p>The software sends no data to us. Your settings, including the version of these terms you accepted and when, stay on your device. Details are in our <a href="privacy.html">privacy notice</a>.</p>
 
-    <h2>7. Limitation of liability</h2>
-    <p>To the maximum extent permitted by applicable law, {ORG}, its operators, contributors and licensors exclude all liability
-      for any loss or damage of any kind, whether direct, indirect, incidental, consequential, special or punitive, including loss
-      or corruption of data, damage to computer systems, loss of research results, profits, revenue or goodwill, and business
-      interruption, arising out of or in connection with the downloading, installation, use of or inability to use the software or
-      its output, whatever the legal basis (contract, tort, statute or otherwise), even if we were advised of the possibility of
-      such damage. Where liability cannot be excluded entirely, our total aggregate liability is limited to CHF 100.</p>
+    <h2>7. No support or updates</h2>
+    <p>We have no obligation to provide support, maintenance, corrections, updates or new versions. Any we provide are voluntary, may be discontinued at any time and are governed by these terms.</p>
 
-    <h2>8. Indemnity</h2>
-    <p>You agree to indemnify and hold harmless {ORG}, its operators, contributors and licensors from and against all claims,
-      losses, damages, liabilities, costs and expenses, including reasonable legal fees, arising out of or in connection with your
-      use of the software or its output, your breach of these terms or of any licence, or your violation of applicable law or the
-      rights of others.</p>
+    <h2 id="prereleases">8. Pre-releases</h2>
+    <p>Versions made available before their public release (“pre-releases”), for example to invited supporters, are experimental. They may be incomplete, unstable or incompatible, may lose or corrupt data, and may be changed or withdrawn at any time. They are provided solely for your personal evaluation under these terms, which apply to them without restriction; sections 9 and 10 apply to them in particular. Unless NeuroCause agrees otherwise in writing, you may not share, redistribute or publish a pre-release, its download link or access credentials. Your feedback on a pre-release is a submission within the meaning of our terms of use. Access to a pre-release ends when NeuroCause withdraws it or publishes the corresponding release.</p>
 
-    <h2>9. Feedback</h2>
-    <p>Reports, suggestions and other submissions about the software are governed by the
-      <a href="terms.html#submissions">submissions clause</a> of the terms of use.</p>
+    <h2>9. No warranty</h2>
+    <p>To the maximum extent permitted by applicable law, the software is provided “as is” and “as available”, with all faults and without any warranty or representation of any kind, whether express, implied or statutory, including any warranty of correctness, scientific validity, reliability, availability, compatibility, security, freedom from errors or harmful components, merchantability, fitness for a particular purpose or non-infringement.</p>
 
-    <h2>10. Termination</h2>
-    <p>Your right to use the software under these terms ends automatically, without notice, if you breach them or a licence that
-      applies to the software. {ORG} may also end your access to pre-releases at any time. On termination you must stop using
-      the software concerned and delete all copies in your possession. Sections that by their nature should survive termination,
-      in particular those on licences, warranty, liability, indemnity, governing law and jurisdiction, survive it.</p>
+    <h2>10. Limitation of liability</h2>
+    <p>To the maximum extent permitted by applicable law, NeuroCause, its operators, contributors and licensors exclude all liability for any loss or damage of any kind, whether direct, indirect, incidental, consequential, special or punitive, including loss or corruption of data, damage to devices or computer systems, loss of research results, profits, revenue or goodwill, and business interruption, arising out of or in connection with the downloading, installation, use of or inability to use the software or its output, whatever the legal basis (contract, tort, statute or otherwise), even if we were advised of the possibility of such damage. Where liability cannot be excluded entirely, our total aggregate liability is limited to CHF 100.</p>
 
-    <h2>11. Changes to these terms</h2>
-    <p>We may amend these terms at any time by publishing a new version on this page. The version published at the time of your
-      download or use applies. Continued use of the software after a change constitutes acceptance of the amended terms.</p>
+    <h2>11. Indemnity</h2>
+    <p>You agree to indemnify and hold harmless NeuroCause, its operators, contributors and licensors from and against all claims, losses, damages, liabilities, costs and expenses, including reasonable legal fees, arising out of or in connection with your use of the software or its output, your breach of these terms or of any licence, or your violation of applicable law or the rights of others.</p>
 
-    <h2>12. Governing law and exclusive jurisdiction</h2>
-    <p>These terms and all disputes arising out of or in connection with the software or these terms are governed exclusively by
-      the substantive law of Switzerland, excluding its conflict-of-laws rules and the United Nations Convention on Contracts for
-      the International Sale of Goods (CISG). The exclusive place of jurisdiction is Zurich, Switzerland. {ORG} may also bring
-      proceedings against you before the courts of your domicile or seat.</p>
+    <h2>12. Feedback</h2>
+    <p>Reports, suggestions and other submissions about the software are governed by the <a href="terms.html#submissions">submissions clause</a> of our terms of use.</p>
 
-    <h2>13. General</h2>
-    <p>If any provision of these terms is or becomes invalid or unenforceable, the remaining provisions remain in effect, and the
-      provision concerned shall be replaced by a valid provision that comes closest to its intended purpose. Our failure to enforce
-      a provision is not a waiver of it. We may transfer our rights and obligations under these terms. The English version is
-      authoritative.</p>
+    <h2>13. Termination</h2>
+    <p>Your right to use the software under these terms ends automatically, without notice, if you breach them or a licence that applies to the software. NeuroCause may also end your access to pre-releases at any time. On termination you must stop using the software concerned and delete all copies in your possession, except material whose licence in section 3 grants you continuing rights. Sections that by their nature should survive termination, in particular those on licences, warranty, liability, indemnity, governing law and jurisdiction, survive it.</p>
+
+    <h2>14. Changes to these terms</h2>
+    <p>We may amend these terms at any time by publishing a new version on this page. The software asks you to accept a new version before you continue to use it. In any case, the version published at the time of your download or use applies, and continued use of the software after a change constitutes acceptance of the amended terms.</p>
+
+    <h2>15. Governing law and exclusive jurisdiction</h2>
+    <p>These terms and all disputes arising out of or in connection with the software or these terms are governed exclusively by the substantive law of Switzerland, excluding its conflict-of-laws rules and the United Nations Convention on Contracts for the International Sale of Goods (CISG). The exclusive place of jurisdiction is Zurich, Switzerland. NeuroCause may also bring proceedings against you before the courts of your domicile or seat.</p>
+
+    <h2>16. General</h2>
+    <p>These terms, together with the licences in section 3 and our terms of use, are the entire agreement between you and NeuroCause about the software. If any provision is or becomes invalid or unenforceable, the remaining provisions remain in effect, and the provision concerned shall be replaced by a valid provision that comes closest to its intended purpose. Our failure to enforce a provision is not a waiver of it. We may transfer our rights and obligations under these terms; you may not transfer yours. The English version is authoritative; translations are for convenience only.</p>
 """
-page('software-terms.html', 'Software terms', f'Terms for downloading and using the {ORG} application for Windows.',
-     'Legal', 'Software terms', f'For downloading and using {ORG} for Windows.', section(software))
+page('software-terms.html', 'Software terms', f'Terms for downloading and using the {ORG} applications for Windows and Android.',
+     'Legal', 'Software terms', f'For downloading and using {ORG} for Windows and Android.', section(software))
 
 # ---- legal hub with licences & credits ---------------------------------------------------
 hub = f"""
@@ -567,7 +539,7 @@ hub = f"""
       <a class="card link-card" href="privacy.html" id="privacy"><h3>Privacy notice</h3><p>What we process, why, and your rights.</p><span class="more">Read →</span></a>
       <a class="card link-card" href="cookies.html"><h3>Cookies</h3><p>What we store in your browser, and your settings.</p><span class="more">Read →</span></a>
       <a class="card link-card" href="terms.html"><h3>Terms of use</h3><p>How the website may be used, and its scientific scope.</p><span class="more">Read →</span></a>
-      <a class="card link-card" href="software-terms.html"><h3>Software terms</h3><p>For downloading and using the Windows application.</p><span class="more">Read →</span></a>
+      <a class="card link-card" href="software-terms.html"><h3>Software terms</h3><p>For downloading and using the Windows and Android applications.</p><span class="more">Read →</span></a>
     </div>
     <p class="small" id="imprint" style="margin-top:18px">Operator: {ORG}, Zurich, Switzerland ·
       {MAILTO}</p>

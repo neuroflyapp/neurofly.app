@@ -22,7 +22,8 @@
 const PRIVATE = { 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY' };
 const PAGE = '<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>NeuroCause Statistik</title><link rel="icon" href="https://neuro-cause.com/brand/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="https://neuro-cause.com/assets/site.css"><link rel="stylesheet" href="https://neuro-cause.com/assets/download-stats.css"></head><body><script src="https://neuro-cause.com/assets/download-stats.js"></script></body></html>';
 const PAGE_CSP = "default-src 'none'; script-src https://neurofly.app https://neuro-cause.com; style-src https://neurofly.app https://neuro-cause.com; img-src https://neurofly.app https://neuro-cause.com data:; font-src https://neurofly.app https://neuro-cause.com; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
-const ZIP = /^(?:NeuroCause|NeuroFly)-\d+\.\d+\.\d+-win-x64\.zip$/; // earlier releases carry the former name
+// Release files: Windows ZIPs (earlier releases carry the former name) and, from 2.4.0, Android APKs.
+const ZIP = /^(?:(?:NeuroCause|NeuroFly)-\d+\.\d+\.\d+-win-x64\.zip|NeuroCause-\d+\.\d+\.\d+-android\.apk)$/;
 const text = (body, status) => new Response(body, { status, headers: { 'content-type': 'text/plain; charset=utf-8', ...PRIVATE } });
 
 export default {

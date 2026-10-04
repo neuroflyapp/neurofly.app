@@ -71,7 +71,7 @@
   </section>
   <section class="dl-panel" aria-labelledby="h-versions">
     <h2 id="h-versions">Pro Version</h2>
-    <p class="sub">Windows-Build (ZIP) jeder Veröffentlichung.</p>
+    <p class="sub">Windows-Build (ZIP) und ab 2.4.0 die Android-App (APK) jeder Veröffentlichung.</p>
     <div class="table-wrap dl-table">
       <table class="dl">
         <thead><tr><th>Version</th><th>Veröffentlicht</th><th>Insgesamt</th><th>Webseite</th><th>GitHub direkt</th><th>Ø pro Tag</th></tr></thead>
@@ -97,12 +97,13 @@
 </main>`;
 
   const REPO = 'neuroflyapp/neurofly';
-  const ZIP = /^(?:NeuroCause|NeuroFly)-\d+\.\d+\.\d+-win-x64\.zip$/; // earlier releases carry the former name
+  // Windows ZIPs (earlier releases carry the former name) and, from 2.4.0, Android APKs.
+  const ZIP = /^(?:(?:NeuroCause|NeuroFly)-\d+\.\d+\.\d+-win-x64\.zip|NeuroCause-\d+\.\d+\.\d+-android\.apk)$/;
   const TOP = 10;
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Number(n).toLocaleString('de-CH');
   const pct = (x) => `${(100 * x).toLocaleString('de-CH', { maximumFractionDigits: 0 })} %`;
-  const version = (file) => (file.match(/(?:NeuroCause|NeuroFly)-(\d+\.\d+\.\d+)-/) || [])[1] || file;
+  const version = (file) => { const v = (file.match(/(?:NeuroCause|NeuroFly)-(\d+\.\d+\.\d+)-/) || [])[1] || file; return file.endsWith('.apk') ? `${v} · Android` : v; };
   const dayLabel = (d) => `${d.slice(8, 10)}.${d.slice(5, 7)}.`;
   const duration = (ms) => { const s = Math.round(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} min` : `${s} s`; };
   const milliseconds = (ms) => ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toLocaleString('de-CH', { maximumFractionDigits: 1 })} s`;

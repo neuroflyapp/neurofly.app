@@ -104,3 +104,27 @@ test('private dashboard rejects requests without Cloudflare Access assertion', a
   assert.equal(response.status, 403);
   assert.equal(response.headers.get('cache-control'), 'no-store');
 });
+
+async function download(path, agent = 'Mozilla/5.0') {
+  const db = database(), pending = [];
+  const request = new Request(`https://get.neuro-cause.com${path}`, { headers: { 'user-agent': agent } });
+  const response = await counter.fetch(request, { DB: db }, { waitUntil(promise) { pending.push(promise); } });
+  await Promise.all(pending);
+  return { status: response.status, location: response.headers.get('location'), writes: db.writes };
+}
+
+test('release links count one download and redirect to the Windows ZIP or, from 2.4.0, the Android APK', async () => {
+  const win = await download('/v2.4.0');
+  assert.equal(win.status, 302);
+  assert.equal(win.location, 'https://github.com/neuroflyapp/neurofly/releases/download/v2.4.0/NeuroCause-2.4.0-win-x64.zip');
+  assert.deepEqual(win.writes.map((w) => w.values[1]), ['NeuroCause-2.4.0-win-x64.zip']);
+  const apk = await download('/v2.4.0/android');
+  assert.equal(apk.location, 'https://github.com/neuroflyapp/neurofly/releases/download/v2.4.0/NeuroCause-2.4.0-android.apk');
+  assert.deepEqual(apk.writes.map((w) => w.values[1]), ['NeuroCause-2.4.0-android.apk']);
+  const none = await download('/v2.3.0/android');
+  assert.equal(none.location, 'https://neuro-cause.com/#get');
+  assert.equal(none.writes.length, 0);
+  const bot = await download('/v2.4.0/android', 'neurocause-probe-bot');
+  assert.equal(bot.status, 302);
+  assert.equal(bot.writes.length, 0);
+});
