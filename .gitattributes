@@ -1,1 +1,3 @@
 *.pdf binary
+# The browser version is served byte for byte as built (its data files are hashed).
+docs/play/** -text
