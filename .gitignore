@@ -2,3 +2,5 @@ node_modules/
 __pycache__/
 .wrangler/
 tools/film/out/
+# ... except the browser version's bundled three.js
+!docs/play/node_modules/
