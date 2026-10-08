@@ -15,6 +15,9 @@ const REF = {
   gallio2011: { cite: 'Gallio et al. (2011) Cell 144:614', doi: 'https://doi.org/10.1016/j.cell.2011.01.028' },
   ni2013: { cite: 'Ni et al. (2013) Nature 500:580', doi: 'https://doi.org/10.1038/nature12390' },
   namiki2018: { cite: 'Namiki et al. (2018) eLife 7:e34272', doi: 'https://doi.org/10.7554/eLife.34272' },
+  kain2012: { cite: 'Kain et al. (2012) PNAS 109:19834', doi: 'https://doi.org/10.1073/pnas.1211988109' },
+  buchanan2015: { cite: 'Buchanan et al. (2015) PNAS 112:6700', doi: 'https://doi.org/10.1073/pnas.1500804112' },
+  linneweber2020: { cite: 'Linneweber et al. (2020) Science 367:1112', doi: 'https://doi.org/10.1126/science.aaw7182' },
 };
 export { REF as HABITAT_REFERENCES };
 
@@ -260,12 +263,14 @@ export const CHAPTERS = Object.freeze([
   { id: 'brain', title: { en: 'Understand a brain', de: 'Ein Gehirn verstehen' } },
   { id: 'genetics', title: { en: 'Fly genetics', de: 'Fliegengenetik' }, gift: ['gf', 'kir'] },
   { id: 'question', title: { en: 'The big question', de: 'Die grosse Frage' } },
+  { id: 'individuals', title: { en: 'Individuals', de: 'Individuen' } },
 ]);
 
 export const QUESTS = Object.freeze([
   { id: 'name', chapter: 'meet', kind: 'action', target: 'rename', xp: 30, leaves: 10,
     title: { en: 'A name', de: 'Ein Name' },
     task: { en: 'Give your fly a name: click the name on the fly card.', de: 'Gib deiner Fliege einen Namen: Klicke auf den Namen in der Fliegenkarte.' },
+    touch: { en: 'Give your fly a name: tap the name on the fly card.', de: 'Gib deiner Fliege einen Namen: Tippe auf den Namen in der Fliegenkarte.' },
     why: { en: 'Every individual runs the same wiring with its own seed; names keep them apart.', de: 'Jedes Individuum hat dieselbe Verschaltung mit eigenem Seed; Namen halten sie auseinander.' } },
   { id: 'walk', chapter: 'meet', kind: 'discover', targets: ['walk'], xp: 30, leaves: 10,
     title: { en: 'First steps', de: 'Erste Schritte' },
@@ -286,6 +291,7 @@ export const QUESTS = Object.freeze([
   { id: 'shadow', chapter: 'meet', kind: 'discover', targets: ['takeoff'], xp: 50, leaves: 15,
     title: { en: 'A shadow from above', de: 'Ein Schatten von oben' },
     task: { en: 'Move the mouse quickly toward {name}, like a predator. Then let things calm down again.', de: 'Bewege die Maus schnell auf {name} zu, wie ein Räuber. Lass danach wieder Ruhe einkehren.' },
+    touch: { en: 'Swipe a finger quickly toward {name}, like a predator, or cast a shadow with the button. Then let things calm down again.', de: 'Wische mit dem Finger schnell auf {name} zu, wie ein Räuber, oder wirf mit dem Knopf einen Schatten. Lass danach wieder Ruhe einkehren.' },
     why: { en: 'A fast-growing dark shape drives LC4 and LPLC2; one giant-fiber spike means takeoff.', de: 'Eine schnell wachsende dunkle Form treibt LC4 und LPLC2; ein Spike der Riesenfaser heisst Abflug.' } },
   { id: 'turns', chapter: 'brain', kind: 'discover', targets: ['turnLeft', 'turnRight'], xp: 60, leaves: 15,
     title: { en: 'Left or right', de: 'Links oder rechts' },
@@ -337,6 +343,18 @@ export const QUESTS = Object.freeze([
     title: { en: 'The whole atlas', de: 'Der ganze Atlas' },
     task: { en: 'Investigate all eight criteria.', de: 'Untersuche alle acht Kriterien.' },
     why: { en: 'The answer the model can give is a map of mechanisms, not a verdict on feelings.', de: 'Die Antwort, die das Modell geben kann, ist eine Karte von Mechanismen, kein Urteil über Gefühle.' } },
+  { id: 'three', chapter: 'individuals', kind: 'individuals', n: 3, xp: 120, leaves: 30,
+    title: { en: 'Same wiring, different flies', de: 'Gleiche Verschaltung, verschiedene Fliegen' },
+    task: { en: 'Watch three wild-type flies for at least a minute each (wild-type vials in the fly lab), then compare them there.',
+      de: 'Beobachte drei Wildtyp-Fliegen je mindestens eine Minute (Wildtyp-Röhrchen im Fliegenlabor) und vergleiche sie dort.' },
+    why: { en: 'Real flies with the same genes, raised alike, still behave differently, and each keeps its own habits.',
+      de: 'Echte Fliegen mit denselben Genen und gleicher Aufzucht verhalten sich trotzdem verschieden, und jede behält ihre Eigenheiten.' } },
+  { id: 'spread', chapter: 'individuals', kind: 'individuals', n: 5, xp: 160, leaves: 40,
+    title: { en: 'Where individuality comes from', de: 'Woher Individualität kommt' },
+    task: { en: 'Watch five wild-type flies for a minute each and look at their spread in the fly lab.',
+      de: 'Beobachte fünf Wildtyp-Fliegen je eine Minute und sieh dir ihre Streuung im Fliegenlabor an.' },
+    why: { en: 'In real flies part of it is wired in during development. Here every fly has the same wiring: the spread comes from how excitable each partner neuron is at rest, and from noise.',
+      de: 'Bei echten Fliegen entsteht ein Teil davon während der Entwicklung in der Verschaltung. Hier hat jede Fliege dieselbe Verschaltung: Die Streuung kommt daher, wie erregbar jedes Partnerneuron in Ruhe ist, und vom Rauschen.' } },
 ]);
 
 // ---- daily field notes ----------------------------------------------------------------------

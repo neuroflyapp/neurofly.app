@@ -43,74 +43,157 @@ export class HabitatSound {
 }
 
 // ---- the layer ------------------------------------------------------------------------------------
+// Rewards arrive in bursts: one discovery brings its neuron cards, points and
+// perhaps a new rank. The layer directs them so a player meets one thing at a
+// time: big moments as cards in order of importance, with a breath between
+// them (one at a time on a phone, where the sheet covers half the view);
+// small news as one-line pills; the points of a burst as a single float.
+// Nothing starts while a dialog is open, so no card times out unseen.
+const BREATH_MS = 700, POINTS_MS = 900, MAX_QUEUE = 4, PILL_MS = 3800, MAX_PILLS = 2;
+// An everyday card that waited this long behind bigger ones is old news: a pill.
+const STALE_MS = 9000, STALE_PRIORITY = 55;
+
 export class HabitatOverlay {
   constructor(host, { flyPosition }) {
     this.host = host;
     this.flyPosition = flyPosition;       // () => { x, y, visible } in host pixels, or null
     this.el = h('div', { class: 'hab-overlay', 'aria-live': 'polite' });
     this.cards = h('div', { class: 'hab-cards' });
+    this.pills = h('div', { class: 'hab-pills' });
     this.bubble = h('div', { class: 'hab-bubble', hidden: true });
     this.tint = h('div', { class: 'hab-redlight', hidden: true });
-    this.el.append(this.tint, this.cards, this.bubble);
+    this.el.append(this.tint, h('div', { class: 'hab-stack' }, this.cards, this.pills), this.bubble);
     host.append(this.el);
     this.queue = [];
-    this.showing = 0;
+    this.active = [];          // items on screen
+    this.nextAt = 0;
+    this.pumpTimer = null;
+    this.points = { xp: 0, leaves: 0, timer: null };
+    this.order = 0;
     this.bubbleKey = null;
     this.bubbleXY = [NaN, NaN];
   }
 
-  // A card over the terrarium: { tone, eyebrow, title, text, chips, rewards, action }.
-  card({ tone = 'discovery', eyebrow, title, text, chips = [], rewards = [], action = null, iconName = 'spark', ms = 7000 }) {
-    // One card at a time on a phone (the sheet covers most of the view).
-    if (this.showing >= (document.body.classList.contains('mobile') ? 1 : 2)) { this.queue.push(arguments[0]); return; }
-    this.showing++;
+  get phone() { return document.body.classList.contains('mobile'); }
+
+  // A card over the terrarium: { tone, eyebrow, title, text, chips, rewards,
+  // action, iconName, ms, priority, exclusive, full, keep }. Higher priority
+  // first; an exclusive card (the welcome) shows alone; `keep` never shrinks
+  // to a pill.
+  card(spec) { this._enqueue({ type: 'card', priority: 10, ...spec }); }
+
+  banner(eyebrow, title, sub, priority = 20) { this._enqueue({ type: 'banner', eyebrow, title, sub, priority }); }
+
+  _enqueue(item) {
+    item.order = this.order++;
+    item.queuedAt = performance.now();
+    this.queue.push(item);
+    this.queue.sort((a, b) => b.priority - a.priority || a.order - b.order);
+    // A long burst: the least important waiting cards become pills.
+    while (this.queue.length > MAX_QUEUE) {
+      const drop = this.queue.pop();
+      if (drop.type === 'card') this.pill(drop.title, { iconName: drop.iconName, tone: drop.tone });
+    }
+    this._pump();
+  }
+
+  _pump() {
+    clearTimeout(this.pumpTimer);
+    this.pumpTimer = null;
+    if (!this.queue.length || !this.el.isConnected) return;
+    const wait = (ms) => { this.pumpTimer = setTimeout(() => this._pump(), ms); };
+    if (document.querySelector('dialog[open]')) { wait(600); return; }
+    const now = performance.now();
+    if (now < this.nextAt) { wait(this.nextAt - now); return; }
+    const next = this.queue[0];
+    const limit = this.phone ? 1 : 2;
+    if (this.active.some((x) => x.exclusive) || (next.exclusive && this.active.length) || this.active.length >= limit) return;
+    this.queue.shift();
+    if (next.type === 'card' && !next.keep && next.priority < STALE_PRIORITY && now - next.queuedAt > STALE_MS) {
+      this.pill(next.title, { iconName: next.iconName, tone: next.tone === 'common' ? 'leaf' : 'card' });
+      this._pump();
+      return;
+    }
+    if (next.type === 'banner') this._showBanner(next); else this._showCard(next);
+    if (this.queue.length) wait(BREATH_MS);
+  }
+
+  _done(item) {
+    this.active = this.active.filter((x) => x !== item);
+    this.nextAt = performance.now() + BREATH_MS;
+    this._pump();
+  }
+
+  _showCard(item) {
+    const { tone = 'discovery', eyebrow, title, text, chips = [], rewards = [], action = null, iconName = 'spark', full = false } = item;
+    const ms = item.ms ?? (this.phone ? 6000 : 7000);
+    this.active.push(item);
     const close = h('button', { type: 'button', class: 'hab-card-close', 'aria-label': t('Close') }, icon('close', 14));
-    const el = h('div', { class: `hab-card tone-${tone}`, role: 'status' },
+    const el = h('div', { class: `hab-card tone-${tone}${full ? ' full' : ''}`, role: 'status' },
       h('div', { class: 'hab-card-icon' }, icon(iconName, 22)),
       h('div', { class: 'hab-card-body' },
         h('div', { class: 'hab-card-eyebrow' }, eyebrow),
         h('div', { class: 'hab-card-title' }, title),
         text ? h('div', { class: 'hab-card-text' }, text) : null,
         chips.length ? h('div', { class: 'hab-chips' }, ...chips.map((c) => h('span', { class: 'hab-chip' }, c))) : null,
-        h('div', { class: 'hab-card-foot' },
+        rewards.length || action ? h('div', { class: 'hab-card-foot' },
           ...rewards.map((r) => h('span', { class: 'hab-reward' }, r)),
-          action ? h('button', { type: 'button', class: 'btn small hab-card-action', onclick: action.onclick }, action.label) : null)),
+          action ? h('button', { type: 'button', class: 'btn small hab-card-action', onclick: () => { action.onclick(); remove(); } }, action.label) : null) : null),
       close);
     let timer = null;
     const remove = () => {
       clearTimeout(timer);
-      if (!el.isConnected) return;
+      if (!el.isConnected || el.classList.contains('out')) return;
       el.classList.add('out');
-      setTimeout(() => {
-        el.remove();
-        this.showing--;
-        const next = this.queue.shift();
-        if (next) this.card(next);
-      }, 260);
+      setTimeout(() => { el.remove(); this._done(item); }, 260);
     };
     close.addEventListener('click', remove);
-    el.addEventListener('mouseenter', () => clearTimeout(timer));
-    el.addEventListener('mouseleave', () => { timer = setTimeout(remove, 2500); });
+    el.addEventListener('pointerenter', () => clearTimeout(timer));
+    el.addEventListener('pointerleave', () => { timer = setTimeout(remove, 2500); });
     this.cards.append(el);
     timer = setTimeout(remove, ms);
   }
 
-  // "+20 XP" rising from the fly (or the middle of the view).
+  _showBanner(item) {
+    this.active.push(item);
+    const el = h('div', { class: 'hab-banner' }, h('div', { class: 'hab-banner-ring' }),
+      h('div', { class: 'hab-banner-eyebrow' }, item.eyebrow), h('div', { class: 'hab-banner-title' }, item.title),
+      item.sub ? h('div', { class: 'hab-banner-sub' }, item.sub) : null);
+    this.el.append(el);
+    setTimeout(() => el.classList.add('out'), 2400);
+    setTimeout(() => { el.remove(); this._done(item); }, 2800);
+  }
+
+  // One line of news at the top: { iconName, tone, onclick }.
+  pill(text, { iconName = 'spark', tone = 'card', onclick = null } = {}) {
+    while (this.pills.children.length >= MAX_PILLS) this.pills.firstChild.remove();
+    const el = h(onclick ? 'button' : 'div', { class: `hab-pill tone-${tone}`, ...(onclick ? { type: 'button' } : {}) },
+      icon(iconName, 14), h('span', {}, text));
+    if (onclick) el.addEventListener('click', () => { onclick(); el.remove(); });
+    this.pills.append(el);
+    setTimeout(() => el.classList.add('out'), PILL_MS);
+    setTimeout(() => el.remove(), PILL_MS + 300);
+  }
+
+  // Points of one burst rise as one float: "+45 XP · +5 leaves".
+  addPoints(xp = 0, leaves = 0) {
+    const p = this.points;
+    p.xp += xp; p.leaves += leaves;
+    if (p.timer) return;
+    p.timer = setTimeout(() => {
+      const parts = [p.xp ? `+${p.xp} XP` : null, p.leaves ? `+${p.leaves} ${t('leaves')}` : null].filter(Boolean);
+      if (parts.length) this.float(parts.join(' · '), p.xp ? 'xp' : 'leaf');
+      p.xp = 0; p.leaves = 0; p.timer = null;
+    }, POINTS_MS);
+  }
+
+  // A short text rising from the fly (or the middle of the view).
   float(text, kind = 'xp') {
     const p = this.flyPosition();
     const x = p?.visible ? p.x : this.host.clientWidth / 2, y = p?.visible ? p.y - 24 : this.host.clientHeight / 2;
     const el = h('div', { class: `hab-float ${kind}`, style: { left: `${Math.round(x)}px`, top: `${Math.round(y)}px` } }, text);
     this.el.append(el);
     setTimeout(() => el.remove(), 1600);
-  }
-
-  banner(eyebrow, title, sub) {
-    const el = h('div', { class: 'hab-banner' }, h('div', { class: 'hab-banner-ring' }),
-      h('div', { class: 'hab-banner-eyebrow' }, eyebrow), h('div', { class: 'hab-banner-title' }, title),
-      sub ? h('div', { class: 'hab-banner-sub' }, sub) : null);
-    this.el.append(el);
-    setTimeout(() => el.classList.add('out'), 2600);
-    setTimeout(() => el.remove(), 3000);
   }
 
   // The most urgent need as a small bubble above the fly (null hides it).
@@ -142,7 +225,13 @@ export class HabitatOverlay {
     setTimeout(() => el.remove(), 500);
   }
 
-  dispose() { this.el.remove(); this.queue = []; }
+  dispose() {
+    clearTimeout(this.pumpTimer);
+    clearTimeout(this.points.timer);
+    this.el.remove();
+    this.queue = [];
+    this.active = [];
+  }
 }
 
 // ---- the photo: the terrarium picture with a caption band and the logo ----------------------------

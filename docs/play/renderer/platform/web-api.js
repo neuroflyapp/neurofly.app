@@ -18,6 +18,7 @@ const LINK_HOSTS = ['doi.org', 'pubmed.ncbi.nlm.nih.gov', 'www.nature.com', 'eli
   'flybase.org', 'zenodo.org'];
 // Exports keep Electron's file names (save-io.js) and size limits.
 const EXPORTS = {
+  saveHabitat: { stem: 'neurocause-habitat', extension: 'json', type: 'application/json', maxBytes: 1024 * 1024 },
   saveRecording: { stem: 'neurocause', extension: 'csv', type: 'text/csv', maxBytes: 64 * 1024 * 1024 },
   saveExperiment: { stem: 'neurocause-experiment', extension: 'json', type: 'application/json', maxBytes: 64 * 1024 * 1024 },
   saveLearningRecord: { stem: 'neurocause-learning', extension: 'csv', type: 'text/csv', maxBytes: 64 * 1024 * 1024 },
@@ -102,6 +103,9 @@ export function createWebApi() {
     }
     const name = `${spec.stem}-${stamp()}.${spec.extension}`;
     const Filesystem = plugin('Filesystem'), Share = plugin('Share');
+    // A WebView cannot reliably download blobs. Missing native plugins must
+    // not be reported as a successful export.
+    if (isNativeApp() && (!Filesystem || !Share)) return { ok: false, reason: 'native-export-unavailable' };
     if (Filesystem && Share) {
       const written = await Filesystem.writeFile({
         path: `exports/${name}`, directory: 'CACHE', recursive: true,
@@ -188,8 +192,9 @@ export function createWebApi() {
     // Android reports the app's state itself as well (appStateChange); either
     // signal is enough, and both arriving changes nothing twice.
     onCommand(fn) {
-      let pausedByApp = false;
-      const background = (away) => {
+      let pausedByApp = false, pageHidden = document.hidden, appInactive = false;
+      const background = () => {
+        const away = pageHidden || appInactive;
         if (away) {
           if (!pausedByApp && ctx?.snap && !ctx.snap.paused) { pausedByApp = true; fn({ name: 'pause', value: true }); }
         } else if (pausedByApp) {
@@ -197,8 +202,8 @@ export function createWebApi() {
           fn({ name: 'pause', value: false });
         }
       };
-      document.addEventListener('visibilitychange', () => background(document.hidden));
-      plugin('App')?.addListener?.('appStateChange', ({ isActive }) => background(!isActive));
+      document.addEventListener('visibilitychange', () => { pageHidden = document.hidden; background(); });
+      plugin('App')?.addListener?.('appStateChange', ({ isActive }) => { appInactive = !isActive; background(); });
     },
     setPaused() {},
     // Declining the software terms ends the app (Android) or leaves the page.
@@ -215,6 +220,7 @@ export function createWebApi() {
     saveManifest: (json) => deliver('saveManifest', json),
     saveSnapshot: () => deliver('saveSnapshot'),
     savePhoto: (dataUrl) => deliver('savePhoto', dataUrl),
+    saveHabitat: (json) => deliver('saveHabitat', json),
 
     async openExternal(url) {
       let u;

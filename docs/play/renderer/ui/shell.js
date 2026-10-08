@@ -211,7 +211,9 @@ export function buildShell(ctx, panels) {
   ctx.showHelp = () => { renderHelp(); help.showModal(); };
   let firstRun = true;
   try { firstRun = !localStorage.getItem('neurofly.seenHelp'); localStorage.setItem('neurofly.seenHelp', '1'); } catch { /* optional */ }
-  if (firstRun) setTimeout(() => { renderHelp(); help.showModal(); }, 1400);
+  // Straight into the game (a "play" link): the Habitat's own welcome and
+  // goals introduce it; the quick guide stays one tap away.
+  if (firstRun && active !== 'habitat') setTimeout(() => { renderHelp(); help.showModal(); }, 1400);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.body.classList.contains('focus-mode')) { setFocus(false); return; }

@@ -123,6 +123,9 @@ export class BrainView {
     this.flashBudget = 24;
     this.highlight = null;
     this.synapsesVisible = true;
+    // Lines are drawn in screen pixels: the same web in a small panel stacks
+    // into a white tangle. Their brightness follows the view's size (resize).
+    this.lineDensity = 1;
     this._build(points, circuit);
     this._bind();
     // The brain fills its panel: the camera distance follows the panel's shape
@@ -293,7 +296,7 @@ export class BrainView {
   // the dense central brain summed to a white block that hid the neurons.
   // A 5,000-line context sample avoids opaque overlap while preserving the
   // measured topology; activity still lights the exact outgoing model edges.
-  rebuildAmbient(cap = 5000) {
+  rebuildAmbient(cap = this.ambientCap ?? 5000) {
     const visible = new Uint8Array(this.groups.length);
     for (const gi of this.visible) visible[gi] = 1;
     const selected = sampleVisibleEdges(this.edgeFrom, this.edgeTo, this.groupOf, visible, cap);
@@ -492,6 +495,7 @@ export class BrainView {
       const gc = this.glowLines.geometry.attributes.color.array;
       const decay = Math.exp(-dt * 5);
       const p = this.positions;
+      const glowCap = Math.round(this.GLOW * this.lineDensity), dim = this.lineDensity * this.lineDensity;
       let idx = 0;
       for (const e of this.activeGlow) {
         const g = this.edgeGlow[e] * decay;
@@ -499,7 +503,7 @@ export class BrainView {
         this.edgeGlow[e] = g;
         const i = this.edgeFrom[e], j = this.edgeTo[e];
         if (!this.visible.has(this.groupOf[i]) || !this.visible.has(this.groupOf[j])) continue;
-        if (idx >= this.GLOW) continue;
+        if (idx >= glowCap) continue;
         const o = idx * 6;
         gp[o] = p[3 * i]; gp[o + 1] = p[3 * i + 1]; gp[o + 2] = p[3 * i + 2];
         gp[o + 3] = p[3 * j]; gp[o + 4] = p[3 * j + 1]; gp[o + 5] = p[3 * j + 2];
@@ -510,7 +514,7 @@ export class BrainView {
         const hot = gi >= 0 && this.groups[gi].tier === 'named' ? this.groups[gi].color : base;
         for (let v = 0; v < 2; v++) {
           const co = o + 3 * v;
-          const k = 0.2 + 0.35 * g;           // additive: keep overlapping lines from saturating
+          const k = (0.2 + 0.35 * g) * dim;   // additive: keep overlapping lines from saturating
           gc[co] = (base[0] + (hot[0] - base[0]) * g) * k; gc[co + 1] = (base[1] + (hot[1] - base[1]) * g) * k; gc[co + 2] = (base[2] + (hot[2] - base[2]) * g) * k;
         }
         idx++;
@@ -531,6 +535,11 @@ export class BrainView {
     this.renderer.setSize(w, h);
     this._applyViewOffset();
     if (!this.userZoomed) this.zoom = this._fitDistance();
+    this.lineDensity = clampf(Math.sqrt(w * h) / 700, 0.4, 1);
+    this.synapseLines.material.opacity = 0.055 * this.lineDensity;
+    // The resting sample shrinks with the panel's area, in coarse steps.
+    const cap = Math.max(1000, Math.round(5000 * this.lineDensity ** 2 / 500) * 500);
+    if (cap !== (this.ambientCap ?? 5000)) { this.ambientCap = cap; this.rebuildAmbient(); }
   }
 
   // A sheet covering the bottom or right edge (phones): the brain is drawn

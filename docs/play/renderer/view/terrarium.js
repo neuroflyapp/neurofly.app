@@ -513,8 +513,11 @@ export class TerrariumView {
     const close = this.cameraMode === 'close';
     const baseBack = close ? 58 : 112, baseUp = close ? 26 : 56;
     const bodyScale = this.flyViews?.[0]?.model.root.scale.x / FLY_SCALE || 1;
+    // A sheet over the lower part of a phone leaves a short window: step back
+    // so the fly keeps some of her terrarium around her (display camera only).
+    const covered = this.pane?.height > 0 && this.viewInsetShown ? Math.min(0.75, this.viewInsetShown.bottom / this.pane.height) : 0;
     const distance = Math.max(Math.hypot(baseBack, baseUp - FOLLOW_BODY_CENTER_Z),
-      followFitDistance(this.camera.fov, this.camera.aspect, FOLLOW_BODY_RADIUS * bodyScale)) * this.orbitShown.zoom;
+      followFitDistance(this.camera.fov, this.camera.aspect, FOLLOW_BODY_RADIUS * bodyScale)) * this.orbitShown.zoom * (1 + 0.7 * covered);
     // Fit first, then apply the user's zoom: zooming in deliberately remains
     // a macro view. Compensate for the unobstructed boom's 6% clearance.
     const boomScale = distance / Math.hypot(baseBack, baseUp - FOLLOW_BODY_CENTER_Z) / 0.94;

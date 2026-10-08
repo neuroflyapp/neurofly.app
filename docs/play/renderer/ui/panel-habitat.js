@@ -6,12 +6,14 @@
 
 import { h, icon } from './dom.js';
 import { t, getLanguage, num, int } from '../i18n.js';
-import { HabitatGame, newGame, decodeGame, migrateLegacy, SAVE_KEY, LEGACY_KEY, NEEDS, rankInfo, temperament,
-  fillName, DOSE_PERCENTS } from '../../src/habitat-game.js';
+import { HabitatGame, decodeGame, NEEDS, rankInfo, temperament,
+  fillName, DOSE_PERCENTS, CARD_REWARD } from '../../src/habitat-game.js';
 import { BEHAVIOURS, NEURONS, QUESTS, CHAPTERS, DAILY, STOCKS, CRITERIA, RANKS, RARITY, VIAL, MODALITY_LABEL,
   HABITAT_REFERENCES, GARDEN, GARDEN_ITEMS, byId } from '../../src/habitat-content.js';
 import { assessSentience } from '../../src/sentience.js';
 import { HabitatOverlay, HabitatSound, composePhoto } from './habitat-fx.js';
+import { median } from '../../src/stats.js';
+import { HabitatStorage } from '../../src/habitat-storage.js';
 
 const L = (rec, name = '') => fillName(rec?.[getLanguage()] ?? rec?.en ?? '', name);
 // Texts as literal t() calls, so tools/check-i18n.mjs sees every one.
@@ -30,27 +32,17 @@ const SAVE_EVERY_MS = 5000;
 let shared = null;
 function loadGame() {
   if (shared) return shared;
-  let state = null, notice = null, raw = null;
-  try { raw = localStorage.getItem(SAVE_KEY); } catch { notice = 'storage'; }
-  if (raw) {
-    try { state = decodeGame(raw); } catch {
-      notice = 'unreadable';
-      // Kept aside, never silently overwritten.
-      try { localStorage.setItem(`${SAVE_KEY}.unreadable`, raw); } catch { /* storage full */ }
-    }
-  }
-  if (!state) {
-    let legacy = null;
-    try { legacy = localStorage.getItem(LEGACY_KEY); } catch { /* no storage */ }
-    if (legacy) { try { state = migrateLegacy(legacy); notice ??= 'migrated'; } catch { /* nothing to carry over */ } }
-  }
-  shared = { game: new HabitatGame(state ?? newGame()), notice, tab: 'quests', savedAt: 0 };
+  const persistence=new HabitatStorage(()=>localStorage),state=persistence.load();
+  shared = { game: new HabitatGame(state), persistence, tab: 'quests', savedAt: 0 };
   return shared;
 }
 
 function saveGame() {
   if (!shared) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(shared.game.state)); shared.savedAt = performance.now(); } catch { /* full or blocked */ }
+  shared.game.seen(Date.now());
+  const ok=shared.persistence.save(shared.game.state);
+  shared.savedAt=performance.now(); // failed attempts are rate-limited too
+  return ok;
 }
 
 // An SVG ring gauge: value 0-100.
@@ -96,11 +88,27 @@ export const habitatPanel = {
     const terrarium = ctx.views.terrarium;
     const overlay = new HabitatOverlay(document.getElementById('terrarium'), { flyPosition: () => terrarium?.flyScreenPosition?.() ?? null });
     const audit = assessSentience({ circuit: ctx.data?.circuit, provenance: ctx.data?.provenance, pathways: ctx.data?.pathways, hasPlasticity: true });
-    const modelSex = ctx.data?.provenance?.specimens?.body?.sex === 'male' ? 'male' : 'female';
+    const specimens = ctx.data?.provenance?.specimens;
+    const modelSex = specimens?.brain?.sex;
     let renaming = false, openEntry = null, lastSnap = null, stateVersion = 0, shownVersion = -1;
+    let goalSkip = 0, goalVersion = 0;
+    // Gentle nudges: after a quiet spell, one tappable idea at a time.
+    let lastTouch = performance.now(), lastNudge = performance.now();
+    const NUDGE_QUIET_MS = 45000, NUDGE_GAP_MS = 90000;
+    const fresh = S.fresh ??= new Set();     // tabs opened by the story, not visited yet
     const name = () => game.fly.name;
 
     // ---- rewards -> feedback ---------------------------------------------------------------
+    // The overlay directs them (habitat-fx.js): big moments as cards by
+    // priority, small news as pills, the points of a burst as one float.
+    const touchUI = () => Boolean(ctx.touch) || document.body.classList.contains('mobile');
+    const taskText = (q) => L(touchUI() && q.touch ? q.touch : q.task, name());
+    const TAB_NEWS = {
+      garden: { title: () => t('The garden is open'), text: () => t('Place ferns, flowers and stones: they become part of the fly\'s world.') },
+      lab: { title: () => t('The fly lab is open'), text: () => t('Cross fly lines as real labs do, and raise offspring whose genotype runs in the model.') },
+      question: { title: () => t('The big question is open'), text: () => t('Could a fly feel? Investigate the eight criteria scientists use, in your own fly.') },
+    };
+    function openTab(id) { S.tab = id; fresh.delete(id); openEntry = null; stateVersion++; refresh(); }
     function handleRewards(list) {
       if (!list.length) return;
       stateVersion++;
@@ -115,57 +123,82 @@ export const habitatPanel = {
             if (trig) chips.push(`${t('Trigger')}: ${trig.channel === 'genetics' ? `${t('Virtual genetics')} · ${trig.label}` : t(trig.label)}${trig.latencyMs != null ? ` · ${int(trig.latencyMs)} ms` : ''}`);
             for (const n of b.neurons) chips.push(byId(NEURONS, n).label);
             const groups = b.neurons.map((n) => byId(NEURONS, n).highlight).filter(Boolean);
+            overlay.addPoints(rew.xp, rew.leaves);
+            sound.play('discovery');
+            if (b.rarity === 'common' && Object.keys(game.state.journal).length > 2) {
+              overlay.pill(`${t('New discovery')}: ${L(b.title)}`, { iconName: b.icon, tone: 'leaf',
+                onclick: () => { openTab('journal'); openEntry = `b:${b.id}`; stateVersion++; refresh(); } });
+              break;
+            }
             overlay.card({ tone: b.rarity, iconName: b.icon, eyebrow: `${t('New discovery')} · ${rarityLabel(b.rarity)}`,
               title: L(b.title), text: L(b.text, name()), chips, rewards: [`+${rew.xp} XP`, `+${rew.leaves} ${t('leaves')}`],
-              action: groups.length ? { label: t('Show in the brain'), onclick: () => highlight(groups) } : null });
-            overlay.float(`+${rew.xp} XP`);
-            sound.play('discovery');
+              action: groups.length ? { label: t('Show in the brain'), onclick: () => highlight(groups) } : null,
+              priority: { rare: 60, uncommon: 55, common: 50 }[b.rarity] ?? 50 });
             break;
           }
           case 'card': {
-            overlay.float('+15 XP');
+            overlay.addPoints(CARD_REWARD.xp, CARD_REWARD.leaves);
             if (covered.has(r.id)) break;
             const n = byId(NEURONS, r.id);
-            overlay.card({ tone: 'card', iconName: 'brain', eyebrow: t('New neuron card'), title: L(n.name), text: `${n.label} · ${L(n.fact)}`,
-              rewards: ['+15 XP'], action: n.highlight ? { label: t('Show in the brain'), onclick: () => highlight([n.highlight]) } : null, ms: 6000 });
+            overlay.pill(`${t('New neuron card')}: ${n.label} · ${L(n.name)}`, { iconName: 'brain', tone: 'card',
+              onclick: () => { openTab('journal'); openEntry = `n:${n.id}`; stateVersion++; refresh(); } });
             sound.play('card');
             break;
           }
           case 'quest': {
             const q = byId(QUESTS, r.id);
+            goalSkip = 0;
+            overlay.addPoints(q.xp, q.leaves);
+            if (q.kind === 'discover' && q.targets.every((x) => byId(BEHAVIOURS, x)?.rarity === 'common') && q.id !== 'shadow') {
+              overlay.pill(`${t('Quest complete')}: ${L(q.title)}`, { iconName: 'target', tone: 'gold' });
+              sound.play('coin');
+              break;
+            }
             overlay.card({ tone: 'quest', iconName: 'target', eyebrow: t('Quest complete'), title: L(q.title), text: L(q.why, name()),
-              rewards: [`+${q.xp} XP`, q.leaves ? `+${q.leaves} ${t('leaves')}` : null].filter(Boolean) });
+              rewards: [`+${q.xp} XP`, q.leaves ? `+${q.leaves} ${t('leaves')}` : null].filter(Boolean), priority: 45, keep: true });
             sound.play('quest');
             break;
           }
-          case 'chapter': overlay.banner(t('New chapter'), L(byId(CHAPTERS, r.id).title)); break;
-          case 'level': overlay.banner(t('Rank up'), L(RANKS[r.level]), t('Level {n}', { n: r.level + 1 })); sound.play('level'); break;
-          case 'daily': overlay.float(t('Field note done'), 'leaf'); sound.play('coin'); break;
-          case 'dailyBonus': overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Field notes'), title: t('All three notes done today'), rewards: ['+30 XP', `+25 ${t('leaves')}`] }); break;
-          case 'care': overlay.float(`+${r.leaves} ${t('leaves')}`, 'leaf'); sound.play('coin'); break;
+          case 'chapter': overlay.banner(t('New chapter'), L(byId(CHAPTERS, r.id).title), null, 42); break;
+          case 'level': overlay.banner(t('Rank up'), L(RANKS[r.level]), t('Level {n}', { n: r.level + 1 }), 35); sound.play('level'); break;
+          case 'daily': overlay.pill(`${t('Field note done')}: ${L(byId(DAILY, r.id)?.title)}`, { iconName: 'target', tone: 'leaf' }); overlay.addPoints(20, 10); sound.play('coin'); break;
+          case 'dailyBonus': overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Field notes'), title: t('All three notes done today'), rewards: ['+30 XP', `+25 ${t('leaves')}`], priority: 25 }); break;
+          case 'care': overlay.addPoints(0, r.leaves); sound.play('coin'); break;
           case 'criterion': {
             const c = audit.criteria.find((x) => x.id === r.id);
             overlay.card({ tone: 'criterion', iconName: 'sentience', eyebrow: t('Criterion investigated'), title: t(c?.name ?? r.id),
-              text: c ? t(c.question) : '', rewards: ['+25 XP'] });
+              text: c ? t(c.question) : '', rewards: ['+25 XP'], priority: 38, keep: true,
+              action: { label: t('See the evidence'), onclick: () => openTab('question') } });
+            overlay.addPoints(25, 5);
             break;
           }
-          case 'gift': overlay.card({ tone: 'card', iconName: 'flask', eyebrow: t('New stock for your fly lab'), title: byId(STOCKS, r.id).label, ms: 5000 }); break;
+          case 'unlock': {
+            const news = TAB_NEWS[r.id];
+            if (!news) break;
+            fresh.add(r.id);
+            overlay.card({ tone: 'card', iconName: TABS.find(([id]) => id === r.id)?.[1] ?? 'spark', eyebrow: t('New in your Habitat'),
+              title: news.title(), text: news.text(), priority: 36, keep: true, action: { label: t('Open'), onclick: () => openTab(r.id) } });
+            sound.play('card');
+            break;
+          }
+          case 'gift': overlay.card({ tone: 'card', iconName: 'flask', eyebrow: t('New stock for your fly lab'), title: byId(STOCKS, r.id).label, ms: 5000, priority: 30 }); break;
           case 'hatch': {
             const f = game.flyById(r.fly);
-            overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Hatched'), title: f.name, text: genotypeText(f.genotype) });
+            overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Hatched'), title: f.name, text: genotypeText(f.genotype), priority: 44, keep: true });
             sound.play('hatch');
             break;
           }
-          case 'step': overlay.float(t('Step done'), 'leaf'); sound.play('soft'); break;
+          case 'step': overlay.pill(t('Step done'), { iconName: 'target', tone: 'leaf' }); sound.play('soft'); goalVersion++; break;
           case 'command': ctx.command(r.name, r.args); break;
-          case 'heatSwitch': overlay.float(r.on ? t('TrpA1 open: the cells fire') : t('TrpA1 closed'), r.on ? 'xp' : 'leaf'); sound.play('soft'); break;
-          case 'milestone': overlay.banner(t('Collection complete'), r.id === 'cards' ? t('Every neuron card') : t('Every behaviour'), '+100 XP · +30'); sound.play('level'); break;
+          case 'heatSwitch': overlay.pill(r.on ? t('TrpA1 open: the cells fire') : t('TrpA1 closed'), { iconName: 'thermo', tone: r.on ? 'gold' : 'leaf' }); sound.play('soft'); break;
+          case 'milestone': overlay.banner(t('Collection complete'), r.id === 'cards' ? t('Every neuron card') : t('Every behaviour'), '+100 XP · +30', 40); sound.play('level'); break;
           case 'dose':
-            overlay.float(r.responded ? t('{p} %: proboscis out', { p: r.percent }) : t('{p} %: no response', { p: r.percent }), r.responded ? 'leaf' : 'xp');
+            overlay.pill(r.responded ? t('{p} %: proboscis out', { p: r.percent }) : t('{p} %: no response', { p: r.percent }), { iconName: 'drop', tone: r.responded ? 'leaf' : 'gold' });
             sound.play(r.responded ? 'coin' : 'soft');
+            goalVersion++;
             break;
-          case 'newDay': overlay.card({ tone: 'card', iconName: 'spark', eyebrow: t('A new day'), title: t('Three new field notes'), ms: 5000 }); break;
-          case 'death': overlay.card({ tone: 'criterion', iconName: 'pause', eyebrow: t('Simulation ended'), title: t('The simulated body of {name} stopped.', { name: name() }), text: t('Restart the individual from the fly card. Nothing is lost.') }); break;
+          case 'newDay': overlay.pill(`${t('A new day')}: ${t('Three new field notes')}`, { iconName: 'spark', tone: 'card' }); break;
+          case 'death': overlay.card({ tone: 'criterion', iconName: 'pause', eyebrow: t('Simulation ended'), title: t('The simulated body of {name} stopped.', { name: name() }), text: t('Restart the individual from the fly card. Nothing is lost.'), priority: 90 }); break;
           default: break;
         }
       }
@@ -179,6 +212,7 @@ export const habitatPanel = {
     function send(commands) { for (const [cmd, args] of commands) ctx.command(cmd, args); }
 
     function act(action) {
+      lastTouch = performance.now();
       const res = game.act(action, Date.now(), ctx.snap);
       handleRewards(res.rewards);
       if (res.commands?.length) send(res.commands);
@@ -230,7 +264,8 @@ export const habitatPanel = {
     const nameBtn = h('button', { type: 'button', class: 'hab-name', title: t('Rename') });
     const nameInput = h('input', { class: 'hab-name-input', maxlength: 24, 'aria-label': t('Name of your fly'), hidden: true });
     const genoChip = h('span', { class: 'hab-chip-geno' });
-    const metaChip = h('span', { class: 'hab-chip-meta' });
+    const metaChip = h('button', { type: 'button', class: 'hab-chip-meta', onclick: () => ctx.shell.select('model'),
+      title: `${specimens?.brain?.name ?? '?'} / ${specimens?.nerveCord?.name ?? '?'} · ${t('The body is modelled. Open model details.')}` });
     const doing = h('div', { class: 'hab-doing' }, h('span', { class: 'hab-doing-dot' }), h('span', { class: 'hab-doing-text' }));
     const gauges = Object.fromEntries(NEEDS.map((k) => [k, gauge(k)]));
     const tempText = h('b', { class: 'hab-temp-value' });
@@ -240,7 +275,7 @@ export const habitatPanel = {
       overlay.setRedLight(game.rt.lightOn);
     } }, icon('bolt', 16), h('span', {}));
     const heatChip = h('div', { class: 'hab-heat', hidden: true });
-    const actionBtn = (iconName, label, title, onclick) => h('button', { type: 'button', class: 'btn hab-act', title, onclick: () => { onclick(); sound.play('soft'); } },
+    const actionBtn = (iconName, label, title, onclick) => h('button', { type: 'button', class: 'btn hab-act', title, onclick: () => { lastTouch = performance.now(); onclick(); sound.play('soft'); } },
       icon(iconName, 18), h('span', {}, label));
     const near = (d) => {
       const f = ctx.snap?.fly;
@@ -254,16 +289,80 @@ export const habitatPanel = {
       const c = Math.max(12, Math.min(36, Math.round((ctx.snap?.env?.tempC ?? 24) + delta)));
       ctx.command('env.set', { key: 'tempC', value: c });
     };
-    const actions = h('div', { class: 'hab-actions' },
-      actionBtn('drop', t('Feed'), t('Touch a sugar drop to the proboscis, as in the proboscis extension test. Whether it feeds is up to its taste circuit.'), () => ctx.command('food.add', { kind: 'sugar', conc: 1, ...near(12) })),
-      actionBtn('drop', t('Bitter'), t('Touch a bitter drop to the proboscis.'), () => ctx.command('food.add', { kind: 'bitter', conc: 1, ...near(12) })),
-      actionBtn('antenna', t('Dust'), t('Dust the antennae: Johnston\'s organ cells feel it.'), () => ctx.command('antenna.dust', { amount: 0.8 })),
-      actionBtn('hand', t('Touch'), t('Touch the air next to the fly: the antennae are deflected.'), () => { const p = near(35); if (p.x !== undefined) ctx.command('tap', p); }),
-      h('div', { class: 'hab-temp' },
-        h('button', { type: 'button', class: 'btn icon-only', title: t('Cooler'), onclick: () => setTemp(-1) }, '−'),
-        h('span', {}, icon('thermo', 15), tempText),
-        h('button', { type: 'button', class: 'btn icon-only', title: t('Warmer'), onclick: () => setTemp(1) }, '+')),
-      lightBtn, heatChip);
+    const feed = () => ctx.command('food.add', { kind: 'sugar', conc: 1, ...near(12) });
+    const bitter = () => ctx.command('food.add', { kind: 'bitter', conc: 1, ...near(12) });
+    const dust = () => ctx.command('antenna.dust', { amount: 0.8 });
+    const actBtns = {
+      feed: actionBtn('drop', t('Feed'), t('Touch a sugar drop to the proboscis, as in the proboscis extension test. Whether it feeds is up to its taste circuit.'), feed),
+      bitter: actionBtn('drop', t('Bitter'), t('Touch a bitter drop to the proboscis.'), bitter),
+      dust: actionBtn('antenna', t('Dust'), t('Dust the antennae: Johnston\'s organ cells feel it.'), dust),
+      touch: actionBtn('hand', t('Touch'), t('Touch the air next to the fly: the antennae are deflected.'), () => { const p = near(35); if (p.x !== undefined) ctx.command('tap', p); }),
+    };
+    const actions = h('div', { class: 'hab-actions' }, ...Object.values(actBtns), lightBtn, heatChip);
+    const tempCtl = h('div', { class: 'hab-temp', title: t('Temperature of the terrarium') },
+      h('button', { type: 'button', class: 'btn icon-only', title: t('Cooler'), 'aria-label': t('Cooler'), onclick: () => setTemp(-1) }, '−'),
+      h('span', {}, icon('thermo', 14), tempText),
+      h('button', { type: 'button', class: 'btn icon-only', title: t('Warmer'), 'aria-label': t('Warmer'), onclick: () => setTemp(1) }, '+'));
+    const status = h('div', { class: 'hab-now' }, doing, tempCtl);
+
+    // ---- the next goal: one thing to do now, with the button that does it ----------------------
+    const goalEl = h('div', { class: 'hab-goal' });
+    const setTempTo = (c) => ctx.command('env.set', { key: 'tempC', value: c });
+    // What each quest's goal card offers; texts as literal t() calls.
+    const GOAL_DO = {
+      name: () => [t('Choose a name'), () => nameBtn.click(), null],
+      sugar: () => [t('Feed now'), feed, 'feed'],
+      dust: () => [t('Dust the antennae'), dust, 'dust'],
+      home: () => [t('Open the garden'), () => openTab('garden'), null],
+      shadow: () => [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null],
+      bitter: () => [t('Offer a bitter drop'), bitter, 'bitter'],
+      climate: () => (game.state.quests.climate?.n === 1 ? [t('Back to 25 °C'), () => setTempTo(25), null] : [t('Warm to 30 °C'), () => setTempTo(30), null]),
+      moon: () => [t('Drive the moonwalker neurons'), () => ctx.command('stim.group', { name: 'backward' }), null],
+      cross: () => [t('Open the fly lab'), () => openTab('lab'), null],
+      hatch: () => [t('Open the fly lab'), () => openTab('lab'), null],
+      silent: () => (game.fly.genotype ? [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null] : [t('Open the fly lab'), () => openTab('lab'), null]),
+      opto: () => [t('Open the fly lab'), () => openTab('lab'), null],
+      heat: () => (game.fly.genotype?.effector === 'trpa1' ? [t('Warm to 30 °C'), () => setTempTo(30), null] : [t('Open the fly lab'), () => openTab('lab'), null]),
+      evidence: () => [t('Open the big question'), () => openTab('question'), null],
+      three: () => [t('Open the fly lab'), () => openTab('lab'), null],
+      spread: () => [t('Open the fly lab'), () => openTab('lab'), null],
+      atlas: () => [t('Open the big question'), () => openTab('question'), null],
+    };
+    let goalKey = '';
+    function renderGoal() {
+      const q = game.currentGoal(goalSkip);
+      const n = game.openQuests().length;
+      const key = `${q?.id}|${n}|${goalVersion}|${game.fly.name}|${getLanguage()}|${game.rt.offer ? 1 : 0}|${JSON.stringify(game.rt.dose)}`;
+      for (const [id, b] of Object.entries(actBtns)) b.classList.toggle('hab-hint', !!q && GOAL_DO[q.id]?.()[2] === id);
+      if (key === goalKey) return;
+      goalKey = key;
+      if (!q) {
+        const d = game.state.daily, left = d.tasks.filter((x) => !x.done).length;
+        goalEl.replaceChildren(h('div', { class: 'hab-goal-eyebrow' }, icon('target', 13), t('Today')),
+          h('div', { class: 'hab-goal-title' }, left ? t('{n} field notes open today', { n: left }) : t('All field notes done. See you tomorrow!')),
+          h('div', { class: 'hab-goal-actions' }, h('button', { type: 'button', class: 'btn small', onclick: () => openTab('quests') }, t('Show field notes'))));
+        return;
+      }
+      const ch = byId(CHAPTERS, q.chapter);
+      const [label, run] = GOAL_DO[q.id]?.() ?? [null, null];
+      const dose = q.id === 'dose' ? h('div', { class: 'hab-dose' }, ...DOSE_PERCENTS.map((p) => {
+        const res = game.rt.dose[p];
+        return h('button', { type: 'button', class: `btn small${res === true ? ' yes' : res === false ? ' no' : ''}`,
+          disabled: !!game.rt.offer, onclick: () => act({ type: 'offer', percent: p, ...near(12) }) },
+        `${p} %${res === true ? ' ✓' : res === false ? ' ✗' : ''}`);
+      })) : null;
+      const step = q.id === 'climate' && game.state.quests.climate?.n === 1 ? h('div', { class: 'hab-step' }, icon('target', 13), t('Step 1 done: the hot cells fired. Now back to 25 °C.')) : null;
+      goalEl.replaceChildren(
+        h('div', { class: 'hab-goal-eyebrow' }, icon('target', 13), `${t('Next goal')} · ${L(ch.title)}`),
+        h('div', { class: 'hab-goal-title' }, L(q.title)),
+        h('div', { class: 'hab-goal-task' }, taskText(q)),
+        ...[step, dose].filter(Boolean),
+        h('div', { class: 'hab-goal-actions' },
+          label ? h('button', { type: 'button', class: 'btn small primary', onclick: () => { lastTouch = performance.now(); run(); sound.play('soft'); } }, label)
+            : q.kind === 'discover' ? h('span', { class: 'hab-small' }, t('Just watch: the brain decides when.')) : null,
+          n > 1 ? h('button', { type: 'button', class: 'btn small ghost hab-goal-skip', title: t('Show another open goal'), onclick: () => { goalSkip++; goalVersion++; renderGoal(); } }, icon('repeat', 13), t('Other goal')) : null,
+          h('span', { class: 'hab-goal-reward' }, `+${q.xp} XP`)));
+    }
     const awayText = h('p', {});
     const bringBtn = h('button', { type: 'button', class: 'btn primary', onclick: () => act({ type: 'activate', fly: game.fly.id }) });
     const adoptBtn = h('button', { type: 'button', class: 'btn', onclick: () => act({ type: 'adopt' }) }, t('Adopt this fly'));
@@ -293,7 +392,7 @@ export const habitatPanel = {
         h('div', { class: 'hab-avatar', 'aria-hidden': 'true' }, icon('body', 26)),
         h('div', { class: 'hab-fly-id' }, nameBtn, nameInput, h('div', { class: 'hab-fly-chips' }, genoChip, metaChip)),
         photoBtn),
-      doing, h('div', { class: 'hab-gauges' }, ...NEEDS.map((k) => gauges[k].el)), away, actions);
+      status, goalEl, h('div', { class: 'hab-gauges' }, ...NEEDS.map((k) => gauges[k].el)), away, actions);
 
     nameBtn.addEventListener('click', () => {
       renaming = true;
@@ -316,7 +415,7 @@ export const habitatPanel = {
       ['lab', 'flask', t('Lab')], ['question', 'sentience', t('Question')]];
     const tabBtns = {};
     const tabNav = h('nav', { class: 'hab-tabs', role: 'tablist' }, ...TABS.map(([id, ic, label]) => {
-      const b = h('button', { type: 'button', role: 'tab', class: 'hab-tab', onclick: () => { S.tab = id; openEntry = null; stateVersion++; refresh(); } },
+      const b = h('button', { type: 'button', role: 'tab', class: 'hab-tab', onclick: () => openTab(id) },
         icon(ic, 17), h('span', {}, label), h('i', { class: 'hab-badge', hidden: true }));
       tabBtns[id] = b;
       return b;
@@ -345,11 +444,12 @@ export const habitatPanel = {
                 disabled: !!game.rt.offer, onclick: () => act({ type: 'offer', percent: p, ...near(12) }) },
               `${p} %${res === true ? ' ✓' : res === false ? ' ✗' : ''}`);
             })) : null;
-          out.push(h('div', { class: `hab-quest${done ? ' done' : ''}` },
+          const current = !done && game.currentGoal(goalSkip)?.id === q.id;
+          out.push(h('div', { class: `hab-quest${done ? ' done' : ''}${current ? ' current' : ''}` },
             h('div', { class: 'hab-quest-check' }, done ? icon('target', 15) : null),
             h('div', { class: 'hab-quest-body' },
               h('div', { class: 'hab-quest-title' }, L(q.title)),
-              done ? null : h('div', { class: 'hab-quest-task' }, L(q.task, name())),
+              done ? null : h('div', { class: 'hab-quest-task' }, taskText(q)),
               step,
               done ? null : h('div', { class: 'hab-quest-why' }, L(q.why, name())),
               done ? null : h('div', { class: 'hab-quest-reward' }, `+${q.xp} XP`, q.leaves ? h('span', {}, leafIcon(12), `+${q.leaves}`) : null))));
@@ -509,6 +609,7 @@ export const habitatPanel = {
               if (window.confirm(t('Release {name}? The fly leaves your colony.', { name: f.name }))) act({ type: 'release', fly: f.id });
             } }, t('Release')) : null)));
       }
+      out.push(...individuality());
       // Vials.
       out.push(h('div', { class: 'hab-section-head' }, h('h4', { class: 'hab-h4' }, t('Vials')), h('span', { class: 'hab-small' }, `${s.vials.length} / ${VIAL.maxVials}`)));
       if (!s.vials.length) out.push(h('p', { class: 'hab-small' }, t('No vial is developing. Start a cross or a wild-type vial below.')));
@@ -560,6 +661,40 @@ export const habitatPanel = {
       return out;
     }
 
+    // Individuality: the colony's measured time budgets side by side, one dot
+    // per fly. Same wiring for all; the spread is the model's (see the note).
+    function individuality() {
+      const flies = game.state.flies.map((f) => ({ f, tm: temperament(f) })).filter((x) => x.tm);
+      const out = [h('div', { class: 'hab-section-head' }, h('h4', { class: 'hab-h4' }, t('Individuality')),
+        h('span', { class: 'hab-small' }, t('{n} flies measured', { n: flies.length })))];
+      if (flies.length < 2) {
+        out.push(h('p', { class: 'hab-small' }, t('Watch at least two flies for a minute each to compare them. Wild-type vials bring new individuals.')));
+        return out;
+      }
+      const rows = [['walking', t('walks')], ['grooming', t('grooms')], ['flying', t('flies')], ['feeding', t('feeds')]];
+      const plot = h('div', { class: 'hab-indiv', role: 'img', 'aria-label': t('Share of time per behaviour, one dot per fly') });
+      for (const [k, label] of rows) {
+        const max = Math.max(0.1, ...flies.map((x) => x.tm[k])) * 1.15;
+        const track = h('div', { class: 'hab-indiv-track' });
+        for (const { f, tm } of flies) {
+          track.append(h('i', { class: `hab-indiv-dot${f.genotype ? ' gm' : ''}${f.id === game.state.activeFly ? ' me' : ''}`,
+            style: { left: `${(Math.min(1, tm[k] / max) * 100).toFixed(1)}%` }, title: `${f.name}: ${Math.round(tm[k] * 100)} % · ${genotypeText(f.genotype)}` }));
+        }
+        plot.append(h('div', { class: 'hab-indiv-row' }, h('span', {}, label), track, h('em', {}, `${Math.round(max * 100)} %`)));
+      }
+      out.push(plot, h('div', { class: 'hab-indiv-key hab-small' },
+        h('span', {}, h('i', { class: 'hab-indiv-dot' }), t('wild type')), h('span', {}, h('i', { class: 'hab-indiv-dot gm' }), t('with a genotype')),
+        h('span', {}, h('i', { class: 'hab-indiv-dot me' }), t('in the terrarium'))));
+      const walks = flies.filter((x) => !x.f.genotype).map((x) => x.tm.walking);
+      if (walks.length >= 2) {
+        out.push(h('p', { class: 'hab-small' }, t('Wild types walk {lo} to {hi} % of the time (median {m} %, {n} flies). Measured in the simulation.',
+          { lo: Math.round(Math.min(...walks) * 100), hi: Math.round(Math.max(...walks) * 100), m: Math.round(median(walks) * 100), n: walks.length })));
+      }
+      out.push(h('p', { class: 'hab-small' }, t('Every fly here has the same wiring. Its seed sets how excitable each of about 6,000 partner neurons is at rest, and the noise in every neuron: a modelling choice. In real flies part of individuality is wired in during development.'),
+        ' ', cite('kain2012'), ' · ', cite('linneweber2020')));
+      return out;
+    }
+
     function vialStage(v, now) {
       if (now >= v.ready) return t('Hatched: ready to collect');
       const f = (now - v.started) / (v.ready - v.started);
@@ -597,7 +732,8 @@ export const habitatPanel = {
         h('button', { type: 'button', class: 'btn small', onclick: () => { terrarium?.setCameraMode?.('overhead'); } }, icon('camera', 14), t('View from above')))];
       if (placing) {
         out.push(h('div', { class: 'hab-placing' },
-          h('span', {}, t('Click into the terrarium to place: {item}. Esc cancels.', { item: L(placing.name) })),
+          h('span', {}, touchUI() ? t('Tap into the terrarium to place: {item}.', { item: L(placing.name) })
+            : t('Click into the terrarium to place: {item}. Esc cancels.', { item: L(placing.name) })),
           h('button', { type: 'button', class: 'btn small', onclick: stopPlacing }, t('Cancel'))));
       }
       out.push(h('div', { class: 'hab-section-head' }, h('h4', { class: 'hab-h4' }, t('Catalogue')), h('span', { class: 'hab-small' }, `${s.garden.length} / ${GARDEN.maxPieces}`)));
@@ -659,18 +795,9 @@ export const habitatPanel = {
     }
 
     // ---- footer ------------------------------------------------------------------------------
-    const noticeEl = h('p', { class: 'hab-notice', hidden: !S.notice });
-    if (S.notice) {
-      noticeEl.textContent = S.notice === 'storage' ? t('Local storage is not available: the game cannot be saved on this device.')
-        : S.notice === 'unreadable' ? t('The saved game could not be read. It is kept aside and a new game started.')
-          : t('Your leaves and your first fly\'s name were taken over from the prototype.');
-      S.notice = null;
-    }
-    const exportBtn = h('button', { type: 'button', class: 'btn small ghost', onclick: () => {
-      const url = URL.createObjectURL(new Blob([JSON.stringify(game.state, null, 2)], { type: 'application/json' }));
-      const a = h('a', { href: url, download: 'NeuroCause-Habitat.json' });
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const noticeEl = h('p', { class: 'hab-notice',role:'status','aria-live':'polite' });
+    const exportBtn = h('button', { type: 'button', class: 'btn small ghost', onclick: async () => {
+      await ctx.save('saveHabitat',JSON.stringify(game.state,null,2),t('Habitat backup exported.'));
     } }, icon('download', 14), t('Export save'));
     const importInput = h('input', { type: 'file', accept: '.json,application/json', hidden: true });
     importInput.addEventListener('change', async () => {
@@ -678,14 +805,18 @@ export const habitatPanel = {
         const file = importInput.files[0];
         if (!file || file.size > 200_000) throw new Error('size');
         const state = decodeGame(await file.text());
+        if(game.rt.lightOn || game.rt.heatOn){ctx.toast(t('Turn off the red light and close the heat switch before importing a save.'),'err');return;}
         if (!window.confirm(t('Replace the current game with this save?'))) return;
-        game.state = state;
+        try{S.persistence.replace(JSON.stringify(state));}catch{ctx.toast(t('The save could not be stored. Your current game is unchanged.'),'err');return;}
+        game.restore(state);
+        sound.enabled=state.sound;
+        soundBtn.replaceChildren(icon(state.sound ? 'sound' : 'mute',16));
         stateVersion++;
         saveGame();
         refresh();
-        ctx.toast(t('Save loaded.'), 'ok');
+        ctx.toast(t('Save loaded. Bring your fly into the terrarium to resume. The laboratory was not restored.'), 'ok');
       } catch { ctx.toast(t('This file is not a valid Habitat save.'), 'err'); }
-      importInput.value = '';
+      finally { importInput.value = ''; }
     });
     const footer = h('div', { class: 'hab-foot' },
       h('div', { class: 'hab-layers' },
@@ -705,6 +836,13 @@ export const habitatPanel = {
     };
     let lastDoing = '', lastHead = '', lastAway = null, lastTemp = '';
     function refresh() {
+      const saveStatus=S.persistence.status;
+      noticeEl.hidden=!saveStatus;
+      const saveMessage=saveStatus==='unreadable'?t('The saved game is unreadable and has not been overwritten. Export your current progress or import a valid backup.'):
+        saveStatus==='conflict'?t('Another tab changed this save. Automatic saving is paused. Export your progress before reloading.'):
+        saveStatus==='storage'?t('Saving is unavailable. Keep this page open and export your progress.'):
+        saveStatus==='migrated'?t('Your leaves and your first fly\'s name were taken over from the prototype.'):'';
+      if(noticeEl.textContent!==saveMessage)noticeEl.textContent=saveMessage;
       const s = game.state, snap = ctx.snap, fly = game.fly;
       // Header.
       const r = rankInfo(s.xp);
@@ -721,10 +859,11 @@ export const habitatPanel = {
       if (!renaming && nameBtn.textContent !== fly.name) nameBtn.textContent = fly.name;
       const geno = genotypeText(fly.genotype);
       if (genoChip.textContent !== geno) { genoChip.textContent = geno; genoChip.classList.toggle('gm', !!fly.genotype); }
-      const meta = `${modelSex === 'male' ? '♂' : '♀'} ${modelSex === 'male' ? t('male brain') : t('female brain')}`;
+      const meta = specimens?.compatibility?.sameSpecimen === false ? t('Cross-specimen model')
+        : modelSex === 'male' ? `♂ ${t('male brain')}` : modelSex === 'female' ? `♀ ${t('female brain')}` : t('Unspecified brain sex');
       if (metaChip.textContent !== meta) metaChip.textContent = meta;
       const bound = game.isBound(snap);
-      const awayKey = !snap ? 'none' : snap.dead && snap.seed === fly.seed ? 'dead' : bound ? 'bound' : 'other';
+      const awayKey = !snap ? 'none' : game.rt.awaitingActivation ? 'imported' : snap.dead && snap.seed === fly.seed ? 'dead' : bound ? 'bound' : 'other';
       if (awayKey !== lastAway) {
         lastAway = awayKey;
         stateVersion++;     // the colony list shows who is in the terrarium
@@ -733,6 +872,10 @@ export const habitatPanel = {
         if (awayKey === 'dead') {
           awayText.textContent = t('The simulated body of {name} stopped. Restart the individual: same seed, same genotype.', { name: fly.name });
           bringBtn.textContent = t('Restart {name}', { name: fly.name });
+          adoptBtn.hidden = true;
+        } else if (awayKey === 'imported') {
+          awayText.textContent = t('This backup contains game progress, not a laboratory checkpoint. Bring the fly in to continue.');
+          bringBtn.textContent = t('Bring {name} in', { name: fly.name });
           adoptBtn.hidden = true;
         } else if (awayKey === 'other') {
           awayText.textContent = t('Another individual is in the terrarium right now (seed {seed}).', { seed: snap.seed });
@@ -768,10 +911,15 @@ export const habitatPanel = {
       const low = bound ? NEEDS.map((k) => ({ k, v: fly.needs[k] })).filter((x) => x.v < 35).sort((a, b) => a.v - b.v)[0] : null;
       overlay.setBubble(low ? { key: low.k, icon: NEED_UI[low.k].icon, label: NEED_UI[low.k].low() } : null);
       // Tabs: rebuilt only when something changed.
+      if (!game.tabUnlocked(S.tab)) { S.tab = 'quests'; stateVersion++; }
       for (const [id] of TABS) {
+        const open = game.tabUnlocked(id);
+        if (tabBtns[id].hidden === open) tabBtns[id].hidden = !open;
         tabBtns[id].setAttribute('aria-selected', String(S.tab === id));
         tabBtns[id].classList.toggle('on', S.tab === id);
+        tabBtns[id].classList.toggle('fresh', fresh.has(id));
       }
+      renderGoal();
       const readyVials = game.state.vials.filter((v) => Date.now() >= v.ready).length;
       setBadge('lab', readyVials);
       if (shownVersion !== stateVersion) {
@@ -793,6 +941,29 @@ export const habitatPanel = {
         }
       }
     }
+    // A quiet spell: a low need comes first, else the next goal's action.
+    const NEED_NUDGE = {
+      energy: () => [t('{name} is hungry: offer a sugar drop', { name: name() }), feed],
+      climate: () => [t('Too warm or too cold: back to 25 °C'), () => setTempTo(25)],
+      calm: () => [t('{name} is startled: give it a quiet moment', { name: name() }), null],
+    };
+    function nudge() {
+      const now = performance.now();
+      if (now - lastTouch < NUDGE_QUIET_MS || now - lastNudge < NUDGE_GAP_MS || !game.isBound(ctx.snap) || ctx.snap?.paused) return;
+      if (overlay.active.length || overlay.queue.length || document.querySelector('dialog[open]')) return;
+      const fly = game.fly;
+      const low = NEEDS.filter((k) => NEED_NUDGE[k] && fly.needs[k] < 35).sort((a, b) => fly.needs[a] - fly.needs[b])[0];
+      let text = null, run = null;
+      if (low) [text, run] = NEED_NUDGE[low]();
+      else {
+        const q = game.currentGoal(goalSkip);
+        const go = q && GOAL_DO[q.id]?.();
+        if (go?.[0]) { text = `${t('Idea')}: ${go[0]} · ${L(q.title)}`; run = go[1]; }
+      }
+      if (!text) return;
+      lastNudge = now;
+      overlay.pill(text, { iconName: 'spark', tone: 'gold', onclick: run ? () => { lastTouch = performance.now(); run(); } : null });
+    }
     function setBadge(id, n) {
       const b = tabBtns[id].querySelector('.hab-badge');
       const text = n ? String(n) : '';
@@ -804,13 +975,31 @@ export const habitatPanel = {
     if (terrarium?.world) send(game.restoreCommands(terrarium.world.objects.map((o) => o.tag).filter(Boolean)));
 
     // The first visit: who the fly is and what the game is about.
+    // A returning player: what waits, in one card (only once per page).
+    const back = S.greeted ? null : game.returnSummary(Date.now());
+    S.greeted = true;
+    if (back) {
+      const goal = back.goal ? byId(QUESTS, back.goal) : null;
+      const lines = [
+        back.vialsReady ? t('{n} vials ready to collect', { n: back.vialsReady }) : null,
+        back.notesOpen ? t('{n} field notes open today', { n: back.notesOpen }) : null,
+        goal ? `${t('Next goal')}: ${L(goal.title)}` : null,
+      ].filter(Boolean);
+      overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Welcome back'),
+        title: t('Day {n} in the habitat', { n: back.day }), text: lines.join(' · '),
+        ms: 9000, priority: 100, exclusive: true, full: true,
+        action: back.vialsReady ? { label: t('Open the fly lab'), onclick: () => openTab('lab') } : null });
+      sound.play('quest');
+    }
     if (!game.state.introSeen) {
       game.state.introSeen = true;
       saveGame();
-      setTimeout(() => overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Welcome to the Habitat'),
+      overlay.card({ tone: 'quest', iconName: 'spark', eyebrow: t('Welcome to the Habitat'),
         title: t('This is {name}.', { name: name() }),
         text: t('Every move {name} makes comes from a simulated brain of {n} neurons, wired like the real connectome. Look after {name}, discover what the neurons do, breed new lines, and find out what the model can say about feelings.',
-          { name: name(), n: int(ctx.snap?.n ?? ctx.data?.circuit?.neurons?.length ?? 0) }), ms: 16000 }), 600);
+          { name: name(), n: int(ctx.snap?.n ?? ctx.data?.circuit?.neurons?.length ?? 0) }),
+        ms: 15000, priority: 100, exclusive: true, full: true,
+        action: { label: t('Choose a name'), onclick: () => nameBtn.click() } });
     }
 
     const offFrame = ctx.onFrame((snap, extra) => {
@@ -834,6 +1023,7 @@ export const habitatPanel = {
         // Pieces dragged in the terrarium keep their new places.
         if (terrarium?.world && game.syncGarden(terrarium.world.objects)) stateVersion++;
         refresh();
+        nudge();
         if (performance.now() - S.savedAt > SAVE_EVERY_MS) saveGame();
       },
       dispose() {

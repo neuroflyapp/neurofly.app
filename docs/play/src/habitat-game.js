@@ -15,6 +15,10 @@ export const SAVE_KEY = 'neurocause.habitat.v2';
 export const LEGACY_KEY = 'neurocause.habitat.v1';   // the first prototype
 export const SCHEMA = 5;
 export const NEEDS = Object.freeze(['energy', 'calm', 'climate', 'clean']);
+// The panel's tabs. Quests and the journal are there from the start; the
+// others open when the story reaches them (tabUnlocked), so a new player is
+// not handed the whole game at once.
+export const TABS = Object.freeze(['quests', 'journal', 'garden', 'lab', 'question']);
 const STATES = ['walking', 'idle', 'grooming', 'flying', 'feeding', 'sleeping'];
 
 // Game model of the body's energy, per simulated second (flight costs most).
@@ -25,7 +29,9 @@ const STARTLE = { takeoff: 18, dart: 8, backward: 5 };
 const HARSH = { quake: 3, fire: 3, flood: 3, smoke: 2, iceRain: 1.5, rain: 0.6 };
 const CARE_TICK_S = 120, CARE_LEAVES = 2, CARE_XP = 2, CARE_LEAVES_PER_DAY = 40;
 const CRITERION_REWARD = { xp: 25, leaves: 5 };
-const CARD_REWARD = { xp: 15, leaves: 2 };
+// A neuron card comes with the behaviour that shows it; the discovery and
+// the quests carry the real reward, so ranks are earned by playing.
+export const CARD_REWARD = Object.freeze({ xp: 5, leaves: 1 });
 const MILESTONE = { xp: 100, leaves: 30 };
 const INPUT_ON = 0.2;
 const MAX_DT = 1;                    // longer gaps (pause, new run) count nothing
@@ -92,7 +98,7 @@ export function newGame({ now = Date.now(), seed = 0, rng = 1 } = {}) {
     flies: [newFly('f1', FLY_NAMES[0], seed, 'founder', now)], activeFly: 'f1', nextFly: 2,
     journal: {}, cards: {}, quests: {}, criteria: {}, labRuns: {},
     stocks: [], vials: [], nextVial: 1, counters: { crosses: 0, wilds: 0, collected: 0, events: 0 },
-    garden: [], gardenStock: {}, nextTag: 1,
+    garden: [], gardenStock: {}, nextTag: 1, tabsSeen: ['quests', 'journal'], lastSeen: now,
     daily: { day, tasks: [], bonus: false, careLeaves: 0 }, daysPlayed: 1,
   };
   state.daily.tasks = dailyTasks(day);
@@ -171,6 +177,10 @@ export function decodeGame(text) {
     gardenStock: Object.fromEntries(Object.entries(s.gardenStock && typeof s.gardenStock === 'object' ? s.gardenStock : {})
       .filter(([k]) => byId(GARDEN_ITEMS, k)).map(([k, v]) => [k, int(v, 0, 999, 0)]).filter(([, v]) => v > 0)),
     nextTag: 1,
+    // Saves from before the tab unlocks have none: the tabs open then count
+    // as seen, without announcing them again (_checkTabs).
+    tabsSeen: Array.isArray(s.tabsSeen) ? s.tabsSeen.filter((x, i, a) => TABS.includes(x) && a.indexOf(x) === i) : null,
+    lastSeen: num(s.lastSeen, 0, 1e15, 0),
     daily: { day, tasks: tasks.length ? tasks : dailyTasks(day), bonus: s.daily?.bonus === true,
       careLeaves: int(s.daily?.careLeaves, 0, 1e6, 0) },
     daysPlayed: int(s.daysPlayed, 1, 1e6, 1),
@@ -207,7 +217,15 @@ export class HabitatGame {
   rank() { return rankInfo(this.state.xp); }
 
   // Is the active game fly the one in the terrarium?
-  isBound(snap) { return Boolean(snap) && snap.seed === this.fly.seed && !snap.dead; }
+  isBound(snap) { return !this.rt.awaitingActivation && Boolean(snap) && snap.seed === this.fly.seed && !snap.dead; }
+
+  // A game backup is not a checkpoint of the lab's neural/body state.
+  // Never bind an imported individual by a coincidentally matching seed.
+  restore(state) {
+    this.state = state;
+    this.rt = new HabitatGame(state).rt;
+    this.rt.awaitingActivation = true;
+  }
 
   chapterUnlocked(chapterId) {
     const at = CHAPTERS.findIndex((c) => c.id === chapterId);
@@ -220,6 +238,59 @@ export class HabitatGame {
 
   questAvailable(q) { return !this.questDone(q.id) && this.chapterUnlocked(q.chapter); }
 
+  // The open quests of the current chapter, in story order.
+  openQuests() {
+    const ch = this.currentChapter();
+    return ch ? QUESTS.filter((q) => q.chapter === ch.id && !this.questDone(q.id)) : [];
+  }
+
+  // The one goal the panel offers next; `skip` steps through the others.
+  currentGoal(skip = 0) {
+    const open = this.openQuests();
+    return open.length ? open[((skip % open.length) + open.length) % open.length] : null;
+  }
+
+  tabUnlocked(id) {
+    const s = this.state;
+    switch (id) {
+      case 'quests': case 'journal': return true;
+      case 'garden': return s.garden.length > 0 || Object.keys(s.gardenStock).length > 0 || this.questDone('home')
+        || this.currentGoal()?.id === 'home' || this.rank().level >= 2;
+      case 'lab': return this.chapterUnlocked('genetics') || s.stocks.length > 0 || s.vials.length > 0 || s.flies.length > 1;
+      case 'question': return Object.keys(s.criteria).length > 0 || this.chapterUnlocked('question');
+      default: return false;
+    }
+  }
+
+  // A tab that just opened is announced once.
+  _checkTabs(R) {
+    const s = this.state;
+    const open = TABS.filter((id) => this.tabUnlocked(id));
+    if (!Array.isArray(s.tabsSeen)) { s.tabsSeen = open; return; }
+    for (const id of open) {
+      if (s.tabsSeen.includes(id)) continue;
+      s.tabsSeen.push(id);
+      R.push({ kind: 'unlock', id });
+    }
+  }
+
+  // What is waiting for a returning player (null for a short break).
+  // `since` is the previous visit; the caller then stamps the new one.
+  returnSummary(now = Date.now(), minAwayMs = 30 * 60 * 1000) {
+    const s = this.state;
+    if (!s.introSeen || !(s.lastSeen > 0) || now - s.lastSeen < minAwayMs) return null;
+    const newDay = localDay(now) !== localDay(s.lastSeen);
+    return {
+      awayMs: now - s.lastSeen,
+      day: newDay ? s.daysPlayed + 1 : s.daysPlayed,
+      vialsReady: s.vials.filter((v) => now >= v.ready).length,
+      notesOpen: newDay ? 3 : s.daily.tasks.filter((x) => !x.done).length,
+      goal: this.currentGoal()?.id ?? null,
+    };
+  }
+
+  seen(now = Date.now()) { this.state.lastSeen = now; }
+
   // ---- every snapshot -----------------------------------------------------------------------
   observe(snap, now = Date.now()) {
     const R = [];
@@ -228,7 +299,7 @@ export class HabitatGame {
     this._rollDay(now, R);
     const fly = this.fly;
     // The founder adopts the fly that is running when the game starts.
-    if (fly.seed === 0 && Number.isFinite(snap.seed) && snap.seed > 0 && !snap.dead) fly.seed = snap.seed >>> 0;
+    if (!rt.awaitingActivation && fly.seed === 0 && Number.isFinite(snap.seed) && snap.seed > 0 && !snap.dead) fly.seed = snap.seed >>> 0;
     const sameRun = rt.lastIndividual === snap.individual;
     let dt = sameRun && rt.lastT !== null ? snap.t - rt.lastT : 0;
     if (!(dt > 0) || dt > MAX_DT || snap.paused) dt = 0;
@@ -430,9 +501,14 @@ export class HabitatGame {
       else if (q.kind === 'collect' && s.counters.collected > 0) this._completeQuest(q, now, R);
       else if (q.kind === 'garden' && s.garden.length > 0) this._completeQuest(q, now, R);
       else if (q.kind === 'criteria' && Object.keys(s.criteria).length >= q.n) this._completeQuest(q, now, R);
+      else if (q.kind === 'individuals' && this.wildTypesObserved() >= q.n) this._completeQuest(q, now, R);
     }
     this._checkCriteria(now, R);
+    this._checkTabs(R);
   }
+
+  // Wild-type individuals of the colony with a measured temperament.
+  wildTypesObserved() { return this.state.flies.filter((f) => !f.genotype && temperament(f)).length; }
 
   modalitiesSeen() {
     return new Set(Object.keys(this.state.cards).map((id) => byId(NEURONS, id)?.modality).filter(Boolean));
@@ -510,6 +586,7 @@ export class HabitatGame {
         const fly = this.flyById(action.fly);
         if (!fly) return fail('fly');
         s.activeFly = fly.id;
+        this.rt.awaitingActivation = false;
         this.rt.lightOn = false;
         this.rt.heatOn = false;
         this.rt.prevState = null;

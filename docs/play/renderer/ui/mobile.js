@@ -62,6 +62,7 @@ export function setupMobile(ctx, { shell, panels }) {
     if (kind === 'brain') { setBrain(!state.brain); return; }
     if (state.open === kind) { closeSheet(); return; }
     state.open = kind;
+    body.dataset.sheet = kind;        // per-sheet layout (the Habitat's is compact)
     if (kind === 'why') { mount(whyEl); sheetTitle.textContent = t('Why did she do that?'); }
     else if (kind === 'signals') { mount(dockEl); sheetTitle.textContent = t('Neural activity'); relayout(); }
     else if (kind === 'more') { sheetBody.replaceChildren(moreGrid()); sheetTitle.textContent = t('More'); }
@@ -78,6 +79,7 @@ export function setupMobile(ctx, { shell, panels }) {
   function closeSheet() {
     state.open = null;
     state.full = false;
+    delete body.dataset.sheet;
     body.classList.remove('m-sheet-open', 'm-sheet-full');
     setInset();
     renderNav();
