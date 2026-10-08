@@ -712,3 +712,20 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .early-access .early-go:focus-visible { outline: 2px solid #b8ffd3; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .early-access .early-go { transition: none; } .early-access .early-go:hover { transform: none; } }
 @media (max-width: 560px) { .early-access .early-go { width: 100%; justify-content: center; } }
+
+/* Home page 2026-10: two ways in (play / experiment) */
+.ways-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px; }
+.way { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card);
+  box-shadow: 0 18px 50px -30px rgba(0, 0, 0, .35); transition: transform .2s, box-shadow .2s; }
+.way:hover { transform: translateY(-3px); box-shadow: 0 26px 60px -30px rgba(0, 0, 0, .45); }
+.way img { display: block; width: 100%; height: auto; aspect-ratio: 1500 / 860; object-fit: cover; border-bottom: 1px solid var(--rule); }
+.way-body { padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.way-body h3 { margin: 0; font-size: 26px; }
+.way-body p { margin: 0; line-height: 1.6; }
+.way-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: #00ff41; color: #04140a; font: 700 12px/1.5 var(--sans, sans-serif); letter-spacing: .02em; }
+.way-tag.lab { background: #e8efe9; color: #1d3a2a; }
+.way-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: auto; padding-top: 8px; }
+.way-more { font-weight: 600; }
+.habitat-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 28px 0 0; color: #b9cbc4; }
+.habitat-band .habitat-cta .btn.primary { background: #6dffa0; color: #04140a; border-color: transparent; }
+@media (prefers-reduced-motion: reduce) { .way, .way:hover { transition: none; transform: none; } }

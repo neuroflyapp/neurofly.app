@@ -1,0 +1,20 @@
+{
+ "files": {
+  "brain_points.json": 636590,
+  "circuit.json": 16110204,
+  "circuit_annotations.json": 969836,
+  "female/brain_points.json": 744896,
+  "female/circuit.json": 2352480,
+  "female/locomotor_circuit.json": 1054343,
+  "female/locomotor_report.json": 27196,
+  "female/rhythm_decoder.json": 10053,
+  "locomotor_circuit.json": 1076616,
+  "locomotor_report.json": 25347,
+  "male/brain_points.json": 680622,
+  "male/circuit.json": 4906173,
+  "rhythm_decoder.json": 13733,
+  "sensory_extension.json": 1405782,
+  "sentience_pathways.json": 9107,
+  "thermo_extension.json": 94155
+ }
+}

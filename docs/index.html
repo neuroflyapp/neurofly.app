@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.clarity.ms https://c.bing.com; connect-src 'self' https://*.clarity.ms https://c.bing.com https://get.neuro-cause.com; img-src 'self' data: https://*.clarity.ms https://c.bing.com; media-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https://airform.io; base-uri 'self'; object-src 'none'">
-<title>NeuroCause — in-silico experiments on measured nervous systems</title>
-<meta name="description" content="NeuroCause builds in-silico assays on published connectomes: closed-loop models of nervous systems with stated assumptions, reproducible experiments and a causal trace behind every result. The first model is the fruit fly Drosophila melanogaster.">
+<title>NeuroCause — a fly brain wired from real data, to play with and experiment on</title>
+<meta name="description" content="An in-silico laboratory for nervous systems. Look after a fly whose brain is wired from a published connectome, or run reproducible experiments on it: free, in your browser, on Windows and Android.">
 <link rel="canonical" href="https://neuro-cause.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="NeuroCause">
 <meta property="og:url" content="https://neuro-cause.com/">
-<meta property="og:title" content="NeuroCause — in-silico experiments on measured nervous systems">
-<meta property="og:description" content="Published connectomes, turned into models you can experiment on: measured wiring, stated models, reproducible assays, traceable causes.">
+<meta property="og:title" content="NeuroCause — a fly brain wired from real data">
+<meta property="og:description" content="Play with a fly whose every move comes from 7,270 simulated neurons on a published connectome, or experiment on it like a lab would. Free, in your browser.">
 <meta property="og:image" content="https://neuro-cause.com/img/neurocause-og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" as="image" href="media/hero-poster.jpg" fetchpriority="high">
-<link rel="stylesheet" href="assets/site.css?v=20261001">
+<link rel="stylesheet" href="assets/site.css?v=20261008">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -76,15 +76,15 @@
     <a class="mobile-support" href="./#support">Support</a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="site-nav" id="site-nav" aria-label="Main">
-      <a href="./#models">Models</a>
+      <a href="./#start">Play &amp; explore</a>
       <a href="science.html">Methods</a>
       <a href="evidence.html">Evidence</a>
       <a href="paper.html">Paper</a>
       <a href="vision.html">Vision</a>
       <a href="ethics.html">Ethics</a>
-      <a href="contact.html">Contact</a>
       <a href="./#support">Support</a>
-      <a class="cta" href="./#get" data-track="nav-get">Download</a>
+      <a href="./#get" data-track="nav-get">Download</a>
+      <a class="cta" href="play/?workspace=habitat" data-track="nav-play">Play free</a>
     </nav>
   </div>
 </header>
@@ -98,17 +98,18 @@
   </video>
   <div class="hero-shade" aria-hidden="true"></div>
   <div class="wrap hero-copy">
-    <span class="kicker">In-silico neuroscience</span>
-    <h1>Experiments on nervous systems, run on their measured wiring.</h1>
-    <p class="lead">Explore a fly model built from measured wiring: a female FlyWire brain and male MaleCNS nerve cord, joined
-      by a modelled interface. Run reproducible assays, perturb circuits and trace what drove each result — without confusing
-      model dynamics with measured biology.</p>
+    <span class="kicker">In-silico laboratory · fly model</span>
+    <h1>Meet a fly whose brain is wired from real data.</h1>
+    <p class="lead">NeuroCause runs nervous systems on their measured wiring. Look after the fly in a game, or run the experiments a
+      lab would: every move comes from 7,270 simulated neurons on a published connectome, and every result shows the neurons
+      behind it.</p>
     <div class="actions">
-      <a class="btn primary" href="#models">Explore the fly model</a>
-      <a class="btn secondary" href="science.html">How it works</a>
+      <a class="btn primary" href="play/?workspace=habitat" data-track="play-hero">Play in your browser</a>
+      <a class="btn secondary" href="#get">Download for Windows &amp; Android</a>
       <a class="hero-support" href="#support">Support the lab · early access <span aria-hidden="true">↗</span></a>
     </div>
-    <p class="hero-meta">Windows and Android · free · no account, no advertising</p>
+    <p class="hero-meta">Free · no account, no advertising · the browser version loads about 25&nbsp;MB and runs best on a computer
+      or a recent phone</p>
   </div>
   <p class="hero-note">Film: the simulated fly brain, every neuron at its measured FlyWire position. Each flash is a spike from a
     real model run; midway, a looming stimulus makes the giant fiber fire. Model activity, not a recording from a fly.</p>
@@ -124,6 +125,76 @@
     </div>
   </div>
 </div>
+
+<section class="block ways" id="start" aria-labelledby="ways-title">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Two ways in</span>
+      <h2 id="ways-title">Play with the fly. Or experiment on it.</h2>
+      <p>Both run the same model in the same application, on your own device. The game makes the science tangible; the laboratory
+        makes it testable.</p>
+    </div>
+    <div class="ways-grid">
+      <article class="way">
+        <img src="img/habitat-game.jpg" srcset="img/habitat-game.jpg 1500w, img/habitat-game@2x.jpg 3002w" sizes="(max-width: 900px) 100vw, 600px" alt="The Habitat: the fly card with care rings and a discovery card naming the deciding neurons" width="1500" height="860" loading="lazy">
+        <div class="way-body">
+          <span class="way-tag">New · the Habitat</span>
+          <h3>Play</h3>
+          <p>Look after a fly whose every move comes from its connectome. Feed it, discover its behaviours and the neurons behind
+            them, cross fly lines, shape its terrarium.</p>
+          <div class="way-actions"><a class="btn primary" href="play/?workspace=habitat" data-track="play-habitat">Play in your browser</a>
+            <a class="way-more" href="#habitat">What you can do →</a></div>
+        </div>
+      </article>
+      <article class="way">
+        <img src="img/studio-lab.jpg" srcset="img/studio-lab.jpg 1500w, img/studio-lab@2x.jpg 3000w" sizes="(max-width: 900px) 100vw, 600px" alt="The laboratory: guided assays with their literature references and statistics" width="1500" height="860" loading="lazy">
+        <div class="way-body">
+          <span class="way-tag lab">The laboratory</span>
+          <h3>Experiment</h3>
+          <p>Run ten assays from the fly literature, silence or activate identified cells, record every rate, and trace each behaviour
+            to the neurons that decided it. Every result reproduces from its seed.</p>
+          <div class="way-actions"><a class="btn primary" href="play/?workspace=experiments" data-track="play-lab">Open the lab in your browser</a>
+            <a class="way-more" href="science.html">How it works →</a></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block habitat-band" id="habitat" aria-labelledby="habitat-title">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">New in 2.5 · Habitat</span>
+      <h2 id="habitat-title">A companion with a brain model. A game where nothing is faked.</h2>
+      <p>In the Habitat workspace the simulated fly becomes yours to look after. Feed it, and its taste circuit decides whether it
+        drinks. Every behaviour you see for the first time becomes a card with the neurons that decided it and their measured
+        wiring. Cross fly lines as real fly labs do, raise offspring whose genotype actually runs in the model, shape the
+        terrarium, take photos, and work through the eight sentience criteria. Care values, leaves and ranks are game rules and
+        say so; everything the fly does is the simulation.</p>
+    </div>
+    <div class="grid two">
+      <figure class="shot"><img src="img/habitat-game.jpg" srcset="img/habitat-game.jpg 1500w, img/habitat-game@2x.jpg 3002w" sizes="(max-width: 860px) 100vw, 580px" alt="Habitat workspace: the fly card with four care rings and actions, a discovery card over the terrarium naming the deciding neurons, and the quests" width="1500" height="860" loading="lazy">
+        <figcaption><b>Care, discover, collect.</b> A discovery card names the trigger and the deciding cells, and lights them
+          in the 3D brain. Thirteen behaviours and eighteen neuron cards, each with the paper behind it.</figcaption></figure>
+      <figure class="shot"><img src="img/habitat-photo.jpg" srcset="img/habitat-photo.jpg 1424w" sizes="(max-width: 860px) 100vw, 580px" alt="A photo taken in the game: the fly rubbing its legs, captioned with the deciding neuron DNg11 and its firing rate" width="1424" height="1136" loading="lazy">
+        <figcaption><b>Photos with a caption from the model.</b> What the fly is doing and which neurons decide it, at the
+          moment you press the shutter, labelled as a simulation.</figcaption></figure>
+    </div>
+    <div class="grid habitat-points">
+      <div class="card"><h3>Fly genetics</h3><p>Cross GAL4 driver lines with UAS effectors. Silence the giant fiber and the fly no
+        longer escapes; switch on grooming with red light; start a moonwalk with warmth.</p></div>
+      <div class="card"><h3>Your terrarium</h3><p>Place ferns, flowers, stones and logs. They are part of the fly's world: its eye
+        sees them and solid pieces are in the way.</p></div>
+      <div class="card"><h3>Quests from real assays</h3><p>The proboscis test with three sugar concentrations, a looming shadow,
+        dust on the antennae, warmth and the hot cells, with daily field notes.</p></div>
+      <div class="card"><h3>The big question</h3><p>Investigate the eight sentience criteria in your own fly and see what the
+        model contains, and what it does not. The answer is a map, not a score.</p></div>
+    </div>
+    <p class="habitat-cta"><a class="btn primary" href="play/?workspace=habitat" data-track="play-habitat-band">Play the Habitat now</a>
+      <span>Free, in your browser. Your progress stays on your device.</span></p>
+  </div>
+</section>
+
 
 <section class="block">
   <div class="wrap">
@@ -234,36 +305,6 @@
   </div>
 </section>
 
-<section class="block alt">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">Evidence at a glance</span>
-      <h2>Does the fly model behave like a fly for the right reasons?</h2>
-      <p>Classic findings from fly neuroscience, re-run as controlled in-silico assays with the statistics shown. Where the model
-        does not reproduce a finding, the Evidence page says so.</p>
-    </div>
-    <div class="grid">
-      <div class="card"><h4>Looming escape</h4><p><b>An abrupt loom triggers takeoff through the giant fiber</b> — 50% threshold at loom
-        intensity 0.14, 100% from 0.16, none at 0.12 and below. Silencing LC4 cuts giant-fiber spikes by 94%; silencing LC4
-        and LPLC2 together abolishes the escape.</p></div>
-      <div class="card"><h4>Mechanosensory specificity</h4><p><b>Wind does not trigger escape</b> — 0/12 takeoffs, as in real flies,
-        which stop rather than flee in wind. Only the auditory Johnston’s-organ neurons are wired to the giant fiber; that sound
-        of equal strength drives it (12/12) is a prediction of the wiring.</p></div>
-      <div class="card"><h4>Taste decisions</h4><p><b>Sugar drives proboscis extension; bitter vetoes it</b> — 88% extension at sugar 0.75
-        alone, 0% once bitter is added (Fisher p = 0.0014), from the measured gustatory pathways.</p></div>
-      <div class="card"><h4>Self-care</h4><p><b>Dust on the antennae triggers head grooming</b> — 100% at full dust, 0% with the JO-F
-        mechanosensors or the DNg12 command neurons silenced (Fisher p &lt; 0.001).</p></div>
-      <div class="card"><h4>In-silico pharmacology</h4><p><b>Inhibition acts as a dose–response on escape</b> — scaling all
-        inhibitory synapses suppresses takeoff from 100% to 0%, half-maximal at 1.52× normal strength. A transmitter-class
-        experiment, not a drug model.</p></div>
-      <div class="card"><h4>Honest limits</h4><p><b>Not every finding is reproduced</b> — habituation, associative learning,
-        thermal preference and three of ten activation phenotypes are not yet. They are listed with their data, because they
-        define the next model work.</p></div>
-    </div>
-    <p style="margin-top:24px"><a href="evidence.html">All ten benchmark assays, figures, data and the verification suite →</a></p>
-  </div>
-</section>
-
 <section class="paper-home-feature" aria-labelledby="paper-home-title">
   <div class="wrap paper-home-grid">
     <div><span class="paper-eyebrow"><span class="paper-beacon" aria-hidden="true"></span> The research record</span>
@@ -329,94 +370,6 @@
     <div class="bar"><span class="title"></span><button class="close" type="button">Close</button></div>
   </div>
 </dialog>
-
-<section class="block">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">Use</span>
-      <h2>What it is for</h2>
-    </div>
-    <div class="grid two">
-      <div class="card">
-        <h3>Research: hypotheses before the wet lab</h3>
-        <p>Silence or activate any identified cell type, change transmitter-class gains, and measure the behavioural consequence in
-          hundreds of seeded trials — a fast way to ask which cells a circuit needs before designing the genetic experiment.</p>
-      </div>
-      <div class="card">
-        <h3>Teaching: circuits you can take apart</h3>
-        <p>Students see sensation become decision become movement, neuron by neuron, and can test each step themselves. The guided
-          assays ship with their literature and statistics.</p>
-      </div>
-      <div class="card">
-        <h3>Methods: a testbed for connectome models</h3>
-        <p>Every run records its seeds, model version and the SHA-256 fingerprint of each data file. Results reproduce exactly, so
-          model variants — and, in time, different animals — can be compared on the same assays.</p>
-      </div>
-      <div class="card">
-        <h3>Towards replacing animal experiments <span class="tag planned">Vision</span></h3>
-        <p>Our long-term aim is in-silico assays accurate enough to answer some questions that today require animals — including
-          early-stage screening of neuroactive compounds. What that requires, and how far we are, is set out openly.
-          <a href="vision.html">Vision &amp; roadmap</a></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="block alt">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">Inside the application</span>
-      <h2>A laboratory, not an animation</h2>
-    </div>
-    <div class="grid two">
-      <figure class="shot"><img src="img/studio-circuit.jpg" srcset="img/studio-circuit.jpg 1500w, img/studio-circuit@2x.jpg 3000w" sizes="(max-width: 860px) 100vw, 580px" alt="Circuit workspace: identified neuron populations with their live firing rates and buttons to silence or activate each" width="1500" height="860" loading="lazy">
-        <figcaption><b>Virtual genetics.</b> Silence or activate any identified population — LC4, LPLC2, the giant fiber, DNa01/02 —
-          or any FlyWire cell type, and watch the consequence.</figcaption></figure>
-      <figure class="shot"><img src="img/studio-lab.jpg" srcset="img/studio-lab.jpg 1500w, img/studio-lab@2x.jpg 3000w" sizes="(max-width: 860px) 100vw, 580px" alt="Assay workspace: guided protocols with their literature references and a run button" width="1500" height="860" loading="lazy">
-        <figcaption><b>Guided assays.</b> Ten protocols from the fly literature run on a separate virtual fly, with statistics and
-          the published finding side by side.</figcaption></figure>
-      <figure class="shot"><img src="img/studio-sentience.jpg" srcset="img/studio-sentience.jpg 1500w, img/studio-sentience@2x.jpg 3000w" sizes="(max-width: 860px) 100vw, 580px" alt="Sentience workspace: the eight evidence-based criteria, what is known about real flies and what the model contains" width="1500" height="860" loading="lazy">
-        <figcaption><b>Sentience criteria.</b> The eight criteria of Birch et al. (2021), the rating for real adult flies
-          (Gibbons et al. 2022), and what the model does and does not contain — scope, never a score.</figcaption></figure>
-      <figure class="shot"><img src="img/studio-specimens.jpg" srcset="img/studio-specimens.jpg 1500w, img/studio-specimens@2x.jpg 3000w" sizes="(max-width: 860px) 100vw, 580px" alt="Specimens workspace: female BANC and FAFB, male MaleCNS, MANC and the male optic lobe as separately selectable anatomy sources" width="1500" height="860" loading="lazy">
-        <figcaption><b>Two sexes, separate specimens.</b> Female BANC and FAFB, male MaleCNS, the MANC nerve cord and the male
-          optic lobe, each browsable as its own anatomy and never wired into another animal — the basis for the next,
-          single-specimen model.</figcaption></figure>
-    </div>
-  </div>
-</section>
-
-<section class="block habitat-band" id="habitat" aria-labelledby="habitat-title">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">New in 2.5 · Habitat</span>
-      <h2 id="habitat-title">A companion with a brain model. A game where nothing is faked.</h2>
-      <p>In the Habitat workspace the simulated fly becomes yours to look after. Feed it, and its taste circuit decides whether it
-        drinks. Every behaviour you see for the first time becomes a card with the neurons that decided it and their measured
-        wiring. Cross fly lines as real fly labs do, raise offspring whose genotype actually runs in the model, shape the
-        terrarium, take photos, and work through the eight sentience criteria. Care values, leaves and ranks are game rules and
-        say so; everything the fly does is the simulation.</p>
-    </div>
-    <div class="grid two">
-      <figure class="shot"><img src="img/habitat-game.jpg" srcset="img/habitat-game.jpg 1500w, img/habitat-game@2x.jpg 3002w" sizes="(max-width: 860px) 100vw, 580px" alt="Habitat workspace: the fly card with four care rings and actions, a discovery card over the terrarium naming the deciding neurons, and the quests" width="1500" height="860" loading="lazy">
-        <figcaption><b>Care, discover, collect.</b> A discovery card names the trigger and the deciding cells, and lights them
-          in the 3D brain. Thirteen behaviours and eighteen neuron cards, each with the paper behind it.</figcaption></figure>
-      <figure class="shot"><img src="img/habitat-photo.jpg" srcset="img/habitat-photo.jpg 1424w" sizes="(max-width: 860px) 100vw, 580px" alt="A photo taken in the game: the fly rubbing its legs, captioned with the deciding neuron DNg11 and its firing rate" width="1424" height="1136" loading="lazy">
-        <figcaption><b>Photos with a caption from the model.</b> What the fly is doing and which neurons decide it, at the
-          moment you press the shutter, labelled as a simulation.</figcaption></figure>
-    </div>
-    <div class="grid habitat-points">
-      <div class="card"><h3>Fly genetics</h3><p>Cross GAL4 driver lines with UAS effectors. Silence the giant fiber and the fly no
-        longer escapes; switch on grooming with red light; start a moonwalk with warmth.</p></div>
-      <div class="card"><h3>Your terrarium</h3><p>Place ferns, flowers, stones and logs. They are part of the fly's world: its eye
-        sees them and solid pieces are in the way.</p></div>
-      <div class="card"><h3>Quests from real assays</h3><p>The proboscis test with three sugar concentrations, a looming shadow,
-        dust on the antennae, warmth and the hot cells, with daily field notes.</p></div>
-      <div class="card"><h3>The big question</h3><p>Investigate the eight sentience criteria in your own fly and see what the
-        model contains, and what it does not. The answer is a map, not a score.</p></div>
-    </div>
-  </div>
-</section>
 
 <section class="block">
   <div class="wrap cols-2">

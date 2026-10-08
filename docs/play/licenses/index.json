@@ -1,0 +1,28 @@
+{
+ "files": [
+  {
+   "file": "LICENSE.txt",
+   "title": "NeuroCause licence"
+  },
+  {
+   "file": "DATA_LICENSE.md",
+   "title": "Data licences"
+  },
+  {
+   "file": "LOCOMOTOR_PROVENANCE.md",
+   "title": "Nerve cord data"
+  },
+  {
+   "file": "THIRD_PARTY_NOTICES.md",
+   "title": "Third-party software"
+  },
+  {
+   "file": "Apache-2.0.txt",
+   "title": "Apache License 2.0"
+  },
+  {
+   "file": "three.js-LICENSE.txt",
+   "title": "three.js licence"
+  }
+ ]
+}

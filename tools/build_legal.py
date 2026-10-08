@@ -81,15 +81,15 @@ HEADER = """<a class="skip" href="#main">Skip to content</a>
     <a class="mobile-support" href="./#support">Support</a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="site-nav" id="site-nav" aria-label="Main">
-      <a href="./#models">Models</a>
+      <a href="./#start">Play &amp; explore</a>
       <a href="science.html">Methods</a>
       <a href="evidence.html">Evidence</a>
       <a href="paper.html">Paper</a>
       <a href="vision.html">Vision</a>
       <a href="ethics.html">Ethics</a>
-      <a href="contact.html">Contact</a>
       <a href="./#support">Support</a>
-      <a class="cta" href="./#get" data-track="nav-get">Download</a>
+      <a href="./#get" data-track="nav-get">Download</a>
+      <a class="cta" href="play/?workspace=habitat" data-track="nav-play">Play free</a>
     </nav>
   </div>
 </header>"""
@@ -115,7 +115,7 @@ def page(name, title, description, kicker, h1, lead, body, robots='index, follow
 <link rel="icon" href="brand/neurocause-favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="assets/site.css?v=20261001">
+<link rel="stylesheet" href="assets/site.css?v=20261008">
 </head>
 <body>
 {HEADER}
@@ -601,7 +601,7 @@ for path in sorted(DOCS.glob('*.html')):
     s = re.sub(r' — NeuroFly(</title>|">)', r' — NeuroCause\1', s)
     s = s.replace('https://neurofly.app/', f'https://{DOMAIN}/')
     s = re.sub(r'assets/site\.js(\?v=[^"]*)?"', 'assets/site.js?v=20261001"', s)
-    s = re.sub(r'assets/site\.css(\?v=[^"]*)?"', 'assets/site.css?v=20261001"', s)
+    s = re.sub(r'assets/site\.css(\?v=[^"]*)?"', 'assets/site.css?v=20261008"', s)
     s = s.replace('mailto:contact@neurofly.app">contact@neurofly.app', f'mailto:{EMAIL}">{EMAIL}')
     path.write_text(s, encoding='utf-8')
 print('legal pages built;', len(list(DOCS.glob('*.html'))), 'pages updated')
