@@ -1,5 +1,22 @@
 # NeuroCause website handoff
 
+## 8 October 2026, later — browser game rebuilt for phones (latest)
+
+The owner reported that the live browser game felt overloaded on phones
+("gleich ganz viele Achievements") and asked for it to be fixed. `docs/play/`
+was therefore rebuilt from the private app commit `7f8577c` and published as
+`f2348b5` (not silently: this entry, the commit message and the app handoff
+say so). Changed: the Habitat's reward pacing (one card at a time on phones,
+pills for small news), one next goal, tabs that open with the story, a
+compact phone sheet, a welcome-back card, chapter 5 "Individuals", Astra's
+safer Habitat saves (`src/habitat-storage.js`), a calmer synapse layer in the
+small brain panel and a wider follow camera under the phone sheet. The fly
+model and its data are unchanged (webtest: every model bundle identical to the
+desktop app's); the version label stays 2.5.0. Checks: byte identity of every
+`docs/play` file against the index (0 differing), live new-player replay on a
+phone viewport (welcome first, 2 big moments in 60 s, no page errors).
+The Windows ZIP and the APK are still the released 2.5.0.
+
 ## 8 October 2026 — onboarding and scientific precision (latest)
 
 Built on Claude's `c821b5f` home page and its public 2.5.0 browser build.
