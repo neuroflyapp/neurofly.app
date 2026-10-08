@@ -49,11 +49,11 @@
       "name": "NeuroCause",
       "applicationCategory": "ScienceApplication",
       "operatingSystem": "Windows 10, Windows 11, Android 7.0 or later",
-      "softwareVersion": "2.4.0",
+      "softwareVersion": "2.5.0",
       "url": "https://neuro-cause.com/",
       "description": "Closed-loop simulation of Drosophila melanogaster on measured connectome data (FlyWire FAFB v783 brain, MaleCNS v1.0 nerve cord), with virtual genetics, transmitter-class pharmacology, guided assays and causal tracing.",
       "isAccessibleForFree": true,
-      "downloadUrl": "https://github.com/neuroflyapp/neurofly/releases/download/v2.4.0/NeuroCause-2.4.0-win-x64.zip",
+      "downloadUrl": "https://github.com/neuroflyapp/neurofly/releases/download/v2.5.0/NeuroCause-2.5.0-win-x64.zip",
       "fileSize": "183 MB",
       "license": "https://polyformproject.org/licenses/noncommercial/1.0.0",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CHF" },
@@ -108,7 +108,7 @@
       <a class="btn secondary" href="science.html">How it works</a>
       <a class="hero-support" href="#support">Support the lab · early access <span aria-hidden="true">↗</span></a>
     </div>
-    <p class="hero-meta">Windows · free · no account, no advertising</p>
+    <p class="hero-meta">Windows and Android · free · no account, no advertising</p>
   </div>
   <p class="hero-note">Film: the simulated fly brain, every neuron at its measured FlyWire position. Each flash is a spike from a
     real model run; midway, a looming stimulus makes the giant fiber fire. Model activity, not a recording from a fly.</p>
@@ -120,7 +120,7 @@
       <div class="fact"><b>784,219</b><span>signed connections, weighted by measured synapse counts</span><span class="src">pair × neuropil · measured</span></div>
       <div class="fact"><b>1,045</b><span>nerve-cord neurons driving six legs</span><span class="src">MaleCNS v1.0 · measured</span></div>
       <div class="fact"><b>1 ms</b><span>neural time step; sensing, brain, body and feedback close at 120 Hz</span><span class="src">model</span></div>
-      <div class="fact"><b>36</b><span>automated test suites, all passing for release 2.4</span><span class="src">verification</span></div>
+      <div class="fact"><b>36</b><span>automated test suites, all passing for release 2.5</span><span class="src">verification</span></div>
     </div>
   </div>
 </div>
@@ -386,6 +386,38 @@
   </div>
 </section>
 
+<section class="block habitat-band" id="habitat" aria-labelledby="habitat-title">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">New in 2.5 · Habitat</span>
+      <h2 id="habitat-title">A companion with a brain model. A game where nothing is faked.</h2>
+      <p>In the Habitat workspace the simulated fly becomes yours to look after. Feed it, and its taste circuit decides whether it
+        drinks. Every behaviour you see for the first time becomes a card with the neurons that decided it and their measured
+        wiring. Cross fly lines as real fly labs do, raise offspring whose genotype actually runs in the model, shape the
+        terrarium, take photos, and work through the eight sentience criteria. Care values, leaves and ranks are game rules and
+        say so; everything the fly does is the simulation.</p>
+    </div>
+    <div class="grid two">
+      <figure class="shot"><img src="img/habitat-game.jpg" srcset="img/habitat-game.jpg 1500w, img/habitat-game@2x.jpg 3002w" sizes="(max-width: 860px) 100vw, 580px" alt="Habitat workspace: the fly card with four care rings and actions, a discovery card over the terrarium naming the deciding neurons, and the quests" width="1500" height="860" loading="lazy">
+        <figcaption><b>Care, discover, collect.</b> A discovery card names the trigger and the deciding cells, and lights them
+          in the 3D brain. Thirteen behaviours and eighteen neuron cards, each with the paper behind it.</figcaption></figure>
+      <figure class="shot"><img src="img/habitat-photo.jpg" srcset="img/habitat-photo.jpg 1424w" sizes="(max-width: 860px) 100vw, 580px" alt="A photo taken in the game: the fly rubbing its legs, captioned with the deciding neuron DNg11 and its firing rate" width="1424" height="1136" loading="lazy">
+        <figcaption><b>Photos with a caption from the model.</b> What the fly is doing and which neurons decide it, at the
+          moment you press the shutter, labelled as a simulation.</figcaption></figure>
+    </div>
+    <div class="grid habitat-points">
+      <div class="card"><h3>Fly genetics</h3><p>Cross GAL4 driver lines with UAS effectors. Silence the giant fiber and the fly no
+        longer escapes; switch on grooming with red light; start a moonwalk with warmth.</p></div>
+      <div class="card"><h3>Your terrarium</h3><p>Place ferns, flowers, stones and logs. They are part of the fly's world: its eye
+        sees them and solid pieces are in the way.</p></div>
+      <div class="card"><h3>Quests from real assays</h3><p>The proboscis test with three sugar concentrations, a looming shadow,
+        dust on the antennae, warmth and the hot cells, with daily field notes.</p></div>
+      <div class="card"><h3>The big question</h3><p>Investigate the eight sentience criteria in your own fly and see what the
+        model contains, and what it does not. The answer is a map, not a score.</p></div>
+    </div>
+  </div>
+</section>
+
 <section class="block">
   <div class="wrap cols-2">
     <div>
@@ -408,7 +440,7 @@
   <div class="wrap">
     <div class="section-head">
       <span class="kicker">Download</span>
-      <h2>NeuroCause for Windows and Android · release 2.4</h2>
+      <h2>NeuroCause for Windows and Android · release 2.5</h2>
       <p>The application with the fly model, free and without advertising, for Windows 10 and 11 (64-bit) and for Android phones
         and tablets. Because the FlyWire brain data carries a non-commercial licence, it is and remains free of charge. The
         <a href="software-terms.html">software terms</a> apply to every download; both applications ask you to accept them
@@ -417,16 +449,16 @@
     <div class="grid">
       <div class="card">
         <h3>Windows, portable</h3>
-        <p>Release 2.4.0 as a ZIP of about 183 MB. Unzip it anywhere and start <code>NeuroCause.exe</code>; nothing is installed
+        <p>Release 2.5.0 as a ZIP of about 183 MB. Unzip it anywhere and start <code>NeuroCause.exe</code>; nothing is installed
           and nothing connects to the internet. Settings from earlier versions carry over.</p>
-        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.4.0" rel="nofollow" data-track="download-zip">Download for Windows</a></p>
+        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.5.0" rel="nofollow" data-track="download-zip">Download for Windows</a></p>
       </div>
       <div class="card">
         <h3>Android, APK</h3>
-        <p>Release 2.4.0 for Android 7.0 or newer with OpenGL ES 3.0, about 28 MB. Open the file on your phone or tablet; Android
+        <p>Release 2.5.0 for Android 7.0 or newer with OpenGL ES 3.0, about 28 MB. Open the file on your phone or tablet; Android
           asks once to allow installs from your browser or file manager. The app runs entirely on the device and connects to
           nothing.</p>
-        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.4.0/android" rel="nofollow" data-track="download-apk">Download for Android</a></p>
+        <p><a class="btn primary" href="https://get.neuro-cause.com/v2.5.0/android" rel="nofollow" data-track="download-apk">Download for Android</a></p>
       </div>
       <div class="card">
         <h3>Source code</h3>
@@ -434,25 +466,32 @@
         <p><a class="btn secondary" href="https://github.com/neuroflyapp/neurofly" data-track="get-github">View on GitHub</a></p>
       </div>
     </div>
-    <p class="note download-meta">SHA-256 of the Windows ZIP: <code>b5ba3c181d983ab6a58f01d0dff4d6ea968ff9f6bbb394c575c82bea5d46c130</code> · of the Android APK:
-      <code>382fc6761bf25fcd00292e782e80aff1a50add5bf3c53aa98348ed76bb8dd9cc</code> ·
-      <a href="https://github.com/neuroflyapp/neurofly/releases/tag/v2.4.0">release notes</a> ·
+    <div class="early-access" id="early-access">
+      <div class="early-copy">
+        <span class="support-perk-badge">Early access</span>
+        <h3>Want the next version before everyone else?</h3>
+        <p>People who support NeuroCause may be invited to test new versions before their public release. A one-time
+          contribution of any amount, through Stripe, without an account. <a href="terms.html#prereleases">How it works</a></p>
+      </div>
+      <a class="btn primary early-go" href="#support" data-track="early-access">Support and get invited <span aria-hidden="true">→</span></a>
+    </div>
+    <p class="note download-meta">SHA-256 of the Windows ZIP: <code>6b247dc6ab2bab6052fa884019d603ab19064c0d5f60fb9e500aa089d147ecd6</code> · of the Android APK:
+      <code>f5fc768d86978b02a0b8f051d467534195c1b0c0c133c37436a43bb925dc75ec</code> ·
+      <a href="https://github.com/neuroflyapp/neurofly/releases/tag/v2.5.0">release notes</a> ·
       <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a>. The Windows build is not code-signed yet: if
       Windows shows “Windows protected your PC”, choose <em>More info</em>, then <em>Run anyway</em>. The APK is signed by
       NeuroCause and is not in an app store yet: a new version is installed the same way, over the old one.</p>
     <div class="release-news">
-      <h3>New in 2.4</h3>
+      <h3>New in 2.5</h3>
       <ul>
-        <li><b>NeuroCause for Android.</b> The complete Studio on phones and tablets: the same simulation, data and assays as on
-          Windows, with a touch layout.</li>
-        <li><b>Three flies.</b> Besides the original model, a male fly whose brain and nerve cord come from one MaleCNS animal and
-          a female fly whose brain and nerve cord come from one BANC animal. Choose the running fly in the ♀ / ♂ workspace.</li>
-        <li><b>Her vision no longer depends on your computer.</b> Her eye samples in simulated time, so a faster or slower machine
-          shows her the same world; start-up no longer freezes.</li>
-        <li><b>Clearer explanations.</b> A looming stimulus sent from the Stimulate panel is now named as such in the causal chain.</li>
+        <li><b>The Habitat.</b> A care, discovery and fly-genetics game played with the simulated fly itself: quests, a field
+          journal of behaviours and neuron cards with measured wiring, crosses whose offspring run with their genotype, a
+          terrarium you shape, photos, and the eight sentience criteria. On phones it sits in the bottom bar.</li>
+        <li><b>Stricter causal chains.</b> Dust, a loom or a burst from the Stimulate panel is named as the cause of a behaviour
+          only if its own receptors reached the deciding neurons; behaviour driven by virtual genetics now names the genetics.</li>
+        <li><b>New in the world.</b> Objects can be added to and removed from the terrarium (never right in front of the fly),
+          each change written to the experiment journal.</li>
       </ul>
-      <p class="download-perk">Want the next version before everyone else? People who <a href="#support">support the lab</a>
-        may be invited to try pre-releases.</p>
     </div>
     <p class="note intended-use">NeuroCause is a research and teaching tool. It is not validated for medical, veterinary,
       regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance. Using it in

@@ -686,3 +686,29 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
   .paper-figure svg { min-width: 0; }
   .paper-footer-row { align-items: start; flex-direction: column; }
 }
+
+/* Release 2.5: the Habitat section and early access for supporters */
+.habitat-band { background: radial-gradient(90% 70% at 0% 0%, #12301f 0%, transparent 60%), radial-gradient(80% 70% at 100% 100%, #1d1736 0%, transparent 60%), #080c0d; color: #f1efea; }
+.habitat-band .kicker { color: #00ff41; }
+.habitat-band h2 { color: #f9f6f1; }
+.habitat-band .section-head p { color: #b9cbc4; }
+.habitat-band .grid.two { align-items: start; }
+.habitat-band .habitat-points .card { background: #10171a; border-color: #22302d; }
+.habitat-band .habitat-points .card h3 { color: #f9f6f1; }
+.habitat-band .habitat-points .card p { color: #b9cbc4; }
+.habitat-points { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); margin-top: 22px; }
+.habitat-points .card h3 { font-size: 16px; margin-top: 0; }
+.habitat-points .card p { font-size: 14.5px; line-height: 1.55; margin-bottom: 0; }
+.early-access { display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; margin-top: 22px;
+  padding: 20px 22px; border-radius: var(--radius); border: 1px solid #2f5b40;
+  background: linear-gradient(120deg, #0f2a1b 0%, #101a17 55%, #17142a 100%); box-shadow: 0 0 0 1px #00ff4114, 0 18px 50px #00ff410d; }
+.early-copy { flex: 1 1 360px; min-width: 0; }
+.early-copy h3 { margin: 10px 0 6px; font-size: 20px; color: #f9f6f1; }
+.early-copy p { margin: 0; color: #b9cbc4; font-size: 15px; line-height: 1.55; }
+.early-copy a { color: #9ff5bd; }
+.early-access .early-go { flex: 0 0 auto; white-space: nowrap; background: #6dffa0; color: #04140a; border-color: transparent;
+  box-shadow: 0 10px 34px -10px rgba(109, 255, 160, .75), inset 0 1px 0 rgba(255, 255, 255, .5); transition: transform .15s, box-shadow .15s; }
+.early-access .early-go:hover { background: #8dffb6; color: #04140a; transform: translateY(-1px); }
+.early-access .early-go:focus-visible { outline: 2px solid #b8ffd3; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .early-access .early-go { transition: none; } .early-access .early-go:hover { transform: none; } }
+@media (max-width: 560px) { .early-access .early-go { width: 100%; justify-content: center; } }
