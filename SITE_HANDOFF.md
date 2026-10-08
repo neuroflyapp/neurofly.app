@@ -1,4 +1,31 @@
-# NeuroCause website handoff — 1 October 2026
+# NeuroCause website handoff
+
+## 8 October 2026 — onboarding and scientific precision (latest)
+
+Built on Claude's `c821b5f` home page and its public 2.5.0 browser build.
+
+- Added `#first-visit`, linked from the hero: three concrete first steps and
+  four keyboard-accessible, JavaScript-independent questions about devices,
+  local saves, scientific scope and optional contributions. Responsive cards
+  match the existing dark-green / document-style visual system.
+- Tightened claims about synaptic strength, manually calibrated model
+  components, causality and seed-only reproducibility. No unsupported claim
+  of subjective experience or validated drug-testing capability.
+- Hero movie/autoplay, payments, analytics and legal texts are unchanged.
+  Homepage stylesheet version is `20261008c`.
+- `docs/play/` remains the released 2.5.0 build. Reliability improvements in
+  the private app repository are NOT silently published through this site.
+- Tests: 10 static visitor-path checks and 10 collector tests pass. New
+  `tools/smoke-site.mjs` checks 1440/768/390px, advancing hero playback,
+  no horizontal overflow, FAQ keyboard controls, main links, page errors and
+  absence of Clarity before consent. All three local viewports passed.
+  It accepts `PLAYWRIGHT_MODULE`, `CHROME_PATH`, optional `QA_OUTPUT` outside
+  the repository, and `SITE_URL` to repeat the same checks on production.
+
+Publication: push this commit to `main` (GitHub Pages publishes `docs/`),
+then verify the live `#first-visit` section and run the deployment smoke test.
+
+## Earlier handoff — 1 October 2026
 
 The website is the static `docs/` tree on the `main` branch. The latest tested
 change in this handoff is `a322b5c` (confirm the current head before editing).

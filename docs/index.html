@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" as="image" href="media/hero-poster.jpg" fetchpriority="high">
-<link rel="stylesheet" href="assets/site.css?v=20261008b">
+<link rel="stylesheet" href="assets/site.css?v=20261008c">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -101,15 +101,15 @@
     <span class="kicker">In-silico laboratory · fly model</span>
     <h1>Meet a fly whose brain is wired from real data.</h1>
     <p class="lead">NeuroCause runs nervous systems on their measured wiring. Look after the fly in a game, or run the experiments a
-      lab would: every move comes from 7,270 simulated neurons on a published connectome, and every result shows the neurons
-      behind it.</p>
+      lab would: explore a model linking 7,270 mapped brain neurons to senses, a body and a nerve-cord circuit. Watch its activity,
+      change an input, and investigate the response.</p>
     <div class="actions">
       <a class="btn primary" href="play/?workspace=habitat" data-track="play-hero">Play in your browser</a>
       <a class="btn secondary" href="#get">Download for Windows &amp; Android</a>
       <a class="hero-support" href="#support">Support the lab · early access <span aria-hidden="true">↗</span></a>
     </div>
     <p class="hero-meta">Free · no account, no advertising · the browser version downloads about 6&nbsp;MB and runs entirely
-      on your device</p>
+      on your device · <a href="#first-visit">First time here?</a></p>
   </div>
   <p class="hero-note">Film: the simulated fly brain, every neuron at its measured FlyWire position. Each flash is a spike from a
     real model run; midway, a looming stimulus makes the giant fiber fire. Model activity, not a recording from a fly.</p>
@@ -140,7 +140,7 @@
         <div class="way-body">
           <span class="way-tag">New · the Habitat</span>
           <h3>Play</h3>
-          <p>Look after a fly whose every move comes from its connectome. Feed it, discover its behaviours and the neurons behind
+          <p>Look after a fly with connectome-based neural circuits. Feed it, discover its modelled behaviours and the neurons behind
             them, cross fly lines, shape its terrarium.</p>
           <div class="way-actions"><a class="btn primary" href="play/?workspace=habitat" data-track="play-habitat">Play in your browser</a>
             <a class="way-more" href="#habitat">What you can do →</a></div>
@@ -152,7 +152,7 @@
           <span class="way-tag lab">The laboratory</span>
           <h3>Experiment</h3>
           <p>Run ten assays from the fly literature, silence or activate identified cells, record every rate, and trace each behaviour
-            to the neurons that decided it. Every result reproduces from its seed.</p>
+            through the model's pathways. Export the seed, parameters and run record to check reproducibility.</p>
           <div class="way-actions"><a class="btn primary" href="play/?workspace=experiments" data-track="play-lab">Open the lab in your browser</a>
             <a class="way-more" href="science.html">How it works →</a></div>
         </div>
@@ -168,7 +168,7 @@
     </figure>
     <div class="habitat-copy">
       <span class="kicker">New in 2.5 · the Habitat</span>
-      <h2 id="habitat-title">A companion with a brain model. A game where nothing is faked.</h2>
+      <h2 id="habitat-title">A small world. A connectome to explore.</h2>
       <p class="habitat-lead">Feed the fly, and its taste circuit decides whether it drinks. Every behaviour you see for the first
         time becomes a card naming the neurons that decided it, with their measured wiring. Care values, leaves and ranks are game
         rules and say so; everything the fly does is the simulation.</p>
@@ -194,17 +194,18 @@
     <div class="section-head">
       <span class="kicker">How it works</span>
       <h2 id="how-title">Measured wiring. Stated models. Traced causes.</h2>
-      <p>A connectome records which neuron connects to which, and how strongly. It does not record how the cells behave in time.
-        NeuroCause keeps the two apart: the wiring is used exactly as published, and whatever the connectome does not contain is a
-        documented model component, labelled as such wherever its results are shown.</p>
+      <p>A connectome records reconstructed connections and synapse counts, not a complete measurement of physiological strength
+        or activity over time. NeuroCause uses selected circuits from these datasets and documents the assumptions needed to
+        turn their anatomy into a running model.</p>
     </div>
     <div class="grid steps">
       <div class="card">
         <span class="step-n" aria-hidden="true">1</span>
         <p><span class="tag measured">Measured</span></p>
         <h3>Anatomy from electron microscopy</h3>
-        <p>Neurons, their positions, cell types and synaptic connections come from peer-reviewed connectome releases, with their
-          licences and a SHA-256 fingerprint of every file. Nothing is tuned by hand to make a behaviour look right.</p>
+        <p>Cell identities, positions and reconstructed contacts come from published connectome releases, with source licences
+          and file fingerprints. Circuit extraction, predicted transmitter signs and model-specific calibrations are documented
+          in the <a href="science.html">methods</a>.</p>
       </div>
       <div class="card">
         <span class="step-n" aria-hidden="true">2</span>
@@ -216,9 +217,9 @@
       <div class="card">
         <span class="step-n" aria-hidden="true">3</span>
         <p><span class="tag measured">Traced</span></p>
-        <h3>Every result has a traceable cause</h3>
-        <p>When the model acts, NeuroCause shows which input changed, which sensory neurons it reached and which synapses drove the
-          deciding neurons — from recorded spikes, not from a story told afterwards.</p>
+        <h3>Follow the model's pathways</h3>
+        <p>Inspect inputs, firing rates and synaptic drive behind a model response. Traces help form a hypothesis; silencing,
+          controls and repeated trials test dependence within the model. They do not by themselves validate a cause in a living fly.</p>
       </div>
     </div>
     <figure class="shot how-figure">
@@ -422,6 +423,27 @@
     <p class="note intended-use">NeuroCause is a research and teaching tool. It is not validated for medical, veterinary,
       regulatory or safety decisions, and its pharmacology settings do not predict the effect of any real substance. Using it in
       research or a course? <a href="contact.html">Write to us</a>.</p>
+  </div>
+</section>
+
+<section class="block first-visit" id="first-visit" aria-labelledby="start-title">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Your first few minutes</span>
+      <h2 id="start-title">Start curious. You do not need to be a neuroscientist.</h2>
+      <p>One application, two ways to explore. No account or donation is needed to begin.</p>
+    </div>
+    <ol class="first-steps">
+      <li><span aria-hidden="true">01</span><h3>Meet the fly</h3><p>Open Habitat, accept the software terms and let the model load. Follow the first quest and watch what the fly does before changing anything.</p><a href="play/?workspace=habitat" data-track="start-habitat">Open Habitat →</a></li>
+      <li><span aria-hidden="true">02</span><h3>Offer. Observe. Ask why.</h3><p>Try feeding, then inspect the response and the neuron cards. No response is informative too: behaviour depends on the circuit and its current conditions.</p><a href="science.html">Understand the model →</a></li>
+      <li><span aria-hidden="true">03</span><h3>Turn curiosity into a test</h3><p>Choose a guided assay in the Lab. Compare conditions, inspect the statistics and export the results together with their model context.</p><a href="play/?workspace=experiments" data-track="start-lab">Open the Lab →</a></li>
+    </ol>
+    <div class="start-questions">
+      <details><summary>Which version should I use?</summary><p>The browser is the quickest way to try NeuroCause. Windows and Android downloads run locally without a network connection after installation. A recent browser with WebGL 2 is needed for the web version; close other demanding tabs if it feels slow. <a href="#get">Choose your version.</a></p></details>
+      <details><summary>Will my fly and progress follow me to another device?</summary><p>Progress is stored locally, not in an account. It does not automatically transfer between browsers, phones or the installed app. Clearing site data or using private browsing can remove it. Keep a backup using Habitat's export option where supported, and import it on the other device.</p></details>
+      <details><summary>Is this a living fly or a validated drug-testing system?</summary><p>It is a computational model constrained by measured anatomy. Neural dynamics, sensory input, body mechanics, virtual genetics and game progression include modelling assumptions. Subjective experience is not established, and the current system is not a validated replacement for animal experiments or clinical drug testing. <a href="evidence.html">See the evidence and limits.</a></p></details>
+      <details><summary>Do I need to donate to play or do research?</summary><p>No. The available game and laboratory features are free to use under the <a href="software-terms.html">software and data terms</a>. Contributions are optional, one-time payments through Stripe. Supporters may be invited to pre-release testing; an invitation is not guaranteed.</p></details>
+    </div>
   </div>
 </section>
 

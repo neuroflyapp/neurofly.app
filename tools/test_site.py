@@ -14,8 +14,12 @@ class LinkReader(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links = []
+        self.ids = []
 
     def handle_starttag(self, tag, attrs):
+        element_id = dict(attrs).get("id")
+        if element_id:
+            self.ids.append(element_id)
         if tag == "a":
             href = dict(attrs).get("href")
             if href:
@@ -37,7 +41,8 @@ class VisitorPathTests(unittest.TestCase):
             if '<nav class="site-nav"' in page:
                 with self.subTest(page=path.name):
                     self.assertIn('<a href="./#support">Support</a>', page)
-                    self.assertIn('class="mobile-support" href="./#support"', page)
+                    # Mobile's quick action may open Play; Support must remain in the menu.
+                    self.assertRegex(page, r'class="mobile-support" href="(?:\./#support|play/\?workspace=habitat)"')
                     self.assertNotIn('data-support-link hidden', page)
 
     def test_background_film_always_plays(self):
@@ -119,6 +124,23 @@ class VisitorPathTests(unittest.TestCase):
                         has_anchor = re.search(rf'\bid=["\']{anchor}["\']', html)
                         has_tab = re.search(rf'\bdata-hash=["\']{anchor}["\']', html)
                         self.assertTrue(has_anchor or has_tab, "anchor missing")
+
+    def test_first_visit_and_science_boundaries(self):
+        home = (DOCS / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="first-visit"', home)
+        self.assertIn('href="#first-visit"', home)
+        self.assertEqual(home.count('<summary>'), 4)
+        for text in ('not automatically transfer', 'Subjective experience is not established', 'one-time payments'):
+            self.assertIn(text, home)
+        for text in ('Nothing is tuned by hand', 'A game where nothing is faked', 'wiring is used exactly as published'):
+            self.assertNotIn(text, home)
+
+    def test_unique_page_ids(self):
+        for path in DOCS.glob("*.html"):
+            reader = LinkReader()
+            reader.feed(path.read_text(encoding="utf-8"))
+            with self.subTest(page=path.name):
+                self.assertEqual(len(reader.ids), len(set(reader.ids)), "duplicate IDs break navigation and accessible names")
 
 
 if __name__ == "__main__":
