@@ -22,8 +22,9 @@ Built on Claude's `c821b5f` home page and its public 2.5.0 browser build.
   It accepts `PLAYWRIGHT_MODULE`, `CHROME_PATH`, optional `QA_OUTPUT` outside
   the repository, and `SITE_URL` to repeat the same checks on production.
 
-Publication: push this commit to `main` (GitHub Pages publishes `docs/`),
-then verify the live `#first-visit` section and run the deployment smoke test.
+Published as `7758806` on `main` through GitHub Pages. The deployment smoke
+test passed against `https://neuro-cause.com/` at all three widths, including
+the new section and continuous hero playback. QA beacons were suppressed.
 
 ## Earlier handoff — 1 October 2026
 
