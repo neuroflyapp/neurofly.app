@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="brand/neurocause-icon-256.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" as="image" href="media/hero-poster.jpg" fetchpriority="high">
-<link rel="stylesheet" href="assets/site.css?v=20261008">
+<link rel="stylesheet" href="assets/site.css?v=20261008b">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -48,7 +48,7 @@
       "@type": "SoftwareApplication",
       "name": "NeuroCause",
       "applicationCategory": "ScienceApplication",
-      "operatingSystem": "Windows 10, Windows 11, Android 7.0 or later",
+      "operatingSystem": "Web browser, Windows 10, Windows 11, Android 7.0 or later",
       "softwareVersion": "2.5.0",
       "url": "https://neuro-cause.com/",
       "description": "Closed-loop simulation of Drosophila melanogaster on measured connectome data (FlyWire FAFB v783 brain, MaleCNS v1.0 nerve cord), with virtual genetics, transmitter-class pharmacology, guided assays and causal tracing.",
@@ -73,7 +73,7 @@
 <header class="site-header">
   <div class="wrap bar">
     <a class="brand" href="./" aria-label="NeuroCause home"><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="149" height="28"></a>
-    <a class="mobile-support" href="./#support">Support</a>
+    <a class="mobile-support" href="play/?workspace=habitat" data-track="mobile-play">Play</a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="site-nav" id="site-nav" aria-label="Main">
       <a href="./#start">Play &amp; explore</a>
@@ -108,8 +108,8 @@
       <a class="btn secondary" href="#get">Download for Windows &amp; Android</a>
       <a class="hero-support" href="#support">Support the lab · early access <span aria-hidden="true">↗</span></a>
     </div>
-    <p class="hero-meta">Free · no account, no advertising · the browser version loads about 25&nbsp;MB and runs best on a computer
-      or a recent phone</p>
+    <p class="hero-meta">Free · no account, no advertising · the browser version downloads about 6&nbsp;MB and runs entirely
+      on your device</p>
   </div>
   <p class="hero-note">Film: the simulated fly brain, every neuron at its measured FlyWire position. Each flash is a spike from a
     real model run; midway, a looming stimulus makes the giant fiber fire. Model activity, not a recording from a fly.</p>
@@ -162,79 +162,79 @@
 </section>
 
 <section class="block habitat-band" id="habitat" aria-labelledby="habitat-title">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">New in 2.5 · Habitat</span>
+  <div class="wrap habitat-show">
+    <figure class="phone-shot">
+      <img src="img/habitat-phone.jpg" alt="The Habitat on a phone: a discovery card says the fly rubs its front legs because the neuron DNg11 crossed its threshold; below, the fly card with four care rings and the actions Feed, Bitter, Dust and Touch" width="780" height="1688" loading="lazy">
+    </figure>
+    <div class="habitat-copy">
+      <span class="kicker">New in 2.5 · the Habitat</span>
       <h2 id="habitat-title">A companion with a brain model. A game where nothing is faked.</h2>
-      <p>In the Habitat workspace the simulated fly becomes yours to look after. Feed it, and its taste circuit decides whether it
-        drinks. Every behaviour you see for the first time becomes a card with the neurons that decided it and their measured
-        wiring. Cross fly lines as real fly labs do, raise offspring whose genotype actually runs in the model, shape the
-        terrarium, take photos, and work through the eight sentience criteria. Care values, leaves and ranks are game rules and
-        say so; everything the fly does is the simulation.</p>
+      <p class="habitat-lead">Feed the fly, and its taste circuit decides whether it drinks. Every behaviour you see for the first
+        time becomes a card naming the neurons that decided it, with their measured wiring. Care values, leaves and ranks are game
+        rules and say so; everything the fly does is the simulation.</p>
+      <ul class="habitat-list">
+        <li><b>Discover</b> thirteen behaviours and eighteen neuron cards, each with the paper behind it and lit up in the 3D
+          brain.</li>
+        <li><b>Cross fly lines</b> as real labs do, GAL4 drivers with UAS effectors: silence the giant fiber and the fly no longer
+          escapes; warmth starts a moonwalk.</li>
+        <li><b>Shape the terrarium</b> with ferns, flowers, stones and logs. The fly's eye sees them; solid pieces are in the
+          way.</li>
+        <li><b>Take photos</b> captioned by the model, and follow quests drawn from real assays.</li>
+        <li><b>Ask the big question:</b> the eight sentience criteria, explored in your own fly. The answer is a map, not a
+          score.</li>
+      </ul>
+      <p class="habitat-cta"><a class="btn primary" href="play/?workspace=habitat" data-track="play-habitat-band">Play the Habitat now</a>
+        <span>Free, in your browser or on your phone. Your progress stays on your device.</span></p>
     </div>
-    <div class="grid two">
-      <figure class="shot"><img src="img/habitat-game.jpg" srcset="img/habitat-game.jpg 1500w, img/habitat-game@2x.jpg 3002w" sizes="(max-width: 860px) 100vw, 580px" alt="Habitat workspace: the fly card with four care rings and actions, a discovery card over the terrarium naming the deciding neurons, and the quests" width="1500" height="860" loading="lazy">
-        <figcaption><b>Care, discover, collect.</b> A discovery card names the trigger and the deciding cells, and lights them
-          in the 3D brain. Thirteen behaviours and eighteen neuron cards, each with the paper behind it.</figcaption></figure>
-      <figure class="shot"><img src="img/habitat-photo.jpg" srcset="img/habitat-photo.jpg 1424w" sizes="(max-width: 860px) 100vw, 580px" alt="A photo taken in the game: the fly rubbing its legs, captioned with the deciding neuron DNg11 and its firing rate" width="1424" height="1136" loading="lazy">
-        <figcaption><b>Photos with a caption from the model.</b> What the fly is doing and which neurons decide it, at the
-          moment you press the shutter, labelled as a simulation.</figcaption></figure>
-    </div>
-    <div class="grid habitat-points">
-      <div class="card"><h3>Fly genetics</h3><p>Cross GAL4 driver lines with UAS effectors. Silence the giant fiber and the fly no
-        longer escapes; switch on grooming with red light; start a moonwalk with warmth.</p></div>
-      <div class="card"><h3>Your terrarium</h3><p>Place ferns, flowers, stones and logs. They are part of the fly's world: its eye
-        sees them and solid pieces are in the way.</p></div>
-      <div class="card"><h3>Quests from real assays</h3><p>The proboscis test with three sugar concentrations, a looming shadow,
-        dust on the antennae, warmth and the hot cells, with daily field notes.</p></div>
-      <div class="card"><h3>The big question</h3><p>Investigate the eight sentience criteria in your own fly and see what the
-        model contains, and what it does not. The answer is a map, not a score.</p></div>
-    </div>
-    <p class="habitat-cta"><a class="btn primary" href="play/?workspace=habitat" data-track="play-habitat-band">Play the Habitat now</a>
-      <span>Free, in your browser. Your progress stays on your device.</span></p>
   </div>
 </section>
 
-
-<section class="block">
+<section class="block" id="how" aria-labelledby="how-title">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">What NeuroCause is</span>
-      <h2>Measured wiring. Stated models. Traced causes.</h2>
+      <span class="kicker">How it works</span>
+      <h2 id="how-title">Measured wiring. Stated models. Traced causes.</h2>
       <p>A connectome records which neuron connects to which, and how strongly. It does not record how the cells behave in time.
         NeuroCause keeps the two apart: the wiring is used exactly as published, and whatever the connectome does not contain is a
         documented model component, labelled as such wherever its results are shown.</p>
     </div>
-    <div class="grid">
+    <div class="grid steps">
       <div class="card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6.8 7.2 10.6 16.4M17.2 7.2 13.4 16.4M7 6h10"/></svg>
+        <span class="step-n" aria-hidden="true">1</span>
         <p><span class="tag measured">Measured</span></p>
         <h3>Anatomy from electron microscopy</h3>
         <p>Neurons, their positions, cell types and synaptic connections come from peer-reviewed connectome releases, with their
           licences and a SHA-256 fingerprint of every file. Nothing is tuned by hand to make a behaviour look right.</p>
       </div>
       <div class="card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 12h3l2-7 3 14 2.5-9 1.5 4h6"/></svg>
+        <span class="step-n" aria-hidden="true">2</span>
         <p><span class="tag modelled">Modelled</span></p>
         <h3>Dynamics, senses and body as stated models</h3>
         <p>Spiking neuron dynamics, sensory transduction, a jointed body and its contact with the ground. Each component is
           documented with its parameters, its sources and its limits.</p>
       </div>
       <div class="card">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6h10M4 12h16M4 18h7"/><circle cx="17" cy="6" r="2.5"/><circle cx="14" cy="18" r="2.5"/></svg>
+        <span class="step-n" aria-hidden="true">3</span>
         <p><span class="tag measured">Traced</span></p>
         <h3>Every result has a traceable cause</h3>
         <p>When the model acts, NeuroCause shows which input changed, which sensory neurons it reached and which synapses drove the
           deciding neurons — from recorded spikes, not from a story told afterwards.</p>
       </div>
     </div>
+    <figure class="shot how-figure">
+      <img src="img/studio-live.jpg" srcset="img/studio-live.jpg 1500w, img/studio-live@2x.jpg 3000w" sizes="(max-width: 1240px) 100vw, 1180px" alt="The NeuroCause workspace with the fly model: the fly in her terrarium with her proboscis extended, the 7,270 simulated neurons at their measured positions on the right, live firing-rate traces below, and the explanation of her last action: sugar at her mouthparts" width="1500" height="860">
+      <figcaption><b>A traced cause.</b> The fly model in the NeuroCause workspace. Centre: the fly in her terrarium,
+        seen with the follow camera. Right: the simulated brain at the neurons’ measured positions, and the causal chain behind her
+        most recent action — here a proboscis extension, traced from sugar at her mouthparts through the gustatory receptor
+        neurons to the proboscis motor neurons. Bottom: firing rates of identified neuron populations.</figcaption>
+    </figure>
   </div>
 </section>
 
 <section class="block alt" id="assays">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">The assay suite</span>
+      <span class="kicker">The laboratory</span>
       <h2>Perturb, measure, compare, trace</h2>
       <p>An assay in NeuroCause is a protocol, a model and a statistic. It perturbs the model the way a wet-lab experiment would,
         measures the outcome over many seeded trials, compares it with the published finding, and traces what caused it.</p>
@@ -253,53 +253,41 @@
       <div class="card"><h3>Provenance by construction</h3><p>Every run records its seeds, model version and data fingerprints and
         exports as CSV. Results reproduce exactly and can be compared across model variants.</p></div>
     </div>
+    <p class="section-cta"><a class="btn primary" href="play/?workspace=experiments" data-track="play-lab-assays">Open the lab in your browser</a>
+      <a href="science.html">Methods →</a> <a href="evidence.html">Evidence →</a></p>
   </div>
 </section>
 
-<section class="block" id="models">
+<section class="block" id="models" aria-labelledby="models-title">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Models</span>
-      <h2>One framework, one nervous system at a time</h2>
+      <span class="kicker">Models and vision</span>
+      <h2 id="models-title">One framework, one nervous system at a time</h2>
       <p>The assays do not depend on the animal. A model enters NeuroCause when its wiring is published and its behaviour can be
         tested; it is ready when it passes its benchmarks. The fruit fly comes first because it is both completely mapped and
         central to biomedical research.</p>
     </div>
-    <figure class="shot">
-      <img src="img/studio-live.jpg" srcset="img/studio-live.jpg 1500w, img/studio-live@2x.jpg 3000w" sizes="(max-width: 1240px) 100vw, 1180px" alt="The NeuroCause workspace with the fly model: the fly in her terrarium with her proboscis extended, the 7,270 simulated neurons at their measured positions on the right, live firing-rate traces below, and the explanation of her last action: sugar at her mouthparts" width="1500" height="860">
-      <figcaption><b>Figure 1.</b> The fly model in the NeuroCause workspace (release 2.3). Centre: the fly in her terrarium,
-        seen with the follow camera. Right: the simulated brain at the neurons’ measured positions, and the causal chain behind her
-        most recent action — here a proboscis extension, traced from sugar at her mouthparts through the gustatory receptor
-        neurons to the proboscis motor neurons. Bottom: firing rates of identified neuron populations.</figcaption>
-    </figure>
-    <div class="grid two" style="margin-top:28px">
+    <div class="grid">
       <div class="card">
-        <p><span class="tag done">Available · release 2.4</span></p>
-        <h3><i>Drosophila melanogaster</i>, brain and leg circuit</h3>
-        <p>7,270 brain neurons of an adult female (FlyWire FAFB v783) and 1,045 nerve-cord neurons of an adult male (MaleCNS v1.0),
-          joined by a modelled interface between identified descending cell types, in closed loop with a modelled body in a
-          terrarium. She walks, grooms, tastes, sleeps and escapes; ten guided assays ship with their literature.</p>
-        <p><a href="#get">Download for Windows and Android</a> · <a href="science.html">Methods</a> · <a href="evidence.html">Evidence</a></p>
-      </div>
-      <div class="card">
-        <p><span class="tag done">Available · release 2.4</span></p>
-        <h3>One fly, brain and nerve cord from the same animal</h3>
-        <p>A male fly runs on the brain and nerve cord of one MaleCNS v1.0 animal, a female fly on those of one BANC v888 animal:
-          no join between two specimens, the cord’s descending and ascending cells are the brain’s own. Each carries documented
-          calibrations; the original model stays the reference for the published benchmarks.</p>
+        <p><span class="tag done">Available · release 2.5</span></p>
+        <h3>Three fly models</h3>
+        <p>The reference fly: 7,270 brain neurons of an adult female (FlyWire FAFB v783) and 1,045 nerve-cord neurons of an adult
+          male (MaleCNS v1.0), joined by a modelled interface. Beside it, a male and a female fly whose brain and nerve cord come
+          from one animal each (MaleCNS v1.0, BANC v888), with documented calibrations.</p>
       </div>
       <div class="card">
         <p><span class="tag progress">In preparation</span></p>
         <h3>Comparison connectomes</h3>
-        <p>The male nerve cord (MANC) and the male optic lobe are in the anatomy explorer, each kept as its own specimen and never
-          wired into another. The hemibrain and a larval connectome follow once their redistribution terms are confirmed. A cell type found in several animals lets an assay ask whether a result depends on the individual whose wiring
-          was measured.</p>
+        <p>The male nerve cord (MANC) and the male optic lobe are in the anatomy explorer, each kept as its own specimen. A cell
+          type found in several animals lets an assay ask whether a result depends on the individual whose wiring was
+          measured.</p>
       </div>
       <div class="card">
         <p><span class="tag planned">Vision</span></p>
-        <h3>Beyond the fly</h3>
-        <p>As further whole-nervous-system connectomes are published, they can join the same assays, statistics and provenance.
-          Which ones, and when, depends on the data — we announce models when they exist, not before.</p>
+        <h3>What would it take for one to feel?</h3>
+        <p>Whether a simulated nervous system could ever have experiences is an open scientific question. We treat it as one:
+          with published criteria, testable components and no claims beyond the evidence.</p>
+        <p><a href="vision.html">Vision and roadmap →</a> · <a href="ethics.html">Our ethical commitments →</a></p>
       </div>
     </div>
   </div>
@@ -322,7 +310,7 @@
       <span class="kicker">The connectome in motion</span>
       <h2>One animal, from brain to nerve cord</h2>
       <p>Six short films of the BANC connectome — a complete brain-and-cord wiring diagram of a single female fly, and the
-        dataset of our next fly model. Select one to watch it with its original soundtrack.</p>
+        dataset behind our female fly model. Select one to watch it with its original soundtrack.</p>
     </div>
     <div class="reels">
       <button class="reel" type="button" data-reel="media/reel-drop.mp4" data-title="Switch it on." aria-label="Play: Switch it on. A 25-second, beat-synchronised pass from the brain down the nerve cord of one female fly.">
@@ -371,35 +359,23 @@
   </div>
 </dialog>
 
-<section class="block">
-  <div class="wrap cols-2">
-    <div>
-      <span class="kicker">Vision</span>
-      <h2>Nervous systems that exist only as data — and the question of what it would take for one to feel.</h2>
-    </div>
-    <div class="prose">
-      <p>Complete connectomes of the adult fly brain and of its whole central nervous system have been published within the last
-        two years. For the first time, an entire animal nervous system can be simulated on its measured wiring. NeuroCause follows
-        that path step by step: one specimen, cell-type physiology, a calibrated body, validated behaviour — and then the next
-        nervous system.</p>
-      <p>Whether a simulated nervous system could ever have experiences is an open scientific question. We treat it as one: with
-        published criteria, testable components and no claims beyond the evidence.</p>
-      <p><a href="vision.html">Read the vision and roadmap →</a> · <a href="ethics.html">Our ethical commitments →</a></p>
-    </div>
-  </div>
-</section>
-
 <section class="block alt" id="get">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Download</span>
-      <h2>NeuroCause for Windows and Android · release 2.5</h2>
-      <p>The application with the fly model, free and without advertising, for Windows 10 and 11 (64-bit) and for Android phones
-        and tablets. Because the FlyWire brain data carries a non-commercial licence, it is and remains free of charge. The
-        <a href="software-terms.html">software terms</a> apply to every download; both applications ask you to accept them
-        before they start.</p>
+      <span class="kicker">Get NeuroCause</span>
+      <h2>In your browser, on Windows and on Android · release 2.5</h2>
+      <p>The application with the fly model, free and without advertising: in a current browser, for Windows 10 and 11 (64-bit)
+        and for Android phones and tablets. Because the FlyWire brain data carries a non-commercial licence, it is and remains
+        free of charge. The <a href="software-terms.html">software terms</a> apply to every version; each asks you to accept
+        them before it starts.</p>
     </div>
-    <div class="grid">
+    <div class="grid get-grid">
+      <div class="card get-browser">
+        <h3>In your browser</h3>
+        <p>Nothing to install: the same application in a current browser on a computer, tablet or recent phone. It downloads
+          about 6&nbsp;MB, computes everything on your device and keeps your progress there.</p>
+        <p><a class="btn primary" href="play/?workspace=habitat" data-track="get-play">Play in your browser</a></p>
+      </div>
       <div class="card">
         <h3>Windows, portable</h3>
         <p>Release 2.5.0 as a ZIP of about 183 MB. Unzip it anywhere and start <code>NeuroCause.exe</code>; nothing is installed
@@ -412,11 +388,6 @@
           asks once to allow installs from your browser or file manager. The app runs entirely on the device and connects to
           nothing.</p>
         <p><a class="btn primary" href="https://get.neuro-cause.com/v2.5.0/android" rel="nofollow" data-track="download-apk">Download for Android</a></p>
-      </div>
-      <div class="card">
-        <h3>Source code</h3>
-        <p>Code, data pipeline, tests and the Windows build script, public on GitHub under a non-commercial licence.</p>
-        <p><a class="btn secondary" href="https://github.com/neuroflyapp/neurofly" data-track="get-github">View on GitHub</a></p>
       </div>
     </div>
     <div class="early-access" id="early-access">
@@ -431,7 +402,9 @@
     <p class="note download-meta">SHA-256 of the Windows ZIP: <code>6b247dc6ab2bab6052fa884019d603ab19064c0d5f60fb9e500aa089d147ecd6</code> · of the Android APK:
       <code>f5fc768d86978b02a0b8f051d467534195c1b0c0c133c37436a43bb925dc75ec</code> ·
       <a href="https://github.com/neuroflyapp/neurofly/releases/tag/v2.5.0">release notes</a> ·
-      <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a>. The Windows build is not code-signed yet: if
+      <a href="https://github.com/neuroflyapp/neurofly/releases">all releases</a> ·
+      <a href="https://github.com/neuroflyapp/neurofly" data-track="get-github">source code on GitHub</a> (code, data pipeline and
+      tests, under a non-commercial licence). The Windows build is not code-signed yet: if
       Windows shows “Windows protected your PC”, choose <em>More info</em>, then <em>Run anyway</em>. The APK is signed by
       NeuroCause and is not in an app store yet: a new version is installed the same way, over the old one.</p>
     <div class="release-news">
@@ -500,8 +473,8 @@
         <thead><tr><th>Dataset</th><th>Specimen</th><th>Used for</th><th>Licence</th></tr></thead>
         <tbody>
           <tr><td>FlyWire FAFB v783<small>Dorkenwald et al. 2024; Schlegel et al. 2024, <i>Nature</i></small></td><td>adult female, brain</td><td>brain circuit of the fly model</td><td>CC BY-NC 4.0</td></tr>
-          <tr><td>MaleCNS v1.0<small>Berg et al. 2025, bioRxiv; FlyEM, HHMI Janelia</small></td><td>adult male, brain + nerve cord</td><td>locomotor nerve cord of the fly model; anatomy explorer</td><td>CC BY 4.0</td></tr>
-          <tr><td>BANC v888<small>Bates et al. 2026, <i>Nature</i></small></td><td>adult female, brain + nerve cord</td><td>anatomy explorer and films; the single-animal model in development</td><td>CC BY 4.0</td></tr>
+          <tr><td>MaleCNS v1.0<small>Berg et al. 2025, bioRxiv; FlyEM, HHMI Janelia</small></td><td>adult male, brain + nerve cord</td><td>nerve cord of the reference fly; brain and nerve cord of the male fly; anatomy explorer</td><td>CC BY 4.0</td></tr>
+          <tr><td>BANC v888<small>Bates et al. 2026, <i>Nature</i></small></td><td>adult female, brain + nerve cord</td><td>brain and nerve cord of the female fly; anatomy explorer and films</td><td>CC BY 4.0</td></tr>
         </tbody>
       </table>
     </div>
@@ -512,9 +485,9 @@
 <footer class="site-footer">
   <div class="wrap">
     <div class="cols">
-      <div><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="139" height="26"><p>In-silico experiments on measured nervous systems. Our first model is the fruit fly <i>Drosophila melanogaster</i>. Independent research and teaching, from Zurich.</p>
+      <div><img src="brand/neurocause-logo.svg" alt="NeuroCause" width="139" height="26"><p>An in-silico laboratory for nervous systems, to experiment on and to play with. Our first model is the fruit fly <i>Drosophila melanogaster</i>. Independent research and teaching, from Zurich.</p>
         <ul class="social" aria-label="NeuroCause on social media"><li><a href="https://www.instagram.com/neurocauseofficial/" target="_blank" rel="me noopener" aria-label="NeuroCause on Instagram (opens in a new tab)" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.3" cy="6.7" r="1.05" fill="currentColor" stroke="none"/></svg></a></li><li><a href="https://www.tiktok.com/@neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on TikTok (opens in a new tab)" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a></li><li><a href="https://x.com/neurocause" target="_blank" rel="me noopener" aria-label="NeuroCause on X (opens in a new tab)" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li><li><a href="https://github.com/neuroflyapp/neurofly" target="_blank" rel="me noopener" aria-label="NeuroCause on GitHub (opens in a new tab)" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li></ul></div>
-      <div><h4>NeuroCause</h4><ul><li><a href="./#models">Models</a></li><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
+      <div><h4>NeuroCause</h4><ul><li><a href="play/?workspace=habitat" data-track="footer-play">Play in your browser</a></li><li><a href="play/?workspace=experiments" data-track="footer-lab">Open the lab</a></li><li><a href="./#models">Models</a></li><li><a href="science.html">Methods</a></li><li><a href="evidence.html">Evidence</a></li><li><a href="vision.html">Vision &amp; roadmap</a></li><li><a href="ethics.html">Ethics</a></li><li><a href="https://github.com/neuroflyapp/neurofly">Source code</a></li></ul></div>
       <div><h4>Get involved</h4><ul><li><a href="./#support">Support the lab &amp; pre-releases</a></li><li><a href="contact.html">Contact</a></li><li><a href="contact.html#suggest">Suggest an improvement</a></li><li><a href="contact.html#suggest">Report a scientific error</a></li></ul></div>
       <div><h4>Legal</h4><ul><li><a href="imprint.html">Imprint</a></li><li><a href="privacy.html">Privacy notice</a></li><li><a href="cookies.html">Cookies</a></li><li><a href="terms.html">Terms of use</a></li><li><button type="button" class="linklike" data-privacy-settings>Privacy settings</button></li></ul></div>
     </div>
