@@ -39,6 +39,32 @@ const minArena = () => (document.body.classList.contains('mobile') ? MOBILE_MIN_
 const bootLine = document.getElementById('bootLine');
 const bootBar = document.getElementById('bootBar');
 const boot = (text, fraction) => { bootLine.textContent = t(text); bootBar.style.width = `${Math.round(fraction * 100)}%`; };
+// A long start (the browser loads the connectome first) shows one true
+// sentence about the model at a time; a quick start never shows them.
+const BOOT_FACTS = [
+  () => t('Every connection in this brain was traced in electron-microscope images of a real fly.'),
+  () => t('The wiring is measured. How each neuron behaves in time is a model, and labelled as one.'),
+  () => t('One spike of the giant fiber is enough to launch an escape.'),
+  () => t('Whether the fly drinks is decided by its taste circuit, never by the game.'),
+  () => t('Sound and wind reach different antennal neurons. In this model only sound reaches the escape.'),
+  () => t('Every individual has the same wiring. Its seed makes it an individual.'),
+  () => t('Nothing the fly does is scripted: every move comes from simulated spikes.'),
+];
+function startBootFacts() {
+  const el = document.createElement('div');
+  el.className = 'boot-fact';
+  let k = Math.floor(Math.random() * BOOT_FACTS.length), timer = null;
+  const next = () => {
+    const box = document.getElementById('boot');
+    if (!box || box.classList.contains('done') || box.classList.contains('failed')) { clearInterval(timer); return; }
+    if (!el.isConnected) box.append(el);
+    el.classList.remove('in');
+    void el.offsetWidth;          // restart the fade (a few times per boot, never per frame)
+    el.textContent = BOOT_FACTS[k++ % BOOT_FACTS.length]();
+    el.classList.add('in');
+  };
+  setTimeout(() => { next(); timer = setInterval(next, 5000); }, 2500);
+}
 // A start that cannot go on says why on the boot screen, instead of a bar
 // that stops moving.
 const bootFailed = (text) => { boot(text, 1); document.getElementById('boot').classList.add('failed'); };
@@ -110,6 +136,7 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   });
   mark('terms');
   boot('Loading the connectome…', 0.08);
+  startBootFacts();
   // As text: one string crosses into the page and on to both workers, each of
   // which parses its own copy (main.js 'brain-data-text').
   const dataText = api.getBrainDataText ? await api.getBrainDataText() : null;

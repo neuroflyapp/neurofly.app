@@ -119,6 +119,20 @@ export function createWebApi() {
       return { ok: true, path: name };
     }
     const blob = new Blob([text ?? bytes], { type: spec.type });
+    // A photo on a phone's browser goes to the share sheet (messages, social
+    // apps, gallery) with a link back; a computer keeps the plain download.
+    if (kind === 'savePhoto' && globalThis.matchMedia?.('(pointer: coarse)').matches && navigator.canShare) {
+      const file = new File([blob], name, { type: spec.type });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'NeuroCause', text: 'https://neuro-cause.com/play/' });
+          return { ok: true, path: name };
+        } catch (error) {
+          if (error?.name === 'AbortError') return { ok: false, reason: 'canceled' };
+          // Not allowed here (no user gesture, policy): fall back to the download.
+        }
+      }
+    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = name;

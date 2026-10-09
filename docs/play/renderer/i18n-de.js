@@ -10,6 +10,13 @@ export const DE = {
   'Habitat': 'Habitat',
   // ---- boot, shell, help ----
   'Loading the connectome…': 'Konnektom wird geladen …',
+  'Every connection in this brain was traced in electron-microscope images of a real fly.': 'Jede Verbindung in diesem Gehirn wurde in Elektronenmikroskop-Bildern einer echten Fliege nachgezeichnet.',
+  'The wiring is measured. How each neuron behaves in time is a model, and labelled as one.': 'Die Verschaltung ist gemessen. Wie sich jedes Neuron zeitlich verhält, ist ein Modell, und als solches gekennzeichnet.',
+  'One spike of the giant fiber is enough to launch an escape.': 'Ein einziger Spike der Riesenfaser genügt für einen Fluchtstart.',
+  'Whether the fly drinks is decided by its taste circuit, never by the game.': 'Ob die Fliege trinkt, entscheidet ihr Geschmackskreis, nie das Spiel.',
+  'Sound and wind reach different antennal neurons. In this model only sound reaches the escape.': 'Schall und Wind erreichen verschiedene Antennenneuronen. In diesem Modell erreicht nur Schall die Flucht.',
+  'Every individual has the same wiring. Its seed makes it an individual.': 'Jedes Individuum hat dieselbe Verschaltung. Sein Seed macht es zum Individuum.',
+  'Nothing the fly does is scripted: every move comes from simulated spikes.': 'Nichts, was die Fliege tut, ist geskriptet: Jede Bewegung entsteht aus simulierten Spikes.',
   'Starting the simulation on its own core…': 'Simulation startet auf eigenem Prozessorkern …',
   'Building the terrarium and the brain view…': 'Terrarium und Gehirnansicht werden aufgebaut …',
   'Preparing the graphics…': 'Grafik wird vorbereitet …',
