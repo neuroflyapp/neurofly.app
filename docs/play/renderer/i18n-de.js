@@ -1105,6 +1105,7 @@ export const DE = {
   'Show another open goal': 'Ein anderes offenes Ziel zeigen',
   'Other goal': 'Anderes Ziel',
   'Idea': 'Idee',
+  '{name} is feeding: grooming waits until the meal ends. DNg12 already fires.': '{name} frisst gerade: Das Putzen wartet, bis die Mahlzeit endet. DNg12 feuert schon.',
   'included': 'enthalten',
   'partly': 'teilweise',
   'not included': 'nicht enthalten',

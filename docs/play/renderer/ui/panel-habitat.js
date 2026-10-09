@@ -296,7 +296,13 @@ export const habitatPanel = {
     };
     const feed = () => ctx.command('food.add', { kind: 'sugar', conc: 1, ...near(12) });
     const bitter = () => ctx.command('food.add', { kind: 'bitter', conc: 1, ...near(12) });
-    const dust = () => ctx.command('antenna.dust', { amount: 0.8 });
+    const dust = () => {
+      ctx.command('antenna.dust', { amount: 0.8 });
+      // Behaviour selection, visible: the grooming command fires, the meal goes on.
+      if (ctx.snap?.fly?.state === 'feeding') {
+        overlay.pill(t('{name} is feeding: grooming waits until the meal ends. DNg12 already fires.', { name: name() }), { iconName: 'antenna', tone: 'gold' });
+      }
+    };
     const actBtns = {
       feed: actionBtn('drop', t('Feed'), t('Touch a sugar drop to the proboscis, as in the proboscis extension test. Whether it feeds is up to its taste circuit.'), feed),
       bitter: actionBtn('drop', t('Bitter'), t('Touch a bitter drop to the proboscis.'), bitter),
@@ -709,9 +715,17 @@ export const habitatPanel = {
     }
 
     // ---- garden tab --------------------------------------------------------------------------
-    let placing = null;
+    let placing = null, cameraBeforePlacing = null;
     function startPlacing(item) {
       placing = item;
+      // A phone looks at the whole tank from above while placing: the follow
+      // camera's small window shows little ground away from the fly.
+      if (ctx.mobile?.active && cameraBeforePlacing === null && terrarium?.cameraMode !== 'overhead') {
+        cameraBeforePlacing = terrarium.cameraMode;
+        terrarium.setCameraMode('overhead');
+      }
+      overlay.setHint(touchUI() ? t('Tap into the terrarium to place: {item}.', { item: L(item.name) })
+        : t('Click into the terrarium to place: {item}. Esc cancels.', { item: L(item.name) }), stopPlacing);
       terrarium?.setPlacement({ radius: item.radius, minFlyDistance: GARDEN.minFlyDistance, onPlace: (p) => {
         const res = act({ type: 'place', item: item.id, x: p.x, y: p.y });
         if (res.ok) { sound.play('hatch'); stopPlacing(); }
@@ -723,6 +737,8 @@ export const habitatPanel = {
       if (!placing) return;
       placing = null;
       terrarium?.setPlacement(null);
+      if (cameraBeforePlacing !== null) { terrarium?.setCameraMode(cameraBeforePlacing); cameraBeforePlacing = null; }
+      overlay.setHint(null);
       stateVersion++;
       refresh();
     }

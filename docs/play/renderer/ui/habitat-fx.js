@@ -66,7 +66,8 @@ export class HabitatOverlay {
     this.pills = h('div', { class: 'hab-pills' });
     this.bubble = h('div', { class: 'hab-bubble', hidden: true });
     this.tint = h('div', { class: 'hab-redlight', hidden: true });
-    this.el.append(this.tint, h('div', { class: 'hab-stack' }, this.cards, this.pills), this.bubble);
+    this.hint = h('div', { class: 'hab-hint-bar', hidden: true });
+    this.el.append(this.tint, h('div', { class: 'hab-stack' }, this.hint, this.cards, this.pills), this.bubble);
     host.append(this.el);
     this.queue = [];
     this.active = [];          // items on screen
@@ -106,7 +107,7 @@ export class HabitatOverlay {
     this.pumpTimer = null;
     if (!this.queue.length || !this.el.isConnected) return;
     const wait = (ms) => { this.pumpTimer = setTimeout(() => this._pump(), ms); };
-    if (document.querySelector('dialog[open]')) { wait(600); return; }
+    if (document.querySelector('dialog[open]') || !this.hint.hidden) { wait(600); return; }
     const now = performance.now();
     if (now < this.nextAt) { wait(this.nextAt - now); return; }
     const next = this.queue[0];
@@ -166,6 +167,16 @@ export class HabitatOverlay {
     this.el.append(el);
     setTimeout(() => el.classList.add('out'), 2400);
     setTimeout(() => { el.remove(); this._done(item); }, 2800);
+  }
+
+  // A standing instruction over the terrarium (placing a garden piece);
+  // cards and pills wait meanwhile. null removes it.
+  setHint(text, onCancel = null) {
+    this.hint.hidden = !text;
+    this.el.classList.toggle('hinting', Boolean(text));
+    if (!text) { this.hint.replaceChildren(); this._pump(); return; }
+    this.hint.replaceChildren(icon('target', 15), h('span', {}, text),
+      onCancel ? h('button', { type: 'button', class: 'btn small', onclick: onCancel }, t('Cancel')) : null);
   }
 
   // One line of news at the top: { iconName, tone, onclick }.
