@@ -21,6 +21,8 @@ by side in the big question, Show in the brain on phones), `baccabc` (facts
 on the start screen while the connectome loads; photos shared from phone
 browsers through the share sheet with a link back), and `4027af4` (privacy
 notice: sharing a photo is the player's own action; effective 9 October).
+Then `e4847ec` (garden placing from above on phones; a hint when dust meets a
+meal). Every rebuild: 0 files differing from the index, web smoke test passed.
 
 ## 8 October 2026 — onboarding and scientific precision (latest)
 
