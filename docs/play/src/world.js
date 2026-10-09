@@ -871,7 +871,10 @@ function buildFirefly(radius) {
 // of one per part. The object still moves as a whole; its own transform stays
 // on the root. Only opaque parts are merged: transparent ones are sorted per
 // mesh when drawn, and merging them would change that order.
-export function mergeByMaterial(root) {
+// `shadows`: parts merge only with parts that cast and receive shadows alike
+// (the walls: rails and posts cast, the bases do not), so the shadow map, and
+// with it her eye, stays exactly as before.
+export function mergeByMaterial(root, { shadows = false } = {}) {
   if (!root.isGroup) return root;
   root.updateMatrixWorld(true);
   const toRoot = new THREE.Matrix4().copy(root.matrixWorld).invert();
@@ -880,7 +883,7 @@ export function mergeByMaterial(root) {
     if (!o.isMesh || o.material.transparent) return;
     // Layers are part of the scientific observer/eye boundary. Never merge
     // observer-only decoration back onto the default eye-visible layer.
-    const key = `${o.material.id}:${o.layers.mask}`;
+    const key = `${o.material.id}:${o.layers.mask}${shadows ? `:${o.castShadow}:${o.receiveShadow}` : ''}`;
     if (!byMaterial.has(key)) byMaterial.set(key, []);
     byMaterial.get(key).push(o);
   });
@@ -913,6 +916,59 @@ export function mergeByMaterial(root) {
   const empty = [];
   root.traverse((o) => { if (o !== root && o.isGroup && !o.children.length) empty.push(o); });
   for (const g of empty) g.parent.remove(g);
+  return root;
+}
+
+// Observer-only scenery (on DISPLAY_LAYER alone, casting no shadow): parts
+// that differ only in colour become one mesh per look, the colour moving into
+// a vertex attribute. Her eye never draws this layer and the shadow map never
+// holds it, so only the observer's picture is touched, and it is unchanged.
+export function mergeDisplayColours(root) {
+  if (!root.isGroup) return root;
+  root.updateMatrixWorld(true);
+  const toRoot = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const displayOnly = 1 << DISPLAY_LAYER;
+  const looks = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh || o.layers.mask !== displayOnly || o.castShadow) return;
+    const t = o.material;
+    if (Array.isArray(t) || t.transparent || t.map || t.vertexColors || !t.color) return;
+    if (!o.geometry.attributes.position || !o.geometry.attributes.normal) return;
+    const key = [t.type, t.specular?.getHexString(), t.shininess, t.emissive?.getHexString(), t.emissiveIntensity,
+      t.side, t.flatShading, t.fog, o.receiveShadow].join('|');
+    if (!looks.has(key)) looks.set(key, []);
+    looks.get(key).push(o);
+  });
+  for (const meshes of looks.values()) {
+    if (meshes.length < 2) continue;
+    const parts = meshes.map((m) => {
+      const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+      return { g: g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(toRoot, m.matrixWorld)), c: m.material.color };
+    });
+    const count = parts.reduce((n, p) => n + p.g.attributes.position.count, 0);
+    const pos = new Float32Array(count * 3), nrm = new Float32Array(count * 3), col = new Float32Array(count * 3);
+    let at = 0;
+    for (const { g, c } of parts) {
+      pos.set(g.attributes.position.array, at * 3);
+      nrm.set(g.attributes.normal.array, at * 3);
+      for (let k = 0; k < g.attributes.position.count; k++) col.set([c.r, c.g, c.b], (at + k) * 3);
+      at += g.attributes.position.count;
+      g.dispose();
+    }
+    const merged = new THREE.BufferGeometry();
+    merged.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    merged.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+    merged.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    merged.computeBoundingSphere();
+    const material = meshes[0].material.clone();
+    material.color.setRGB(1, 1, 1);
+    material.vertexColors = true;
+    const mesh = new THREE.Mesh(merged, material);
+    mesh.layers.mask = displayOnly;
+    mesh.receiveShadow = meshes[0].receiveShadow;
+    for (const m of meshes) { m.parent.remove(m); m.geometry.dispose(); }
+    root.add(mesh);
+  }
   return root;
 }
 
@@ -1019,6 +1075,10 @@ export class World {
     this._cabinet = makeCabinet(bounds);
     if (this.merge) {
       mergeByMaterial(this._landscape);
+      mergeDisplayColours(this._landscape);
+      mergeByMaterial(this._walls, { shadows: true });
+      mergeByMaterial(this._cabinet, { shadows: true });
+      mergeDisplayColours(this._cabinet);
     }
     this.node.add(this._ground, this._walls, this._landscape, this._cabinet);
   }

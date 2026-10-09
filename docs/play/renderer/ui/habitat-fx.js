@@ -202,6 +202,22 @@ export class HabitatOverlay {
     }, POINTS_MS);
   }
 
+  // The neurons deciding what the fly just started, as a tag over her head
+  // for two seconds ({ text, color: [r, g, b] }).
+  whisper(text, color = [0, 1, 0.25]) {
+    const p = this.flyPosition();
+    if (!p?.visible) return;
+    const rgb = `rgb(${color.map((c) => Math.round(c * 255)).join(',')})`;
+    // Not under the cards: below them if the fly stands in their column.
+    let y = p.y - 46;
+    const stack = this.cards.parentElement.getBoundingClientRect(), host = this.host.getBoundingClientRect();
+    if (stack.height > 0 && p.x > stack.left - host.left - 60 && p.x < stack.right - host.left + 60) y = Math.max(y, stack.bottom - host.top + 34);
+    const el = h('div', { class: 'hab-whisper', style: { left: `${Math.round(p.x)}px`, top: `${Math.round(y)}px`, '--w': rgb } },
+      icon('bolt', 12), h('span', {}, text));
+    this.el.append(el);
+    setTimeout(() => el.remove(), 2400);
+  }
+
   // A short text rising from the fly (or the middle of the view).
   float(text, kind = 'xp') {
     const p = this.flyPosition();

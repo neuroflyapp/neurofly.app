@@ -107,7 +107,7 @@ const ctx = {
       return { ok: false };
     }
   },
-  highlight(spec) { this.views.brain?.setHighlight(spec); },
+  highlight(spec) { return this.views.brain?.setHighlight(spec) ?? null; },
   // Touch screen: the hints speak of fingers, not of a mouse.
   touch: matchMedia('(pointer: coarse)').matches,
   // A picture of what is on screen (snapshots outside Electron).

@@ -14,6 +14,7 @@ import { assessSentience } from '../../src/sentience.js';
 import { HabitatOverlay, HabitatSound, composePhoto } from './habitat-fx.js';
 import { median } from '../../src/stats.js';
 import { LEVEL, ANIMAL_TEXT, modelText } from './panel-sentience.js';
+import { GROUP_COLORS } from '../view/brain.js';
 import { HabitatStorage } from '../../src/habitat-storage.js';
 
 const L = (rec, name = '') => fillName(rec?.[getLanguage()] ?? rec?.en ?? '', name);
@@ -135,7 +136,7 @@ export const habitatPanel = {
             }
             overlay.card({ tone: b.rarity, iconName: b.icon, eyebrow: `${t('New discovery')} · ${rarityLabel(b.rarity)}`,
               title: L(b.title), text: L(b.text, name()), chips, rewards: [`+${rew.xp} XP`, `+${rew.leaves} ${t('leaves')}`],
-              action: groups.length ? { label: t('Show in the brain'), onclick: () => highlight(groups) } : null,
+              action: groups.length ? { label: t('Show in the brain'), onclick: () => highlight(groups, b.neurons.map((x) => byId(NEURONS, x).label).join(' + ')) } : null,
               priority: { rare: 60, uncommon: 55, common: 50 }[b.rarity] ?? 50 });
             break;
           }
@@ -207,8 +208,9 @@ export const habitatPanel = {
       }
     }
 
-    function highlight(groups) {
-      ctx.highlight({ groups, color: [0, 1, 0.25], duration: 8 });
+    function highlight(groups, label = null) {
+      // The cells, and their measured wiring: strongest partners and the synapses to them.
+      ctx.highlight({ groups, color: [0, 1, 0.25], duration: 14, wiring: true, label: label ?? groups.join(', ') });
       // A phone shows the connectome instead of the terrarium (Brain in the bar returns).
       if (ctx.mobile?.active) ctx.showBrain?.();
       else if (document.body.classList.contains('inspector-collapsed')) ctx.toast(t('Open the connectome view (layers button) to see the cells.'));
@@ -534,17 +536,23 @@ export const habitatPanel = {
         const typeOf = (i) => circuit.neurons[i]?.cellType || circuit.neurons[i]?.type || '?';
         let synIn = 0, synOut = 0, inhIn = 0;
         const pre = new Set(), post = new Set(), inTypes = new Map(), outTypes = new Map();
-        for (const [a, b, count] of circuit.edges) {
+        // Per partner type: synapses, of them inhibitory and modulatory (the diagram's colours).
+        const add = (m, type, n, count, nt) => {
+          const e = m.get(type) ?? { n: 0, inh: 0, mod: 0 };
+          e.n += n; if (nt) e.mod += n; else if (count < 0) e.inh += n;
+          m.set(type, e);
+        };
+        for (const [a, b, count, nt] of circuit.edges) {
           const n = Math.abs(count);
           if (cells.has(b) && !cells.has(a)) {
             synIn += n; if (count < 0) inhIn += n; pre.add(a);
-            inTypes.set(typeOf(a), (inTypes.get(typeOf(a)) ?? 0) + n);
+            add(inTypes, typeOf(a), n, count, nt);
           } else if (cells.has(a) && !cells.has(b)) {
             synOut += n; post.add(b);
-            outTypes.set(typeOf(b), (outTypes.get(typeOf(b)) ?? 0) + n);
+            add(outTypes, typeOf(b), n, count, nt);
           }
         }
-        const top = (m) => [...m].sort((x, y) => y[1] - x[1]).slice(0, 4);
+        const top = (m) => [...m].sort((x, y) => y[1].n - x[1].n).slice(0, 4);
         stats = { cells: cells.size, synIn, synOut, inhShare: synIn ? inhIn / synIn : 0, pre: pre.size, post: post.size,
           topIn: top(inTypes), topOut: top(outTypes) };
       }
@@ -556,18 +564,53 @@ export const habitatPanel = {
       const el = h('div', { class: 'hab-wiring' }, h('div', { class: 'hab-small' }, t('Counting synapses…')));
       cardStats(card).then((st) => {
         if (!st) { el.replaceChildren(h('div', { class: 'hab-small' }, t('These cells are not part of the running circuit.'))); return; }
-        const list = (pairs) => pairs.map(([type, n]) => `${type} (${int(n)})`).join(', ') || '—';
         el.replaceChildren(
           h('div', { class: 'hab-wiring-head' }, h('span', { class: 'hab-layer data' }, t('Data')), h('b', {}, t('In the connectome'))),
           h('div', { class: 'hab-wiring-nums' },
             h('div', {}, h('b', {}, int(st.cells)), h('span', {}, t('cells'))),
             h('div', {}, h('b', {}, int(st.synIn)), h('span', {}, t('input synapses'))),
             h('div', {}, h('b', {}, int(st.synOut)), h('span', {}, t('output synapses')))),
-          h('div', { class: 'hab-small' }, t('From {n} cells, {p} % of them inhibitory. Strongest inputs: {list}.', { n: int(st.pre), p: Math.round(st.inhShare * 100), list: list(st.topIn) })),
-          h('div', { class: 'hab-small' }, t('To {n} cells. Strongest outputs: {list}.', { n: int(st.post), list: list(st.topOut) })),
-          h('div', { class: 'hab-small' }, t('Counted within the simulated circuit, not the whole brain.')));
+          wiringDiagram(card, st),
+          h('div', { class: 'hab-small' }, t('From {n} cells; {p} % of the input synapses are inhibitory. To {m} cells.', { n: int(st.pre), p: Math.round(st.inhShare * 100), m: int(st.post) })),
+          h('div', { class: 'hab-small' }, t('Line width: synapses; green excites, red inhibits, violet modulates; the dashes run in the signal direction. Counted within the simulated circuit, not the whole brain.')));
       });
       return el;
+    }
+
+    // The card's cells between their strongest input and output cell types:
+    // line width = synapse count, colour = transmitter sign, dashes = direction.
+    function wiringDiagram(card, st) {
+      const NS = 'http://www.w3.org/2000/svg';
+      const s = (tag, attrs = {}, ...kids) => {
+        const el = document.createElementNS(NS, tag);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+        for (const k of kids) if (k != null) el.append(k);
+        return el;
+      };
+      const rows = Math.max(st.topIn.length, st.topOut.length, 1);
+      const H = 6 + rows * 28, cy = (H + 2) / 2;
+      const max = Math.max(1, ...st.topIn.map(([, e]) => e.n), ...st.topOut.map(([, e]) => e.n));
+      const colour = (e) => (e.mod > e.n / 2 ? '#c6a4ff' : e.inh > e.n / 2 ? '#ff6b7a' : '#3dff7a');
+      const short = (x) => (x.length > 13 ? `${x.slice(0, 12)}…` : x);
+      const svg = s('svg', { class: 'hab-diagram', viewBox: `0 0 320 ${H}`, role: 'img',
+        'aria-label': t('Wiring diagram: strongest inputs, the cells, strongest outputs') });
+      const side = (list, x, labelX, anchor, toCenter) => list.forEach(([type, e], k) => {
+        const y = 16 + k * 28 + (rows - list.length) * 14;
+        const w = 1.2 + 6 * Math.sqrt(e.n / max);
+        const d = toCenter ? `M${x},${y} C${x + 40},${y} ${132 - 40},${cy} 132,${cy}` : `M188,${cy} C${188 + 40},${cy} ${x - 40},${y} ${x},${y}`;
+        svg.append(
+          s('path', { d, fill: 'none', stroke: colour(e), 'stroke-width': w.toFixed(1), 'stroke-opacity': 0.35, 'stroke-linecap': 'round' }),
+          s('path', { d, fill: 'none', stroke: colour(e), 'stroke-width': Math.max(1, w * 0.55).toFixed(1), class: 'hab-flow' }),
+          s('circle', { cx: x, cy: y, r: 3.2, fill: colour(e) }),
+          s('text', { x: labelX, y: y - 2, 'text-anchor': anchor, class: 'hab-dg-type' }, short(type)),
+          s('text', { x: labelX, y: y + 9, 'text-anchor': anchor, class: 'hab-dg-n' }, `${int(e.n)} syn`));
+      });
+      side(st.topIn, 96, 90, 'end', true);
+      side(st.topOut, 224, 230, 'start', false);
+      svg.append(s('rect', { x: 132, y: cy - 15, width: 56, height: 30, rx: 9, class: 'hab-dg-node' }),
+        s('text', { x: 160, y: cy - 1, 'text-anchor': 'middle', class: 'hab-dg-label' }, short(card.label)),
+        s('text', { x: 160, y: cy + 10, 'text-anchor': 'middle', class: 'hab-dg-n' }, t('{n} cells', { n: st.cells })));
+      return svg;
     }
 
     function entryDetail(key) {
@@ -581,7 +624,7 @@ export const habitatPanel = {
           h('div', { class: 'hab-chips' }, ...b.neurons.map((n) => h('span', { class: 'hab-chip' }, byId(NEURONS, n).label))),
           h('div', { class: 'hab-small' }, t('First seen {date} · {n} times', { date: new Date(e.first).toLocaleDateString(getLanguage()), n: e.count })),
           h('div', { class: 'hab-small' }, t('Simulation: the behaviour itself. The rule that turns the deciding neurons into the movement is a model.')),
-          groups.length ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight(groups) }, icon('brain', 14), t('Show in the brain')) : null);
+          groups.length ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight(groups, b.neurons.map((x) => byId(NEURONS, x).label).join(' + ')) }, icon('brain', 14), t('Show in the brain')) : null);
       }
       const n = byId(NEURONS, id);
       if (!game.state.cards[id]) return h('div', { class: 'hab-detail' }, h('p', {}, t('Not found yet: observe a behaviour or a sense that uses these cells.')));
@@ -591,7 +634,7 @@ export const habitatPanel = {
         wiringBlock(n),
         h('div', { class: 'hab-small' }, t('Data: these cells and their wiring come from the connectome. Simulation: their activity.')),
         cite(n.ref),
-        n.highlight ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight([n.highlight]) }, icon('brain', 14), t('Show in the brain')) : null);
+        n.highlight ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight([n.highlight], n.label) }, icon('brain', 14), t('Show the wiring in the brain')) : null);
     }
 
     // ---- fly lab tab -----------------------------------------------------------------------
@@ -1034,10 +1077,32 @@ export const habitatPanel = {
         action: { label: t('Choose a name'), onclick: () => nameBtn.click() } });
     }
 
+    // What the fly just started, and the neurons that decided it, over her head.
+    let whisperState = null, whisperAt = 0;
+    const WHISPER_GAP_MS = 6000;
+    function whisper(snap) {
+      if (!game.isBound(snap) || !snap.fly) return;
+      const takeoff = (snap.events ?? []).some((e) => e.kind === 'takeoff');
+      const st = takeoff ? 'takeoff' : snap.fly.backward ? 'backward' : snap.fly.state === 'grooming' ? `groom-${snap.fly.groomMode}` : snap.fly.state;
+      if (st === whisperState) return;
+      whisperState = st;
+      const now = performance.now();
+      if (now - whisperAt < WHISPER_GAP_MS && !takeoff) return;
+      const r = snap.rates ?? {};
+      const say = {
+        walking: ['DNp09', r.fwd, 'fwd'], backward: ['MDN', r.mdn, 'mdn'], feeding: ['MN9', r.proboscis, 'proboscis'],
+        'groom-head': ['DNg12', r.dng12, 'dng12'], 'groom-legs': ['DNg11', r.groom, 'groom'],
+      }[st];
+      if (takeoff) overlay.whisper(t('Giant fiber spike: takeoff'), GROUP_COLORS.gf);
+      else if (say && say[1] > 0.5) overlay.whisper(`${say[0]} · ${num(say[1], 0)} Hz`, GROUP_COLORS[say[2]]);
+      else return;
+      whisperAt = now;
+    }
     const offFrame = ctx.onFrame((snap, extra) => {
       if (extra?.pick || snap === lastSnap) return;
       lastSnap = snap;
       handleRewards(game.observe(snap, Date.now()));
+      whisper(snap);
       overlay.follow();
     });
     const onLeave = () => saveGame();

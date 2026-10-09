@@ -129,6 +129,17 @@ export class AdaptiveRenderQuality {
 // the display renderer and the simulation worker share the same cores and
 // power budget, so this gives the neural clock back its real-time pace before
 // the picture loses resolution (AdaptiveRenderQuality).
+// It learns what the machine sustains. Drawing more often is tried after a few
+// healthy windows; if the simulation falls behind within PROBE_WINDOWS of such
+// a step, it was the step: the stride goes back by one only, and the next try
+// at that stride waits twice as long (up to MAX_WAIT windows). The window right
+// after a change still carries the old stride's backlog: only a severe lag
+// counts there. Measured on a 4-core Celeron: every frame cost the worker half
+// its neural throughput and dropped simulated time (sometimes only after ten
+// seconds), every second frame left it 50 % idle; without this memory the
+// pacer swung between every frame and every third frame.
+const PROBE_WINDOWS = 12, MAX_WAIT = 64, SETTLED_WINDOWS = 180, SEVERE = 0.85;
+
 export class DisplayPacer {
   constructor({ maxStride = 3, recoverWindows = 4 } = {}) {
     this.maxStride = Math.max(1, Math.floor(maxStride));
@@ -137,22 +148,43 @@ export class DisplayPacer {
     this.minStride = 1;      // raised while other simulation work needs the cores
     this.healthyWindows = 0;
     this.phase = 0;
+    this.wait = new Map();   // stride -> healthy windows needed before trying it
+    this.probe = null;       // { from, windows } just after drawing more often
+    this.steady = 0;         // windows without lag at the current stride
+    this.settling = false;   // the window after a change
   }
 
   // Once per measurement window (about a second). `simulationRealtime` is
   // relative to the requested speed and 1 while paused.
   observe({ simulationRealtime = 1, droppedSecondsPerSecond = 0 } = {}) {
     const lagging = simulationRealtime < 0.97 || droppedSecondsPerSecond > 0.005;
+    const settling = this.settling;
+    this.settling = false;
+    if (lagging && settling && simulationRealtime >= SEVERE) { this.healthyWindows = 0; return this.stride = Math.max(this.stride, this.minStride); }
     if (lagging) {
+      this.settling = true;
       this.healthyWindows = 0;
-      if (this.stride < this.maxStride) this.stride++;
+      this.steady = 0;
+      if (this.probe) {
+        // The step to drawing more often was too much: back to where it held.
+        const tried = this.stride;
+        this.wait.set(tried, Math.min(MAX_WAIT, (this.wait.get(tried) ?? this.recoverWindows) * 2));
+        this.stride = this.probe.from;
+        this.probe = null;
+      } else if (this.stride < this.maxStride) this.stride++;
       return this.stride = Math.max(this.stride, this.minStride);
     }
-    const healthy = simulationRealtime >= 0.995 && droppedSecondsPerSecond <= 0.0005;
+    if (this.probe && ++this.probe.windows >= PROBE_WINDOWS) this.probe = null;
+    // A stride held for a long time is trusted again from the start.
+    if (++this.steady >= SETTLED_WINDOWS) { this.steady = 0; this.wait.clear(); }
+    const healthy = simulationRealtime >= 0.985 && droppedSecondsPerSecond <= 0.0005;
     this.healthyWindows = healthy ? this.healthyWindows + 1 : 0;
-    if (this.healthyWindows >= this.recoverWindows && this.stride > 1) {
-      this.stride--;
+    const next = this.stride - 1;
+    if (next >= 1 && next >= this.minStride && this.healthyWindows >= (this.wait.get(next) ?? this.recoverWindows)) {
+      this.probe = { from: this.stride, windows: 0 };
+      this.stride = next;
       this.healthyWindows = 0;
+      this.settling = true;
     }
     return this.stride = Math.max(this.stride, this.minStride);
   }

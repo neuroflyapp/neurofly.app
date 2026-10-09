@@ -33,8 +33,10 @@ export const circuitPanel = {
     const isOn = (population, mode) => genetic().some((g) => g.population === population && g.mode === mode);
     const highlight = (key) => {
       const group = POPULATION_BRAIN_GROUP[key];
-      if (group) ctx.highlight({ groups: [group], color: hexToRgb01(POPULATION_COLOR[key] ?? '#ffffff'), duration: 10 });
-      else ctx.request('populationIndices', { population: key }).then((idx) => idx && ctx.highlight({ indices: idx, color: [1, 1, 1], duration: 10 }));
+      // The population and its measured wiring (strongest partners, synapses).
+      const label = pops.find?.((p) => p.key === key)?.label ?? key;
+      if (group) ctx.highlight({ groups: [group], color: hexToRgb01(POPULATION_COLOR[key] ?? '#ffffff'), duration: 14, wiring: true, label: t(label) });
+      else ctx.request('populationIndices', { population: key }).then((idx) => idx && ctx.highlight({ indices: idx, color: [1, 1, 1], duration: 14, wiring: true, label: t(label) }));
     };
     const setGenetic = (population, mode, on) => ctx.command('genetics.set', { population, mode, on, strength: 0.05 }, { reply: true })
       .then((r) => { if (r && !r.ok) ctx.toast(r.reason, 'err'); });
@@ -111,7 +113,7 @@ export const circuitPanel = {
         h('div', { class: 'note' }, h('b', {}, t('Strongest outputs by type: ')), r.topOutputs.map((x) => `${x.type} ${x.weight > 0 ? '+' : ''}${num(x.weight * 1000, 1)}`).join(' · ') || '—'),
         h('div', { class: 'row', style: { marginTop: '8px' } },
           h('button', { class: 'btn small', type: 'button', onclick: () => ctx.command('stim.cells', { indices: [r.index], strength: 1.2, durationMs: 5, label: `neuron #${r.index}` }) }, t('Make it spike')),
-          h('button', { class: 'btn small', type: 'button', onclick: () => ctx.highlight({ indices: [r.index], color: [1, 1, 1], duration: 10 }) }, t('Show'))),
+          h('button', { class: 'btn small', type: 'button', onclick: () => ctx.highlight({ indices: [r.index], color: [1, 1, 1], duration: 14, wiring: true, label: `${r.type || r.superClass} #${r.index}` }) }, t('Show the wiring in the brain'))),
         h('p', { class: 'note' }, t('Weights in thousandths of the spike threshold per spike (signed by transmitter). Membrane in model units.')));
     }
     probeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doProbe(probeInput.value); });

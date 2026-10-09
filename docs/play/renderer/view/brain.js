@@ -112,6 +112,11 @@ export class BrainView {
     this.renderer.setSize(w, h);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(this.renderer.domElement);
+    // What the wiring layer shows, in words (setHighlight with wiring).
+    this.caption = document.createElement('div');
+    this.caption.className = 'brain-caption';
+    this.caption.hidden = true;
+    container.appendChild(this.caption);
     this.renderer.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
     this.groups = [];
     this.visible = new Set();
@@ -235,7 +240,8 @@ export class BrainView {
     // stride sample is drawn permanently as the resting web
     const edges = circuit.edges;
     this.edgeFrom = new Int32Array(edges.length); this.edgeTo = new Int32Array(edges.length); this.edgeExc = new Uint8Array(edges.length);
-    edges.forEach((e, k) => { this.edgeFrom[k] = e[0]; this.edgeTo[k] = e[1]; this.edgeExc[k] = e[2] >= 0 ? 1 : 0; });
+    this.edgeCount = new Uint32Array(edges.length); this.edgeNt = new Uint8Array(edges.length);
+    edges.forEach((e, k) => { this.edgeFrom[k] = e[0]; this.edgeTo[k] = e[1]; this.edgeExc[k] = e[2] >= 0 ? 1 : 0; this.edgeCount[k] = Math.abs(e[2]); this.edgeNt[k] = e[3] || 0; });
     this.outEdges = buildOutgoingEdgeIndex(this.edgeFrom, n);
     this.edgeGlow = new Float32Array(edges.length);
     this.synapseLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.055, depthWrite: false }));
@@ -285,6 +291,105 @@ export class BrainView {
       color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
     this.highlightCloud.visible = false;
     this.group.add(this.highlightCloud);
+    this._buildWiring();
+  }
+
+  // The wiring of highlighted cells: their strongest measured synapses as
+  // lines (brightness: synapse count; colour: transmitter sign), each with a
+  // pulse running from the presynaptic to the postsynaptic cell, and their
+  // partner cells as points (inputs cyan, outputs amber). Observer only.
+  _buildWiring() {
+    this.WIRING = 900;
+    this.wiringUniforms = { uTime: { value: 0 }, uFade: { value: 0 } };
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.WIRING * 6), 3));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(this.WIRING * 6), 3));
+    g.setAttribute('along', new THREE.BufferAttribute(new Float32Array(this.WIRING * 2), 1));
+    g.setDrawRange(0, 0);
+    // Normal blending: where many synapses converge on a cell the colours stay
+    // (additive lines summed to white there); the running pulse still glows.
+    const m = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false, depthTest: false });
+    m.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, this.wiringUniforms);
+      shader.vertexShader = shader.vertexShader.replace('void main() {', 'attribute float along;\nvarying float vAlong;\nvoid main() {\n\tvAlong = along;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('void main() {', 'uniform float uTime;\nuniform float uFade;\nvarying float vAlong;\nvoid main() {')
+        .replace('#include <color_fragment>', '#include <color_fragment>\n\tfloat nfP = fract( vAlong - uTime * 0.55 );\n\tfloat nfBand = exp( -pow( ( nfP - 0.85 ) * 9.0, 2.0 ) );\n\tdiffuseColor.rgb = mix( diffuseColor.rgb * 0.6, vec3( 1.0 ), 0.65 * nfBand );\n\tdiffuseColor.a *= ( 0.35 + 0.65 * nfBand ) * uFade;');
+    };
+    m.customProgramCacheKey = () => 'nf-wiring';
+    this.wiringLines = new THREE.LineSegments(g, m);
+    this.wiringLines.frustumCulled = false;
+    this.wiringLines.visible = false;
+    this.group.add(this.wiringLines);
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(160 * 3), 3));
+    pg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(160 * 3), 3));
+    pg.setDrawRange(0, 0);
+    this.wiringCloud = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.42, sizeAttenuation: true, vertexColors: true,
+      transparent: true, opacity: 0.9, depthWrite: false, depthTest: false }));
+    this.wiringCloud.frustumCulled = false;
+    this.wiringCloud.visible = false;
+    this.group.add(this.wiringCloud);
+    this.wiring = null;
+  }
+
+  // Shows the wiring of the cells `indices` (null clears it). Returns what it
+  // drew, for a caption: partner cells, lines and the synapses they carry.
+  setWiring(indices, { partners = Math.round(24 + 16 * (this.lineDensity ?? 1)), duration = Infinity } = {}) {
+    if (!indices?.length) {
+      this.wiring = null;
+      this.wiringLines.visible = false;
+      this.wiringCloud.visible = false;
+      if (this.caption) this.caption.hidden = true;
+      return null;
+    }
+    const center = new Set(indices.filter((i) => i >= 0 && i < this.n));
+    this.inEdges ??= buildOutgoingEdgeIndex(this.edgeTo, this.n);
+    const inW = new Map(), outW = new Map();
+    for (const i of center) {
+      for (const k of this.inEdges[i]) { const p = this.edgeFrom[k]; if (!center.has(p)) inW.set(p, (inW.get(p) ?? 0) + this.edgeCount[k]); }
+      for (const k of this.outEdges[i]) { const q = this.edgeTo[k]; if (!center.has(q)) outW.set(q, (outW.get(q) ?? 0) + this.edgeCount[k]); }
+    }
+    const top = (m) => [...m].sort((a, b) => b[1] - a[1]).slice(0, partners).map(([i]) => i);
+    const inputs = top(inW), outputs = top(outW);
+    const inSet = new Set(inputs), outSet = new Set(outputs);
+    const list = [];
+    for (const i of center) {
+      for (const k of this.inEdges[i]) if (inSet.has(this.edgeFrom[k])) list.push(k);
+      for (const k of this.outEdges[i]) if (outSet.has(this.edgeTo[k])) list.push(k);
+    }
+    list.sort((a, b) => this.edgeCount[b] - this.edgeCount[a]);
+    const n = Math.min(Math.round(this.WIRING * (0.45 + 0.55 * (this.lineDensity ?? 1))), list.length);
+    const g = this.wiringLines.geometry, pos = g.attributes.position.array, col = g.attributes.color.array, along = g.attributes.along.array;
+    const P = this.positions, max = n ? this.edgeCount[list[0]] : 1;
+    let synapses = 0, exc = 0, inh = 0, mod = 0;
+    for (let a = 0; a < n; a++) {
+      const k = list[a], i = this.edgeFrom[k], j = this.edgeTo[k], c = this.edgeCount[k];
+      synapses += c;
+      pos.set(P.subarray(3 * i, 3 * i + 3), 6 * a); pos.set(P.subarray(3 * j, 3 * j + 3), 6 * a + 3);
+      let rgb;
+      if (this.edgeNt[k]) { mod += c; rgb = [0.75, 0.45, 1.0]; }
+      else if (!this.edgeSignKnown) rgb = [0.3, 0.85, 0.85];
+      else if (this.edgeExc[k]) { exc += c; rgb = [0.25, 1.0, 0.45]; }
+      else { inh += c; rgb = [1.0, 0.3, 0.35]; }
+      const b = 0.3 + 0.7 * Math.sqrt(c / max);
+      for (let v = 0; v < 2; v++) col.set([rgb[0] * b, rgb[1] * b, rgb[2] * b], 6 * a + 3 * v);
+      along[2 * a] = 0; along[2 * a + 1] = 1;
+    }
+    g.setDrawRange(0, n * 2);
+    for (const name of ['position', 'color', 'along']) g.attributes[name].needsUpdate = true;
+    const cg = this.wiringCloud.geometry, cp = cg.attributes.position.array, cc = cg.attributes.color.array;
+    let q = 0;
+    for (const [ids, rgb] of [[inputs, [0.3, 0.8, 1.0]], [outputs, [1.0, 0.72, 0.25]]]) {
+      for (const i of ids) { if (q >= 160) break; cp.set(P.subarray(3 * i, 3 * i + 3), 3 * q); cc.set(rgb, 3 * q); q++; }
+    }
+    cg.setDrawRange(0, q);
+    cg.attributes.position.needsUpdate = true; cg.attributes.color.needsUpdate = true;
+    this.wiringLines.visible = n > 0;
+    this.wiringCloud.visible = q > 0;
+    this.wiring = { t: 0, until: duration };
+    return { cells: center.size, inputs: inputs.length, outputs: outputs.length, lines: n, synapses, exc, inh, mod,
+      inputCells: inW.size, outputCells: outW.size };
   }
 
   _flashMat(rgb) {
@@ -358,7 +463,7 @@ export class BrainView {
   // Highlight a set of neurons (indices) or named groups (keys), e.g. the ones
   // a causal explanation names. `null` clears it.
   setHighlight(spec) {
-    if (!spec) { this.highlight = null; this.highlightCloud.visible = false; return; }
+    if (!spec) { this.highlight = null; this.highlightCloud.visible = false; this.setWiring(null); return null; }
     const idx = [];
     for (const k of spec.groups || []) {
       const g = this.groups.find((x) => x.key === k);
@@ -375,6 +480,16 @@ export class BrainView {
     this.highlightCloud.material.color.setRGB(...(spec.color || [1, 1, 1]), THREE.SRGBColorSpace);
     this.highlightCloud.visible = true;
     this.highlight = { t: 0, until: spec.duration ?? Infinity };
+    if (!spec.wiring) { this.setWiring(null); return null; }
+    const w = this.setWiring(idx, { duration: spec.duration ?? Infinity });
+    if (w && spec.label) {
+      this.caption.replaceChildren(
+        Object.assign(document.createElement('b'), { textContent: t('Wiring of {label}', { label: spec.label }) }),
+        document.createTextNode(` ${t('{i} strongest input cells (cyan) and {o} output cells (amber); {n} lines carry {s} synapses, counted in the connectome. Pulses run from the sending to the receiving cell; green excites, red inhibits.', {
+          i: w.inputs, o: w.outputs, n: w.lines, s: w.synapses.toLocaleString() })}`));
+      this.caption.hidden = false;
+    }
+    return w;
   }
 
   // Spikes from the latest snapshot. A drawing budget per frame, never a
@@ -460,7 +575,9 @@ export class BrainView {
     const dt = this.pending;
     this.pending = 0;
     this.flashBudget = 24;
-    this.camera.position.z += (this.zoom - this.camera.position.z) * Math.min(1, 10 * dt);
+    // A shown wiring brings the camera a little closer, unless the viewer zoomed.
+    const zoomTo = this.zoom * (this.userZoomed ? 1 : 1 - 0.3 * (this.focusShown ?? 0));
+    this.camera.position.z += (zoomTo - this.camera.position.z) * Math.min(1, 10 * dt);
     this.camera.position.y = 0.6 * (this.camera.position.z / 29);
     this.fear += ((this.fearTarget ?? 0) - this.fear) * Math.min(1, dt * 3);
     const k = this.fear;
@@ -484,6 +601,22 @@ export class BrainView {
       this.ring.scale.set(s, s, s);
       this.ring.material.opacity = q;
       if (this.ringT <= 0) this.ring.visible = false;
+    }
+    if (this.wiring) {
+      const w = this.wiring;
+      w.t += dt;
+      this.wiringUniforms.uTime.value = w.t;
+      this.wiringUniforms.uFade.value = Math.min(1, w.t * 2, Math.max(0, w.until - w.t));
+      if (w.t > w.until) this.setWiring(null);
+    }
+    // The rest of the brain steps back while a wiring is shown.
+    const focus = this.wiring ? this.wiringUniforms.uFade.value : 0;
+    if (focus !== this.focusShown) {
+      this.focusShown = focus;
+      this.cloud.material.opacity = 1 - 0.7 * focus;
+      // live spikes would draw over the wiring: their lines go, their flashes dim
+      this.flashPoints.material.opacity = 1 - 0.75 * focus;
+      this.synapseLines.material.opacity = 0.055 * (this.lineDensity ?? 1) * (1 - 0.9 * focus);
     }
     if (this.highlight) {
       this.highlight.t += dt;
@@ -514,7 +647,7 @@ export class BrainView {
         const hot = gi >= 0 && this.groups[gi].tier === 'named' ? this.groups[gi].color : base;
         for (let v = 0; v < 2; v++) {
           const co = o + 3 * v;
-          const k = (0.2 + 0.35 * g) * dim;   // additive: keep overlapping lines from saturating
+          const k = (0.2 + 0.35 * g) * dim * (1 - (this.focusShown ?? 0));   // additive: keep overlapping lines from saturating
           gc[co] = (base[0] + (hot[0] - base[0]) * g) * k; gc[co + 1] = (base[1] + (hot[1] - base[1]) * g) * k; gc[co + 2] = (base[2] + (hot[2] - base[2]) * g) * k;
         }
         idx++;

@@ -756,14 +756,26 @@ export class TerrariumView {
     }
   }
 
+  // The shadow map holds the casters on the rendering camera's layers (three.js
+  // tests camera.layers, then culls against the light's own frustum). So a
+  // camera with the display camera's layers that looks at nothing refreshes
+  // exactly the same map, without drawing the scene once more into a pixel:
+  // about 120 fewer draw calls for every eye sample on a frame the display
+  // skips (DisplayPacer, a hidden terrarium).
   _refreshShadows() {
     const r = this.renderer;
     this.shadowProbe ??= new THREE.WebGLRenderTarget(1, 1);
+    if (!this.shadowCamera) {
+      this.shadowCamera = new THREE.PerspectiveCamera(1, 1, 1, 2);
+      this.shadowCamera.position.set(0, 0, -1e6);
+      this.shadowCamera.lookAt(0, 0, -2e6);
+      this.shadowCamera.updateMatrixWorld();
+    }
+    this.shadowCamera.layers.mask = this.camera.layers.mask;
     r.shadowMap.needsUpdate = true;
     this._lookFor('display');
-    this._displayAtmosphere();
     r.setRenderTarget(this.shadowProbe);
-    r.render(this.scene, this.camera);
+    r.render(this.scene, this.shadowCamera);
     r.setRenderTarget(null);
   }
 
