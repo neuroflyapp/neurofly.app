@@ -13,6 +13,7 @@ import { BEHAVIOURS, NEURONS, QUESTS, CHAPTERS, DAILY, STOCKS, CRITERIA, RANKS, 
 import { assessSentience } from '../../src/sentience.js';
 import { HabitatOverlay, HabitatSound, composePhoto } from './habitat-fx.js';
 import { median } from '../../src/stats.js';
+import { LEVEL, ANIMAL_TEXT, modelText } from './panel-sentience.js';
 import { HabitatStorage } from '../../src/habitat-storage.js';
 
 const L = (rec, name = '') => fillName(rec?.[getLanguage()] ?? rec?.en ?? '', name);
@@ -23,8 +24,9 @@ const NEED_UI = {
   climate: { icon: 'thermo', label: () => t('Climate'), low: () => t('Uncomfortable') },
   clean: { icon: 'antenna', label: () => t('Clean'), low: () => t('Dusty') },
 };
-const statusLabel = (status) => ({ present: () => t('present'), partial: () => t('partly in the model'),
-  experimental: () => t('experimental only'), absent: () => t('not in the model') }[status] ?? (() => t('not assessed for this specimen')))();
+// Short form beside the real-fly rating ("This model: partly").
+const modelShort = (status) => ({ present: () => t('included'), partial: () => t('partly'), experimental: () => t('experimental only'),
+  absent: () => t('not included') }[status] ?? (() => t('not assessed')))();
 const rarityLabel = (r) => ({ common: () => t('common'), uncommon: () => t('uncommon'), rare: () => t('rare') }[r])();
 const SAVE_EVERY_MS = 5000;
 
@@ -86,7 +88,8 @@ export const habitatPanel = {
     const sound = new HabitatSound();
     sound.enabled = game.state.sound;
     const terrarium = ctx.views.terrarium;
-    const overlay = new HabitatOverlay(document.getElementById('terrarium'), { flyPosition: () => terrarium?.flyScreenPosition?.() ?? null });
+    // The fly's place on screen, unless a phone shows the connectome instead.
+    const overlay = new HabitatOverlay(document.getElementById('terrarium'), { flyPosition: () => (ctx.mobile?.brain ? null : terrarium?.flyScreenPosition?.() ?? null) });
     const audit = assessSentience({ circuit: ctx.data?.circuit, provenance: ctx.data?.provenance, pathways: ctx.data?.pathways, hasPlasticity: true });
     const specimens = ctx.data?.provenance?.specimens;
     const modelSex = specimens?.brain?.sex;
@@ -206,7 +209,9 @@ export const habitatPanel = {
 
     function highlight(groups) {
       ctx.highlight({ groups, color: [0, 1, 0.25], duration: 8 });
-      if (document.body.classList.contains('inspector-collapsed')) ctx.toast(t('Open the connectome view (layers button) to see the cells.'));
+      // A phone shows the connectome instead of the terrarium (Brain in the bar returns).
+      if (ctx.mobile?.active) ctx.showBrain?.();
+      else if (document.body.classList.contains('inspector-collapsed')) ctx.toast(t('Open the connectome view (layers button) to see the cells.'));
     }
 
     function send(commands) { for (const [cmd, args] of commands) ctx.command(cmd, args); }
@@ -775,13 +780,24 @@ export const habitatPanel = {
         let action = null;
         if (!done && c.via.read) action = h('button', { type: 'button', class: 'btn small', onclick: () => { act({ type: 'read', criterion: c.id }); ctx.shell?.select('sentience'); } }, t('Read the evidence'));
         else if (!done && c.via.lab) action = h('button', { type: 'button', class: 'btn small', onclick: () => ctx.shell?.select('experiments') }, t('Open the Lab'));
-        out.push(h('div', { class: `hab-crit${done ? ' done' : ''}` },
+        // Investigated: real flies and this model side by side (never one
+        // number: they answer different questions); a tap shows why.
+        const open = done && openEntry === `c:${c.id}`;
+        const level = LEVEL[a?.animal];
+        out.push(h(done ? 'button' : 'div', { class: `hab-crit${done ? ' done' : ''}${open ? ' open' : ''}`,
+          ...(done ? { type: 'button', 'aria-expanded': String(open), onclick: () => { openEntry = open ? null : `c:${c.id}`; stateVersion++; refresh(); } } : {}) },
           h('div', { class: 'hab-crit-n' }, String(a?.n ?? '')),
           h('div', { class: 'hab-crit-body' },
             h('b', {}, t(a?.name ?? c.id)),
             h('div', { class: 'hab-small' }, t(a?.question ?? '')),
-            done ? h('span', { class: `hab-status st-${a?.status}` }, `${t('In the model')}: ${statusLabel(a?.status)}`)
+            done ? h('div', { class: 'hab-crit-sides' },
+              level ? h('span', { class: `hab-status st-real lv-${level[0]}` }, `${t('Real flies')}: ${t(level[1])}`) : null,
+              h('span', { class: `hab-status st-${a?.status}` }, `${t('This model')}: ${modelShort(a?.status)}`))
               : h('div', { class: 'hab-small hab-how' }, L(c.how)),
+            open ? h('div', { class: 'hab-crit-detail' },
+              h('p', {}, h('b', {}, `${t('Real flies')} · Gibbons 2022: `), t(ANIMAL_TEXT[c.id] ?? '')),
+              h('p', {}, h('b', {}, `${t('This model')}: `), modelText(a)),
+              h('p', { class: 'hab-small' }, t('The two answer different questions: the first grades evidence about real flies, the second lists mechanisms in a simulation. Neither measures feeling.'))) : null,
             action)));
       }
       const all = n === CRITERIA.length;

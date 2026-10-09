@@ -44,6 +44,8 @@ export function setupMobile(ctx, { shell, panels }) {
 
   const state = { open: null, full: false, brain: false, active: false };
   ctx.mobile = state;
+  // Panels can bring up the connectome on a phone (e.g. "Show in the brain").
+  ctx.showBrain = () => { if (state.active && !state.brain) setBrain(true); };
 
   const relayout = () => setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
 

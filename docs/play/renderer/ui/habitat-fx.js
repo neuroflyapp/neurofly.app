@@ -18,10 +18,14 @@ const TUNES = {
   soft: [[440, 0, 0.18]],
 };
 
+// On a touch device the big moments can be felt as well (same switch as the sound).
+const VIBES = { discovery: 22, card: 10, quest: [18, 40, 18], level: [25, 45, 25, 45, 50], hatch: 28 };
+
 export class HabitatSound {
-  constructor() { this.enabled = true; this.ctx = null; }
+  constructor() { this.enabled = true; this.ctx = null; this.touch = matchMedia?.('(pointer: coarse)').matches ?? false; }
   play(name) {
     if (!this.enabled || !TUNES[name]) return;
+    if (this.touch && VIBES[name]) try { navigator.vibrate?.(VIBES[name]); } catch { /* not allowed here */ }
     try {
       this.ctx ??= new AudioContext();
       if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -190,7 +194,11 @@ export class HabitatOverlay {
   // A short text rising from the fly (or the middle of the view).
   float(text, kind = 'xp') {
     const p = this.flyPosition();
-    const x = p?.visible ? p.x : this.host.clientWidth / 2, y = p?.visible ? p.y - 24 : this.host.clientHeight / 2;
+    const x = p?.visible ? p.x : this.host.clientWidth / 2;
+    let y = p?.visible ? p.y - 24 : this.host.clientHeight * 0.3;
+    // Never over the cards and pills at the top (read once per float, not per frame).
+    const stack = this.cards.parentElement.getBoundingClientRect();
+    if (stack.height > 0) y = Math.max(y, stack.bottom - this.host.getBoundingClientRect().top + 40);
     const el = h('div', { class: `hab-float ${kind}`, style: { left: `${Math.round(x)}px`, top: `${Math.round(y)}px` } }, text);
     this.el.append(el);
     setTimeout(() => el.remove(), 1600);

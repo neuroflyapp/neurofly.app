@@ -9,11 +9,11 @@ import { assessSentience, SENTIENCE_RESEARCH_SOURCES } from '../../src/sentience
 import { runExperiment } from './panel-experiments.js';
 import { PROTOCOLS } from '../../src/experiments.js';
 
-const LEVEL = { VH: ['vh', 'very high'], H: ['h', 'high'], M: ['m', 'medium'], L: ['l', 'low'], VL: ['vl', 'no research found'] };
+export const LEVEL = { VH: ['vh', 'very high'], H: ['h', 'high'], M: ['m', 'medium'], L: ['l', 'low'], VL: ['vl', 'no research found'] };
 const STATUS_LABEL = { present: ['present', 'present'], partial: ['partial', 'partly in the model'], experimental: ['experimental', 'experimental only'], absent: ['absent', 'not in the model'], 'not-assessed': ['absent', 'not assessed for this specimen'] };
 const GOOD_VERDICTS = new Set(['threshold', 'soundEscapes', 'tradeoff', 'necessary', 'gates', 'learns', 'prefers', 'habituates', 'bothMatter']);
 
-const ANIMAL_TEXT = {
+export const ANIMAL_TEXT = {
   nociception: 'Many studies show adult flies have nociceptors for noxious heat, mechanical and chemical stimuli.',
   'sensory-integration': 'The mushroom bodies and central complex integrate information across senses.',
   'integrated-nociception': 'Noxious input reaches integrative regions; flies learn from noxious stimuli.',
@@ -24,7 +24,7 @@ const ANIMAL_TEXT = {
   'analgesia-preference': 'No study of injured flies seeking analgesics was found.',
 };
 
-function modelText(c) {
+export function modelText(c) {
   const m = c.model || {}, a = c.anatomy || {};
   switch (c.id) {
     case 'nociception': return t('No classic nociceptors: body and leg nociceptors enter through the nerve cord, and the model\'s nerve cord carries only the legs\' position and load sensors. The model does contain the brain\'s own aversive and thermal sensors: {hot} hot cells, {cold} cold cells and {bitter} bitter taste neurons, with their real wiring.', m);

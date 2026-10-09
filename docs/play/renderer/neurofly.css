@@ -863,3 +863,14 @@ body.mobile .hab-goal-task { font-size: 12px; }
 .hab-indiv-key { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .hab-indiv-key span { display: inline-flex; align-items: center; gap: 6px; }
 .hab-indiv-key .hab-indiv-dot { position: static; margin: 0; }
+
+/* the big question: real flies and this model side by side (panel-habitat.js questionTab) */
+button.hab-crit { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+button.hab-crit:hover { border-color: #6fd3ff88; }
+button.hab-crit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hab-crit.open { border-color: #6fd3ffaa; background: linear-gradient(160deg, #0f2230, var(--surface-2) 70%); }
+.hab-crit-sides { display: flex; flex-wrap: wrap; gap: 5px; }
+.hab-status.st-real { color: #ffd36b; border-color: #ffd36b55; }
+.hab-status.st-real.lv-vl { color: var(--muted); border-color: var(--line-2); }
+.hab-crit-detail { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; animation: hab-in .25s ease; }
+.hab-crit-detail p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
