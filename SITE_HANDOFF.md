@@ -16,6 +16,11 @@ desktop app's); the version label stays 2.5.0. Checks: byte identity of every
 `docs/play` file against the index (0 differing), live new-player replay on a
 phone viewport (welcome first, 2 big moments in 60 s, no page errors).
 The Windows ZIP and the APK are still the released 2.5.0.
+Follow-ups the same way (9 October): `170945b` (real flies and the model side
+by side in the big question, Show in the brain on phones), `baccabc` (facts
+on the start screen while the connectome loads; photos shared from phone
+browsers through the share sheet with a link back), and `4027af4` (privacy
+notice: sharing a photo is the player's own action; effective 9 October).
 
 ## 8 October 2026 — onboarding and scientific precision (latest)
 
