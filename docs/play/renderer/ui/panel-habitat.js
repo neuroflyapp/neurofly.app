@@ -158,8 +158,13 @@ export const habitatPanel = {
               sound.play('coin');
               break;
             }
-            overlay.card({ tone: 'quest', iconName: 'target', eyebrow: t('Quest complete'), title: L(q.title), text: L(q.why, name()),
-              rewards: [`+${q.xp} XP`, q.leaves ? `+${q.leaves} ${t('leaves')}` : null].filter(Boolean), priority: 45, keep: true });
+            const pr = list.find((x) => x.kind === 'prediction' && x.id === q.id);
+            const opt = (id) => L(q.predict?.options.find((o) => o.id === id));
+            const verdict = pr ? `${t('You predicted: {p}. The model: {a}.', { p: opt(pr.predicted), a: opt(pr.answer) || '—' })} ${pr.right ? t('Right.') : t('Not this time: that is what experiments are for.')}` : null;
+            overlay.card({ tone: 'quest', iconName: 'target', eyebrow: t('Quest complete'), title: L(q.title),
+              text: verdict ? `${verdict} ${L(q.why, name())}` : L(q.why, name()), full: Boolean(verdict),
+              chips: pr ? [pr.right ? `✓ ${t('prediction right')}` : `✗ ${t('prediction wrong')}`] : [],
+              rewards: [`+${q.xp} XP`, q.leaves ? `+${q.leaves} ${t('leaves')}` : null, pr?.right ? `+15 XP ${t('insight')}` : null].filter(Boolean), priority: 45, keep: true });
             sound.play('quest');
             break;
           }
@@ -193,6 +198,8 @@ export const habitatPanel = {
             break;
           }
           case 'step': overlay.pill(t('Step done'), { iconName: 'target', tone: 'leaf' }); sound.play('soft'); goalVersion++; break;
+          case 'predicted': overlay.pill(t('Prediction noted. Now test it.'), { iconName: 'target', tone: 'gold' }); overlay.addPoints(5, 0); sound.play('soft'); goalVersion++; break;
+          case 'prediction': break;   // told on the quest card
           case 'command': ctx.command(r.name, r.args); break;
           case 'heatSwitch': overlay.pill(r.on ? t('TrpA1 open: the cells fire') : t('TrpA1 closed'), { iconName: 'thermo', tone: r.on ? 'gold' : 'leaf' }); sound.play('soft'); break;
           case 'milestone': overlay.banner(t('Collection complete'), r.id === 'cards' ? t('Every neuron card') : t('Every behaviour'), '+100 XP · +30', 40); sound.play('level'); break;
@@ -337,6 +344,12 @@ export const habitatPanel = {
       opto: () => [t('Open the fly lab'), () => openTab('lab'), null],
       heat: () => (game.fly.genotype?.effector === 'trpa1' ? [t('Warm to 30 °C'), () => setTempTo(30), null] : [t('Open the fly lab'), () => openTab('lab'), null]),
       evidence: () => [t('Open the big question'), () => openTab('question'), null],
+      diagram: () => [t('Open the journal'), () => openTab('journal'), null],
+      signal: () => {
+        const escape = [...(ctx.state.lastEvents ?? [])].reverse().find((e) => e.kind === 'takeoff');
+        return escape ? [t('Show the path of the last escape'), () => { ctx.openEvent?.(escape); ctx.showBrain?.(); }, null]
+          : [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null];
+      },
       three: () => [t('Open the fly lab'), () => openTab('lab'), null],
       spread: () => [t('Open the fly lab'), () => openTab('lab'), null],
       atlas: () => [t('Open the big question'), () => openTab('question'), null],
@@ -345,7 +358,8 @@ export const habitatPanel = {
     function renderGoal() {
       const q = game.currentGoal(goalSkip);
       const n = game.openQuests().length;
-      const key = `${q?.id}|${n}|${goalVersion}|${game.fly.name}|${getLanguage()}|${game.rt.offer ? 1 : 0}|${JSON.stringify(game.rt.dose)}`;
+      const escaped = q?.id === 'signal' && (ctx.state.lastEvents ?? []).some((e) => e.kind === 'takeoff');
+      const key = `${q?.id}|${n}|${goalVersion}|${game.fly.name}|${getLanguage()}|${game.rt.offer ? 1 : 0}|${JSON.stringify(game.rt.dose)}|${game.state.predictions?.[q?.id] ?? ''}|${escaped}`;
       for (const [id, b] of Object.entries(actBtns)) b.classList.toggle('hab-hint', !!q && GOAL_DO[q.id]?.()[2] === id);
       if (key === goalKey) return;
       goalKey = key;
@@ -365,11 +379,26 @@ export const habitatPanel = {
         `${p} %${res === true ? ' ✓' : res === false ? ' ✗' : ''}`);
       })) : null;
       const step = q.id === 'climate' && game.state.quests.climate?.n === 1 ? h('div', { class: 'hab-step' }, icon('target', 13), t('Step 1 done: the hot cells fired. Now back to 25 °C.')) : null;
+      // Predict, then test: the question comes before the button that tests it.
+      const predicted = game.state.predictions?.[q.id];
+      if (q.predict && !predicted) {
+        goalEl.replaceChildren(
+          h('div', { class: 'hab-goal-eyebrow' }, icon('target', 13), `${t('Next goal')} · ${L(ch.title)}`),
+          h('div', { class: 'hab-goal-title' }, L(q.title)),
+          h('div', { class: 'hab-goal-task' }, h('b', {}, `${t('First, your prediction')}: `), L(q.predict.q, name())),
+          h('div', { class: 'hab-predict' }, ...q.predict.options.map((o) => h('button', { type: 'button', class: 'btn small',
+            onclick: () => { lastTouch = performance.now(); act({ type: 'predict', quest: q.id, option: o.id }); } }, L(o)))),
+          h('div', { class: 'hab-goal-actions' },
+            n > 1 ? h('button', { type: 'button', class: 'btn small ghost hab-goal-skip', title: t('Show another open goal'), onclick: () => { goalSkip++; goalVersion++; renderGoal(); } }, icon('repeat', 13), t('Other goal')) : null,
+            h('span', { class: 'hab-goal-reward' }, `+5 XP · +15 ${t('if right')}`)));
+        return;
+      }
+      const yours = q.predict && predicted ? h('div', { class: 'hab-small hab-yours' }, `${t('Your prediction')}: ${L(q.predict.options.find((o) => o.id === predicted))}`) : null;
       goalEl.replaceChildren(
         h('div', { class: 'hab-goal-eyebrow' }, icon('target', 13), `${t('Next goal')} · ${L(ch.title)}`),
         h('div', { class: 'hab-goal-title' }, L(q.title)),
         h('div', { class: 'hab-goal-task' }, taskText(q)),
-        ...[step, dose].filter(Boolean),
+        ...[yours, step, dose].filter(Boolean),
         h('div', { class: 'hab-goal-actions' },
           label ? h('button', { type: 'button', class: 'btn small primary', onclick: () => { lastTouch = performance.now(); run(); sound.play('soft'); } }, label)
             : q.kind === 'discover' ? h('span', { class: 'hab-small' }, t('Just watch: the brain decides when.')) : null,
@@ -1105,6 +1134,9 @@ export const habitatPanel = {
       whisper(snap);
       overlay.follow();
     });
+    // Looking at the connectome counts for the quests that teach it.
+    const onConnectome = (e) => { const r = game.act({ type: 'saw', what: e.detail?.what, groups: e.detail?.groups }, Date.now(), ctx.snap); handleRewards(r.rewards); if (r.rewards.length) { stateVersion++; saveGame(); refresh(); } };
+    window.addEventListener('nf:connectome', onConnectome);
     const onLeave = () => saveGame();
     window.addEventListener('pagehide', onLeave);
     document.addEventListener('visibilitychange', onLeave);
@@ -1128,6 +1160,7 @@ export const habitatPanel = {
         stopPlacing();
         document.removeEventListener('keydown', onKey);
         window.removeEventListener('pagehide', onLeave);
+        window.removeEventListener('nf:connectome', onConnectome);
         document.removeEventListener('visibilitychange', onLeave);
         // The red light belongs to the game: off when the player leaves.
         if (game.rt.lightOn) act({ type: 'light', on: false });

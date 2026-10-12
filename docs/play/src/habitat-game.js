@@ -32,6 +32,8 @@ const CRITERION_REWARD = { xp: 25, leaves: 5 };
 // A neuron card comes with the behaviour that shows it; the discovery and
 // the quests carry the real reward, so ranks are earned by playing.
 export const CARD_REWARD = Object.freeze({ xp: 5, leaves: 1 });
+// Predict, then test: a prediction is worth a little, a right one a little more.
+export const PREDICTION_REWARD = Object.freeze({ made: 5, right: 15 });
 const MILESTONE = { xp: 100, leaves: 30 };
 const INPUT_ON = 0.2;
 const MAX_DT = 1;                    // longer gaps (pause, new run) count nothing
@@ -98,7 +100,7 @@ export function newGame({ now = Date.now(), seed = 0, rng = 1 } = {}) {
     flies: [newFly('f1', FLY_NAMES[0], seed, 'founder', now)], activeFly: 'f1', nextFly: 2,
     journal: {}, cards: {}, quests: {}, criteria: {}, labRuns: {},
     stocks: [], vials: [], nextVial: 1, counters: { crosses: 0, wilds: 0, collected: 0, events: 0 },
-    garden: [], gardenStock: {}, nextTag: 1, tabsSeen: ['quests', 'journal'], lastSeen: now,
+    garden: [], gardenStock: {}, nextTag: 1, tabsSeen: ['quests', 'journal'], lastSeen: now, predictions: {},
     daily: { day, tasks: [], bonus: false, careLeaves: 0 }, daysPlayed: 1,
   };
   state.daily.tasks = dailyTasks(day);
@@ -181,6 +183,8 @@ export function decodeGame(text) {
     // as seen, without announcing them again (_checkTabs).
     tabsSeen: Array.isArray(s.tabsSeen) ? s.tabsSeen.filter((x, i, a) => TABS.includes(x) && a.indexOf(x) === i) : null,
     lastSeen: num(s.lastSeen, 0, 1e15, 0),
+    predictions: Object.fromEntries(Object.entries(s.predictions && typeof s.predictions === 'object' ? s.predictions : {})
+      .filter(([k, v]) => byId(QUESTS, k)?.predict?.options.some((o) => o.id === v))),
     daily: { day, tasks: tasks.length ? tasks : dailyTasks(day), bonus: s.daily?.bonus === true,
       careLeaves: int(s.daily?.careLeaves, 0, 1e6, 0) },
     daysPlayed: int(s.daysPlayed, 1, 1e6, 1),
@@ -478,6 +482,12 @@ export class HabitatGame {
     this._quest(q.id).done = now;
     this._reward(q.xp, q.leaves, R);
     R.push({ kind: 'quest', id: q.id });
+    const predicted = this.state.predictions?.[q.id];
+    if (q.predict && predicted) {
+      const result = this.predictionResult(q, predicted);
+      if (result.right) this._reward(PREDICTION_REWARD.right, 0, R);
+      R.push({ kind: 'prediction', id: q.id, predicted, ...result });
+    }
     for (const g of q.gift ?? []) this._gift(g, R);
     const chapterNow = this.currentChapter();
     if (chapterNow && chapterNow.id !== chapterBefore) {
@@ -509,6 +519,18 @@ export class HabitatGame {
 
   // Wild-type individuals of the colony with a measured temperament.
   wildTypesObserved() { return this.state.flies.filter((f) => !f.genotype && temperament(f)).length; }
+
+  // What the model did, as one of the prediction's options, and whether the
+  // prediction fits. The sugar threshold is judged against every drop tested:
+  // "from p %" fits if all tested drops below p stayed out and all from p came out.
+  predictionResult(q, predicted) {
+    if (q.predict.answer !== 'dose') return { answer: q.predict.answer, right: predicted === q.predict.answer };
+    const tested = Object.entries(this.rt.dose).map(([p, yes]) => [Number(p), yes]).sort((a, b) => a[0] - b[0]);
+    const fits = (p) => tested.every(([d, yes]) => (d >= p) === yes);
+    const options = q.predict.options.map((o) => Number(o.id));
+    const answer = String(options.find((p) => fits(p)) ?? tested.find(([, yes]) => yes)?.[0] ?? '');
+    return { answer, right: fits(Number(predicted)) };
+  }
 
   modalitiesSeen() {
     return new Set(Object.keys(this.state.cards).map((id) => byId(NEURONS, id)?.modality).filter(Boolean));
@@ -700,6 +722,26 @@ export class HabitatGame {
         if ((snap.fly?.proboscis ?? 0) > 0.3 || snap.fly?.state === 'flying') return fail('busy');
         this.rt.offer = { percent: action.percent, t: null };
         return done({ commands: [['food.clear', {}], ['food.add', { kind: 'sugar', conc: action.percent / 100, x: action.x, y: action.y }]] });
+      }
+      case 'predict': {
+        const q = byId(QUESTS, action.quest);
+        if (!q?.predict || !q.predict.options.some((o) => o.id === action.option)) return fail('prediction');
+        if (this.questDone(q.id) || s.predictions?.[q.id]) return fail('predicted');
+        (s.predictions ??= {})[q.id] = action.option;
+        this._reward(PREDICTION_REWARD.made, 0, R);
+        R.push({ kind: 'predicted', id: q.id });
+        return done();
+      }
+      case 'saw': {
+        // The player looked at the connectome: a wiring, or an event's causal path.
+        const groups = Array.isArray(action.groups) ? action.groups : [];
+        for (const q of QUESTS) {
+          if (!this.questAvailable(q)) continue;
+          if ((q.kind === 'wiring' && action.what === 'wiring') || (q.kind === 'chain' && action.what === 'chain' && groups.includes(q.target))) {
+            this._completeQuest(q, now, R);
+          }
+        }
+        return done();
       }
       case 'sound': s.sound = Boolean(action.on); return done();
       default: return fail('unknown');

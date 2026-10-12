@@ -141,6 +141,19 @@ export function renderResult(result, protocol) {
   return el;
 }
 
+// The pathway each protocol tests, as the brain view's named groups in
+// signal order (BrainView.setChain); one group shows its wiring instead.
+const PROTOCOL_CIRCUIT = {
+  'escape-threshold': ['loom', 'gf'],
+  'silencing-escape': ['loom', 'gf'],
+  'inhibition-escape': ['loom', 'gf'],
+  habituation: ['loom', 'gf'],
+  'taste-tradeoff': ['sugar', 'tasteRelay', 'proboscis'],
+  'dust-grooming': ['joF', 'groomRelay', 'dng12'],
+  'thermal-preference': ['hot', 'thermoRelay'],
+  'sound-vs-wind': ['gf'],
+};
+
 export const experimentsPanel = {
   id: 'experiments', icon: 'experiments', title: 'Experiments', short: 'Lab',
   build(ctx) {
@@ -173,10 +186,16 @@ export const experimentsPanel = {
           if (running) { ctx.lab?.worker.postMessage({ type: 'cancel' }); return; }
           runExperiment(ctx, p.id, { trials: Number(trialSel.value) });
         } }, icon(running ? 'close' : 'play', 14), running ? t('Cancel') : t('Run'));
+      // The circuit the protocol tests, drawn from its synapses in the brain view.
+      const stages = PROTOCOL_CIRCUIT[p.id];
+      const circuitBtn = stages ? h('button', { class: 'btn small', type: 'button', title: t('The tested pathway, drawn from its measured synapses'),
+        onclick: () => { ctx.highlight({ groups: stages, color: [0, 1, 0.25], duration: 16, chain: stages.length > 1, wiring: stages.length === 1, label: p.title ? t(p.title) : '' }); ctx.showBrain?.(); } },
+      icon('circuit', 14), t('Circuit in the brain')) : null;
       const body = h('div', { class: 'exp-body' },
         h('p', { class: 'note', style: { marginTop: 0 } }, h('b', {}, t('Measured: ')), t(p.measures)),
         h('ul', { class: 'lit' }, ...p.literature.map((l) => h('li', {}, tag('real'), ' ', link(l.doi, l.cite), ` — ${t(l.finding)}`))),
         h('div', { class: 'row', style: { marginTop: '10px' } }, runBtn, trialSel, h('span', { class: 'note', style: { margin: 0 } }, t('≈ {s} s of simulated time', { s: Math.round(est) }))),
+        circuitBtn ? h('div', { class: 'row', style: { marginTop: '6px' } }, circuitBtn) : null,
         unavailable ? h('p', { class: 'note' }, t('Needs the taste/grooming extension data (etl_sensory_extension.mjs).')) : null);
       if (running) {
         body.append(h('div', { class: 'progress' }, h('span', { style: { width: `${(st.fraction || 0) * 100}%` } })),

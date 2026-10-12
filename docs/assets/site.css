@@ -749,6 +749,10 @@ dialog.consent-dialog::backdrop { background: rgba(12, 19, 17, .55); }
 .step-n { display: inline-grid; place-items: center; width: 38px; height: 38px; margin-bottom: 4px; border-radius: 50%;
   background: #080c0d; color: #00ff41; font: 700 16px/1 var(--mono); }
 .how-figure { margin-top: 32px; }
+.wiring-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; margin-top: 20px; }
+.wiring-gallery figure.shot { margin: 0; display: flex; flex-direction: column; }
+.wiring-gallery figure.shot img { aspect-ratio: 10 / 7; object-fit: cover; height: auto; }
+.wiring-gallery figure.shot figcaption { flex: 1; font-size: 14px; }
 .section-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin: 28px 0 0; }
 .section-cta a:not(.btn) { font-weight: 600; }
 .get-browser { border-color: #9fdcb4; box-shadow: 0 0 0 1px #00ff4126, 0 18px 40px -28px rgba(0, 120, 40, .45); }

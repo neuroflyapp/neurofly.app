@@ -107,7 +107,14 @@ const ctx = {
       return { ok: false };
     }
   },
-  highlight(spec) { return this.views.brain?.setHighlight(spec) ?? null; },
+  highlight(spec) {
+    const shown = this.views.brain?.setHighlight(spec) ?? null;
+    // What the connectome just showed (the Habitat's quests listen).
+    if (shown && (spec?.wiring || spec?.chain)) {
+      window.dispatchEvent(new CustomEvent('nf:connectome', { detail: { what: spec.chain ? 'chain' : 'wiring', groups: spec.groups ?? [] } }));
+    }
+    return shown;
+  },
   // Touch screen: the hints speak of fingers, not of a mouse.
   touch: matchMedia('(pointer: coarse)').matches,
   // A picture of what is on screen (snapshots outside Electron).

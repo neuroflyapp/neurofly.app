@@ -18,6 +18,7 @@ import { clampf } from '../../src/util.js';
 import { circadianActivity } from '../../src/environment.js';
 import { sceneLightLevel, autoExposureGain } from '../../src/display.js';
 import { localMotionResidual } from '../../src/vision.js';
+import { enhanceFlyLook } from './fly-look.js';
 
 const VISION_W = 64, VISION_H = 24;
 const VISION_EXPOSURE = 1;
@@ -75,6 +76,11 @@ const DISPLAY_HEMI_GAIN = 1.0;
 const DISPLAY_RIM_GAIN = 0.35;
 const DISPLAY_SKY_TINT = new THREE.Color(0xdfeaff);
 const DISPLAY_SOIL = new THREE.Color(0x5a4028);
+// Moonlight for the observer at night (display render only, zero in her eye):
+// extra sky and rim light and a cooler tint, so a night terrarium reads like a
+// moonlit one instead of black on a phone held close.
+const DISPLAY_MOON_TINT = new THREE.Color(0xc4d4ff);
+const DISPLAY_MOON_HEMI = 1.4, DISPLAY_MOON_RIM = 0.5;
 // Follow/close camera (_unoccludedBoom): distance kept from the glass, the
 // clearance around an object, the smallest height that can block the view,
 // the shortest boom (share of the full one) and the lift over an obstacle.
@@ -248,8 +254,9 @@ export class TerrariumView {
     const b = this.lightBase;
     if (pass === 'display') {
       this.ambientLight.intensity = b.ambient * DISPLAY_AMBIENT_SHARE;
-      this.hemi.intensity = b.ambient * DISPLAY_HEMI_GAIN;
-      this.rim.intensity = b.key * DISPLAY_RIM_GAIN;
+      const moon = this.nightBoost ?? 0;
+      this.hemi.intensity = b.ambient * (DISPLAY_HEMI_GAIN + DISPLAY_MOON_HEMI * moon);
+      this.rim.intensity = b.key * (DISPLAY_RIM_GAIN + DISPLAY_MOON_RIM * moon);
     } else {
       this.ambientLight.intensity = b.ambient;
       this.hemi.intensity = 0;
@@ -633,6 +640,8 @@ export class TerrariumView {
     this.hemi.color.copy(sky.mid).lerp(DISPLAY_SKY_TINT, 0.35);
     this.hemi.groundColor.copy(DISPLAY_SOIL).multiplyScalar(0.4 + 0.6 * Math.min(1, sky.keyIntensity / 1.65));
     const relative = sceneLightLevel(this.ambientLight.intensity, this.key.intensity) / DAY_REFERENCE_LIGHT;
+    this.nightBoost = clampf((0.6 - relative) / 0.4, 0, 1);
+    this.hemi.color.lerp(DISPLAY_MOON_TINT, 0.45 * this.nightBoost);
     this.autoLiftGain = autoExposureGain(relative);
     this._applyExposure();
   }
@@ -647,7 +656,10 @@ export class TerrariumView {
       // Her own body (the first fly is the one whose eye is rendered) is not
       // in her eye: her limbs grooming in front of her face are not an
       // approaching object. It stays in the view and in the shadow map.
-      if (this.flyViews.length === 0) model.root.traverse((o) => o.layers.set(DISPLAY_LAYER));
+      if (this.flyViews.length === 0) {
+        model.root.traverse((o) => o.layers.set(DISPLAY_LAYER));
+        enhanceFlyLook(model);   // observer-only materials (fly-look.js); others keep the plain ones her eye sees
+      }
       this.scene.add(model.root);
       this.flyViews.push({ model, nodes: poseNodes(model) });
     }

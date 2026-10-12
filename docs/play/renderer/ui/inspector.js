@@ -124,7 +124,8 @@ export function buildInspector(ctx) {
     const map = { loomL: 'loom', loomR: 'loom', hot: 'hot', cold: 'cold', sugar: 'sugar', bitter: 'bitter', dust: 'joF' };
     if (e.trigger && map[e.trigger.channel] && !groups.includes(map[e.trigger.channel])) groups.unshift(map[e.trigger.channel]);
     const key = groups[groups.length - 1];
-    return { groups, color: GROUP_COLORS[key] ?? [1, 1, 1], duration: 12 };
+    // Two or more stages: the causal path through them, drawn from the synapses.
+    return { groups, color: GROUP_COLORS[key] ?? [1, 1, 1], duration: 16, chain: groups.length > 1 };
   }
 
   function renderEvents() {

@@ -84,6 +84,22 @@ function spritePoints(count, { round = true, blending = THREE.NormalBlending } =
   return new THREE.Points(g, m);
 }
 
+// A point sprite drawn on a canvas: 'dot' a soft-edged disc, 'halo' a glowing
+// ring that marks a cell without covering its own colour.
+function spriteTexture(kind) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 31);
+  if (kind === 'halo') {
+    grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(0.42, 'rgba(255,255,255,0.05)');
+    grad.addColorStop(0.62, 'rgba(255,255,255,0.95)'); grad.addColorStop(0.74, 'rgba(255,255,255,0.55)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  } else {
+    grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.75, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  }
+  g.fillStyle = grad; g.beginPath(); g.arc(32, 32, 31, 0, Math.PI * 2); g.fill();
+  return new THREE.CanvasTexture(c);
+}
+
 export class BrainView {
   constructor(container, { points, circuit, onPick }) {
     this.container = container;
@@ -287,8 +303,9 @@ export class BrainView {
     this.ring.visible = false; this.ringT = 0;
     this.group.add(this.ring);
     // highlight layer
-    this.highlightCloud = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ size: 0.75, sizeAttenuation: true,
-      color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+    // (a ring around each highlighted cell: square sprites read as boxes)
+    this.highlightCloud = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ size: 1.1, sizeAttenuation: true,
+      color: 0xffffff, map: spriteTexture('halo'), transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
     this.highlightCloud.visible = false;
     this.group.add(this.highlightCloud);
     this._buildWiring();
@@ -322,11 +339,12 @@ export class BrainView {
     this.wiringLines.visible = false;
     this.group.add(this.wiringLines);
     const pg = new THREE.BufferGeometry();
-    pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(160 * 3), 3));
-    pg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(160 * 3), 3));
+    this.WIRING_POINTS = 700;
+    pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.WIRING_POINTS * 3), 3));
+    pg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(this.WIRING_POINTS * 3), 3));
     pg.setDrawRange(0, 0);
-    this.wiringCloud = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.42, sizeAttenuation: true, vertexColors: true,
-      transparent: true, opacity: 0.9, depthWrite: false, depthTest: false }));
+    this.wiringCloud = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.5, sizeAttenuation: true, vertexColors: true, map: spriteTexture('dot'),
+      transparent: true, opacity: 0.92, depthWrite: false, depthTest: false }));
     this.wiringCloud.frustumCulled = false;
     this.wiringCloud.visible = false;
     this.group.add(this.wiringCloud);
@@ -360,8 +378,20 @@ export class BrainView {
     }
     list.sort((a, b) => this.edgeCount[b] - this.edgeCount[a]);
     const n = Math.min(Math.round(this.WIRING * (0.45 + 0.55 * (this.lineDensity ?? 1))), list.length);
+    const drawn = this._drawWiringLines(list.slice(0, n));
+    this._drawWiringPoints([[inputs, [0.3, 0.8, 1.0]], [outputs, [1.0, 0.72, 0.25]]]);
+    this.wiring = { t: 0, until: duration };
+    return { cells: center.size, inputs: inputs.length, outputs: outputs.length, ...drawn,
+      inputCells: inW.size, outputCells: outW.size };
+  }
+
+  // The lines of the wiring layer: edges `list`, strongest first.
+  _drawWiringLines(list) {
+    const n = Math.min(this.WIRING, list.length);
     const g = this.wiringLines.geometry, pos = g.attributes.position.array, col = g.attributes.color.array, along = g.attributes.along.array;
-    const P = this.positions, max = n ? this.edgeCount[list[0]] : 1;
+    const P = this.positions;
+    let max = 1;
+    for (let a = 0; a < n; a++) max = Math.max(max, this.edgeCount[list[a]]);
     let synapses = 0, exc = 0, inh = 0, mod = 0;
     for (let a = 0; a < n; a++) {
       const k = list[a], i = this.edgeFrom[k], j = this.edgeTo[k], c = this.edgeCount[k];
@@ -378,18 +408,44 @@ export class BrainView {
     }
     g.setDrawRange(0, n * 2);
     for (const name of ['position', 'color', 'along']) g.attributes[name].needsUpdate = true;
-    const cg = this.wiringCloud.geometry, cp = cg.attributes.position.array, cc = cg.attributes.color.array;
+    this.wiringLines.visible = n > 0;
+    return { lines: n, synapses, exc, inh, mod };
+  }
+
+  // The points of the wiring layer: [[indices, rgb], ...].
+  _drawWiringPoints(sets) {
+    const P = this.positions, cg = this.wiringCloud.geometry, cp = cg.attributes.position.array, cc = cg.attributes.color.array;
     let q = 0;
-    for (const [ids, rgb] of [[inputs, [0.3, 0.8, 1.0]], [outputs, [1.0, 0.72, 0.25]]]) {
-      for (const i of ids) { if (q >= 160) break; cp.set(P.subarray(3 * i, 3 * i + 3), 3 * q); cc.set(rgb, 3 * q); q++; }
+    for (const [ids, rgb] of sets) {
+      for (const i of ids) { if (q >= this.WIRING_POINTS) break; cp.set(P.subarray(3 * i, 3 * i + 3), 3 * q); cc.set(rgb, 3 * q); q++; }
     }
     cg.setDrawRange(0, q);
     cg.attributes.position.needsUpdate = true; cg.attributes.color.needsUpdate = true;
-    this.wiringLines.visible = n > 0;
     this.wiringCloud.visible = q > 0;
+  }
+
+  // A causal path through named groups in order (receptors -> relays ->
+  // deciding neurons): the strongest measured synapses from each stage onto
+  // the next, with the signal running along them; each stage in its colour.
+  // Returns per step { from, to, lines, synapses } for a caption.
+  setChain(keys, { duration = Infinity } = {}) {
+    const stages = keys.map((k) => this.groups.find((g) => g.key === k)).filter((g) => g?.indices?.length);
+    if (stages.length < 2) return this.setWiring(null);
+    const perStep = Math.floor(this.WIRING / (stages.length - 1));
+    const lines = [], steps = [];
+    for (let s2 = 0; s2 + 1 < stages.length; s2++) {
+      const to = new Set(stages[s2 + 1].indices), found = [];
+      for (const i of stages[s2].indices) for (const k of this.outEdges[i]) if (to.has(this.edgeTo[k])) found.push(k);
+      found.sort((a, b) => this.edgeCount[b] - this.edgeCount[a]);
+      const take = found.slice(0, perStep);
+      lines.push(...take);
+      steps.push({ from: stages[s2].label, to: stages[s2 + 1].label, lines: take.length,
+        synapses: found.reduce((n, k) => n + this.edgeCount[k], 0) });
+    }
+    const drawn = this._drawWiringLines(lines);
+    this._drawWiringPoints(stages.map((g) => [g.indices, g.color]));
     this.wiring = { t: 0, until: duration };
-    return { cells: center.size, inputs: inputs.length, outputs: outputs.length, lines: n, synapses, exc, inh, mod,
-      inputCells: inW.size, outputCells: outW.size };
+    return { ...drawn, steps };
   }
 
   _flashMat(rgb) {
@@ -480,6 +536,16 @@ export class BrainView {
     this.highlightCloud.material.color.setRGB(...(spec.color || [1, 1, 1]), THREE.SRGBColorSpace);
     this.highlightCloud.visible = true;
     this.highlight = { t: 0, until: spec.duration ?? Infinity };
+    if (spec.chain && spec.groups?.length > 1) {
+      const c = this.setChain(spec.groups, { duration: spec.duration ?? Infinity });
+      if (c?.steps?.length) {
+        this.caption.replaceChildren(
+          Object.assign(document.createElement('b'), { textContent: t('Causal path') }),
+          document.createTextNode(` ${c.steps.map((st) => t('{from} → {to}: {s} synapses', { from: t(st.from), to: t(st.to), s: st.synapses.toLocaleString() })).join(' · ')}. ${t('The strongest of them are drawn; pulses run in the signal direction, green excites, red inhibits.')}`));
+        this.caption.hidden = false;
+      }
+      return c;
+    }
     if (!spec.wiring) { this.setWiring(null); return null; }
     const w = this.setWiring(idx, { duration: spec.duration ?? Infinity });
     if (w && spec.label) {

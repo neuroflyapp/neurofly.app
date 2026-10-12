@@ -189,6 +189,41 @@ function makeGroundTexture() {
   return tex;
 }
 
+// Fine soil for the observer at close range: grains, pebbles and plant
+// crumbs, multiplied onto the floor in the display render only. The eye
+// render sets its mix to exactly 0 (World.setDisplayLook), which multiplies
+// her floor by exactly 1.0: her eye sees the same floor as before. A fixed
+// local stream draws it, never the simulation's.
+function makeGroundDetail() {
+  if (typeof document === 'undefined') return null;
+  const size = 512, rand = seededRandom(0x5011d37a);
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const g = canvas.getContext('2d');
+  g.fillStyle = 'rgb(128,128,128)';
+  g.fillRect(0, 0, size, size);
+  const speck = (x, y, r, v, a) => { g.fillStyle = `rgba(${v},${v},${v},${a})`; g.beginPath(); g.ellipse(x, y, r, r * (0.55 + rand() * 0.45), rand() * Math.PI, 0, Math.PI * 2); g.fill(); };
+  for (let i = 0; i < 9000; i++) speck(rand() * size, rand() * size, 0.7 + rand() * 1.6, rand() < 0.5 ? 35 : 225, 0.35 + rand() * 0.35);   // grain
+  for (let i = 0; i < 420; i++) {   // small pebbles, lit from the upper left
+    const x = rand() * size, y = rand() * size, r = 2.5 + rand() * 5, v = 165 + rand() * 75;
+    speck(x + 0.8, y + 0.9, r * 1.08, 55, 0.45);
+    speck(x, y, r, v | 0, 0.85);
+    speck(x - r * 0.3, y - r * 0.35, r * 0.35, 235, 0.5);
+  }
+  g.lineCap = 'round';
+  for (let i = 0; i < 180; i++) {   // twig and leaf crumbs
+    const x = rand() * size, y = rand() * size, len = 3 + rand() * 9, a = rand() * Math.PI;
+    g.strokeStyle = `rgba(${rand() < 0.6 ? 70 : 175},${rand() < 0.6 ? 70 : 165},${rand() < 0.6 ? 70 : 140},0.55)`;
+    g.lineWidth = 0.8 + rand() * 1.4;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); g.stroke();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
 function makeGround(bounds, landscapeSeed) {
   const w = bounds.width + 500, h = bounds.height + 500;
   // MeshPhong multiplies map RGB by material RGB. Using the same dark soil
@@ -201,6 +236,18 @@ function makeGround(bounds, landscapeSeed) {
   if (tex) {
     tex.repeat.set(w / 180, h / 180);
     material.map = tex;
+  }
+  const detail = tex ? makeGroundDetail() : null;
+  if (detail) {
+    // One soil tile of the detail every ~25 units (the floor map repeats every 180).
+    material.userData.detail = { detailMap: { value: detail }, detailMix: { value: 0 }, detailRepeat: { value: 180 / 25 } };
+    material.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, material.userData.detail);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('void main() {', 'uniform sampler2D detailMap;\nuniform float detailMix;\nuniform float detailRepeat;\nvoid main() {')
+        .replace('#include <map_fragment>', '#include <map_fragment>\n\tdiffuseColor.rgb *= mix( vec3( 1.0 ), texture2D( detailMap, vMapUv * detailRepeat ).rgb * 2.0, detailMix );');
+    };
+    material.customProgramCacheKey = () => 'nf-ground-detail';
   }
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
   mesh.position.z = -0.55;
@@ -1361,6 +1408,7 @@ export class World {
     if (!ground) return;
     ground.userData.eyeColor ??= ground.color.clone();
     ground.color.copy(on ? DISPLAY_GROUND_COLOR : ground.userData.eyeColor);
+    if (ground.userData.detail) ground.userData.detail.detailMix.value = on ? 1 : 0;
   }
 
   // Observer-only motion (renderer copy): the light on the pond drifts.

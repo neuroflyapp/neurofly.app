@@ -854,6 +854,10 @@ body.mobile .brain-caption { bottom: auto; top: 58px; }
 .hab-goal-reward { margin-left: auto; font: 700 11px/1 var(--mono); color: var(--hab-gold); }
 .hab-goal-skip { color: var(--muted); }
 .hab-goal .hab-dose { margin-top: 2px; }
+.hab-predict { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.hab-predict .btn { border-color: #ffd36b55; }
+.hab-predict .btn:hover { border-color: var(--hab-gold); color: var(--ink); }
+.hab-yours { color: var(--hab-gold); }
 .hab-act.hab-hint { border-color: var(--hab-gold); color: var(--ink); animation: hab-hint 1.6s ease-in-out infinite; }
 @keyframes hab-hint { 50% { box-shadow: 0 0 0 3px #ffd36b33, 0 0 18px #ffd36b44; } }
 @media (prefers-reduced-motion: reduce) { .hab-act.hab-hint, .hab-tab.fresh::after, .hab-pill { animation: none !important; } }
