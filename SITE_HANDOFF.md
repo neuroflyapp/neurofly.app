@@ -1,5 +1,17 @@
 # NeuroCause website handoff
 
+## 13 October 2026, end of day (latest) — start here
+
+`docs/play/` = private app master `51d344c` (byte-identical to the index: 0
+files differing). The owner said: update the website live, **no new
+program or APK release** — the downloads, SHA-256 values and "New in 2.5"
+still describe the released 2.5.0. The home page's Habitat list names what
+only the browser version has so far ("Watch and hear a decision": replay,
+listening, the x-ray). Checks: smoke-site 1440/768/390 px, 10 static
+tests, web smoke (new player on a phone; phone build) all pass.
+When 2.5.1 is released: update download links, SHA-256 values, "New in"
+and remove "(new in the browser version)".
+
 ## 8 October 2026, later — browser game rebuilt for phones (latest)
 
 The owner reported that the live browser game felt overloaded on phones

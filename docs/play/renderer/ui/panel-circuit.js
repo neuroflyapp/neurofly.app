@@ -7,6 +7,7 @@ import { t, num, int } from '../i18n.js';
 import { panelHead, card, slider, tag, kv } from './widgets.js';
 import { POPULATION_RATE, POPULATION_COLOR, POPULATION_BRAIN_GROUP, hexToRgb01 } from './labels.js';
 import { GROUP_COLORS } from '../view/brain.js';
+import { glossify } from './glossary.js';
 
 // Pathways from a sense to a behaviour, as the brain view names their
 // stages. "Try it" sends the stimulus, waits for the behaviour and replays
@@ -162,7 +163,7 @@ export const circuitPanel = {
         go.addEventListener('click', () => tryPathway(pw, status, go));
         buttons.push(go);
       }
-      return h('div', { class: 'pw-row' }, h('div', { class: 'pw-title' }, t(pw.title)), h('p', { class: 'note' }, t(pw.text)), h('div', { class: 'row' }, ...buttons), status);
+      return h('div', { class: 'pw-row' }, h('div', { class: 'pw-title' }, t(pw.title)), glossify(h('p', { class: 'note' }, t(pw.text))), h('div', { class: 'row' }, ...buttons), status);
     }
     function tryPathway(pw, status, btn) {
       if (pw.busy?.(ctx.snap)) { status.textContent = t(pw.busyText); return; }

@@ -10,6 +10,7 @@ import { h, icon } from './dom.js';
 import { t, num, int } from '../i18n.js';
 import { EVENT_INFO, SOURCE_INFO, TRIGGER_INFO, LOOM_SOURCE, COMMAND_INFO, hexToRgb01 } from './labels.js';
 import { GROUP_COLORS } from '../view/brain.js';
+import { glossify } from './glossary.js';
 
 export function buildInspector(ctx) {
   const brainEl = document.getElementById('brain');
@@ -183,7 +184,7 @@ export function buildInspector(ctx) {
       const card = h('div', { class: `event ${open ? 'open' : ''}` },
         h('div', { class: 'event-head' }, h('span', { class: 'glyph' }, icon(info.icon, 16)), h('b', {}, t(info.label)), h('small', {}, when)),
         h('div', { class: 'event-sub' }, e.trigger ? t(TRIGGER_INFO[e.trigger.channel] ?? e.trigger.label) : t('No external trigger')),
-        open ? h('div', { class: 'chain' }, ...chainFor(e), e.kind !== 'death' ? replayRow(e) : null) : null);
+        open ? glossify(h('div', { class: 'chain' }, ...chainFor(e), e.kind !== 'death' ? replayRow(e) : null)) : null);
       card.addEventListener('click', () => {
         openId = open ? null : e._id;
         ctx.highlight(open ? null : highlightFor(e));

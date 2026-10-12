@@ -7,6 +7,7 @@ import { t, int } from '../i18n.js';
 import { panelHead, card, tag, link } from './widgets.js';
 import { assessSentience, SENTIENCE_RESEARCH_SOURCES, cellsOfTypes, CX_RE, MB_RE, MB_LEARNING_RE } from '../../src/sentience.js';
 import { GROUP_COLORS } from '../view/brain.js';
+import { glossify } from './glossary.js';
 
 // What each criterion refers to in the running circuit, for the brain view:
 // the cells with their strongest measured partners, or a causal path.
@@ -121,7 +122,7 @@ export const sentiencePanel = {
             h('div', { class: 'crit-col' }, h('div', { class: 'k' }, t('Real flies'), tag('real', 'Gibbons 2022'),
               h('span', { class: `level ${lvlCls}` }, t(lvlText))), h('div', {}, t(ANIMAL_TEXT[c.id]))),
             h('div', { class: 'crit-col' }, h('div', { class: 'k' }, t('This model'), c.anatomy ? tag('measured', t('full connectome')) : null,
-              h('span', { class: `level ${stCls}` }, t(stText))), h('div', {}, modelText(c)))),
+              h('span', { class: `level ${stCls}` }, t(stText))), glossify(h('div', {}, modelText(c))))),
           protocol || showable(c.id) ? h('div', { class: 'row run' },
             showable(c.id) ? h('button', { class: 'btn small', type: 'button', title: t('The cells this criterion is about, with their measured wiring'), onclick: () => showInBrain(showable(c.id)) },
               icon('target', 13), t('Show in the brain')) : null,

@@ -390,6 +390,7 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
     dock.rebuild();
     inspector.rebuild();
     hud.rebuild();
+    ctx.views.brain?.relabelRegions?.();
     ctx.relabelMobile?.();
   };
   void icon;

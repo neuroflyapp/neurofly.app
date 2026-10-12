@@ -413,6 +413,29 @@ export class TerrariumView {
     this.locator.layers.set(DISPLAY_LAYER);
     this.locator.visible = false;
     this.scene.add(this.locator);
+    // Her path over the last 90 s of simulated time, fading with age, in the
+    // wide views: where she walks shows patterns (along the walls, away from
+    // the heat). A dot per 0.1 s on the ground (none while she flies), a few
+    // pixels wide at any distance (a 1-pixel line vanished in the wide views).
+    // Display layer only.
+    this.TRAIL = 900;
+    const tg = new THREE.BufferGeometry();
+    tg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.TRAIL * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    tg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(this.TRAIL * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    tg.setDrawRange(0, 0);
+    const dot = document.createElement('canvas');
+    dot.width = dot.height = 16;
+    const dg = dot.getContext('2d'), dgr = dg.createRadialGradient(8, 8, 0, 8, 8, 7.5);
+    dgr.addColorStop(0, 'rgba(255,255,255,1)'); dgr.addColorStop(0.6, 'rgba(255,255,255,0.9)'); dgr.addColorStop(1, 'rgba(255,255,255,0)');
+    dg.fillStyle = dgr; dg.fillRect(0, 0, 16, 16);
+    this.trail = new THREE.Points(tg, new THREE.PointsMaterial({ size: 4, sizeAttenuation: false, map: new THREE.CanvasTexture(dot), vertexColors: true,
+      transparent: true, opacity: 0.85, depthWrite: false }));
+    this.trail.layers.set(DISPLAY_LAYER);
+    this.trail.frustumCulled = false;
+    this.trail.visible = false;
+    this.scene.add(this.trail);
+    this.trailSeg = [];          // [x, y, backward, t] newest last
+    this.trailLast = null;
     // Placing an object (the Habitat game's garden): a ring under the pointer,
     // green where it may go. Display layer only.
     this.placeRing = new THREE.Mesh(new THREE.RingGeometry(0.86, 1, 48),
@@ -693,6 +716,42 @@ export class TerrariumView {
     this._applyExposure();
   }
 
+  _sampleTrail(snap) {
+    const f = snap.fly;
+    if (!f) return;
+    const who = `${snap.neuralRun}/${snap.individual}`;
+    if (who !== this.trailWho || snap.dead) { this.trailWho = who; this.trailSeg = []; this.trailLast = null; this.trailDirty = true; }
+    const last = this.trailLast;
+    if (last && snap.t - last.t < 0.1 && snap.t >= last.t) return;
+    const grounded = f.state !== 'flying';
+    if (last && last.grounded && grounded && snap.t > last.t) {
+      const d = Math.hypot(f.x - last.x, f.y - last.y);
+      if (d > 0.4 && d < 60) {
+        this.trailSeg.push([f.x, f.y, f.backward ? 1 : 0, snap.t]);
+        if (this.trailSeg.length > this.TRAIL) this.trailSeg.shift();
+        this.trailDirty = true;
+      }
+    }
+    this.trailLast = { x: f.x, y: f.y, t: snap.t, grounded };
+  }
+
+  _paintTrail() {
+    const segs = this.trailSeg, g = this.trail.geometry, pos = g.attributes.position.array, col = g.attributes.color.array;
+    const now = this.snap?.t ?? 0;
+    for (let k = 0; k < segs.length; k++) {
+      const [x, y, back, t] = segs[k];
+      const a = 0.12 + 0.88 * Math.max(0, 1 - (now - t) / 90);      // older is fainter
+      const c = back ? [1, 0.62, 0.2] : [0.1, 1, 0.38];               // walking backward in amber
+      pos[3 * k] = x; pos[3 * k + 1] = y; pos[3 * k + 2] = 0.35;
+      col[3 * k] = c[0] * a; col[3 * k + 1] = c[1] * a; col[3 * k + 2] = c[2] * a;
+    }
+    g.setDrawRange(0, segs.length);
+    g.attributes.position.needsUpdate = true;
+    g.attributes.color.needsUpdate = true;
+    this.trailDirty = false;
+    this.trailPaintT = now;
+  }
+
   // Her brain above her, lit by her spikes (xray.js; observer only). `data`
   // from BrainView.xrayData() the first time it is switched on.
   setXray(on, data = null) {
@@ -704,6 +763,7 @@ export class TerrariumView {
   // ---- snapshots ------------------------------------------------------------------------
   applySnapshot(snap) {
     this.snap = snap;
+    this._sampleTrail(snap);
     this.xray?.addSpikes(snap.spikes);
     this._syncEyeRun();
     // flies
@@ -805,6 +865,9 @@ export class TerrariumView {
     const f = this.snap?.fly;
     this.locator.visible = Boolean(f) && !this.snap?.dead && (this.cameraMode === 'overview' || this.cameraMode === 'overhead');
     if (this.locator.visible) this.locator.position.set(f.x, f.y, 0.5);
+    this.trail.visible = this.locator.visible || (this.cameraMode === 'overview' || this.cameraMode === 'overhead');
+    // repainted when a segment arrives, and every 2 s of simulated time as it fades
+    if (this.trail.visible && (this.trailDirty || Math.abs((this.snap?.t ?? 0) - (this.trailPaintT ?? 0)) > 2)) this._paintTrail();
     if (display) {
       this.xray?.update(dt, this.snap?.dead ? null : this.snap?.fly, this.camera);
       this._lookFor('display'); this._displayAtmosphere(); this.world.animateDisplay(tSeconds);

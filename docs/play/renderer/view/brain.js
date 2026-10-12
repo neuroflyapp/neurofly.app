@@ -102,6 +102,17 @@ function spriteTexture(kind) {
 
 const RING_PEAK = 0.55;   // the giant fiber's expanding ring, at its brightest
 
+// Where things are: anatomical names placed at the centroid of the simulated
+// cells they hold (their measured positions). Optic lobes by FlyWire side.
+const OPTIC = (nr) => nr.type === 'optic' || nr.type === 'visual_projection' || nr.role === 'lc4' || nr.role === 'lplc2';
+const REGIONS = [
+  { label: 'Left optic lobe', match: (nr) => OPTIC(nr) && nr.side === 'left', outward: true },
+  { label: 'Right optic lobe', match: (nr) => OPTIC(nr) && nr.side === 'right', outward: true },
+  { label: 'Central brain', match: (nr) => nr.type === 'central' && !nr.extension },
+  { label: 'Taste and feeding (SEZ)', match: (nr) => nr.extension === 'taste' },
+];
+const LABEL_PX = 20;      // a label's height on screen (CSS pixels)
+
 export class BrainView {
   constructor(container, { points, circuit, onPick }) {
     this.container = container;
@@ -312,6 +323,7 @@ export class BrainView {
     this.group.add(this.highlightCloud);
     this._buildWiring();
     this._buildReplay();
+    this._buildRegionLabels(circuit);
   }
 
   // The wiring of highlighted cells: their strongest measured synapses as
@@ -352,6 +364,57 @@ export class BrainView {
     this.wiringCloud.visible = false;
     this.group.add(this.wiringCloud);
     this.wiring = null;
+  }
+
+  _buildRegionLabels(circuit) {
+    this.regionLabels = new THREE.Group();
+    this.regionLabels.renderOrder = 20;
+    for (const r of REGIONS) {
+      const c = [0, 0, 0];
+      let k = 0;
+      circuit.neurons.forEach((nr, i) => { if (r.match(nr)) { c[0] += this.positions[3 * i]; c[1] += this.positions[3 * i + 1]; c[2] += this.positions[3 * i + 2]; k++; } });
+      if (k < 10) continue;   // a model without these cells gets no label
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: false, opacity: 0.85 }));
+      sprite.position.set(c[0] / k, c[1] / k, c[2] / k);
+      sprite.center.set(0.5, 0.5);
+      sprite.userData.label = r.label;
+      sprite.userData.outward = Boolean(r.outward);
+      this.regionLabels.add(sprite);
+    }
+    this.group.add(this.regionLabels);
+    this.relabelRegions();
+  }
+
+  // Draws the labels in the current language (call after a language change).
+  relabelRegions() {
+    const dpr = 2;
+    for (const sprite of this.regionLabels?.children ?? []) {
+      const text = t(sprite.userData.label).toUpperCase();
+      const c = document.createElement('canvas'), g = c.getContext('2d');
+      const font = `600 ${11 * dpr}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+      g.font = font;
+      const w = Math.ceil(g.measureText(text).width + 14 * dpr), hgt = LABEL_PX * dpr;
+      c.width = w; c.height = hgt;
+      g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = 'rgba(8,12,13,0.62)';
+      g.beginPath(); g.roundRect(0, 0, w, hgt, hgt / 2); g.fill();
+      g.fillStyle = 'rgba(214,232,225,0.95)';
+      g.fillText(text, w / 2, hgt / 2 + dpr);
+      sprite.material.map?.dispose();
+      sprite.material.map = new THREE.CanvasTexture(c);
+      sprite.material.map.colorSpace = THREE.SRGBColorSpace;
+      sprite.material.needsUpdate = true;
+      sprite.userData.aspect = w / hgt;
+    }
+    this._sizeRegionLabels();
+  }
+
+  // Constant size on screen: a sprite without size attenuation spans
+  // scale.y * cot(fov/2) / 2 of the view's height.
+  _sizeRegionLabels() {
+    if (!this.regionLabels || !this.height) return;
+    const k = (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2)) / this.height;
+    for (const sprite of this.regionLabels.children) sprite.scale.set(LABEL_PX * k * sprite.userData.aspect, LABEL_PX * k, 1);
   }
 
   // Per neuron (index order): position, a dimmed population colour, giant
@@ -912,6 +975,21 @@ export class BrainView {
       this.synapseLines.material.opacity = 0.055 * (this.lineDensity ?? 1) * (1 - 0.9 * focus);
     }
     if (this.replay) this._stepReplay(dt);
+    if (this.regionLabels) {
+      this.regionLabels.visible = !this.replay && (this.focusShown ?? 0) < 0.2 && this.height > 220 && this.showRegions !== false;
+      // the optic lobes' names extend away from the middle, whichever way the brain is turned
+      if (this.regionLabels.visible) {
+        const v = this._labelV ??= new THREE.Vector3(), mid = this._labelMid ??= new THREE.Vector3();
+        mid.set(0, 0, 0).applyMatrix4(this.group.matrixWorld).project(this.camera);
+        for (const sprite of this.regionLabels.children) {
+          if (!sprite.userData.outward) continue;
+          v.copy(sprite.position).applyMatrix4(this.group.matrixWorld).project(this.camera);
+          // its width in clip space; never past the view's edge
+          const w = Math.max(1e-3, sprite.scale.x * this.camera.projectionMatrix.elements[0]);
+          sprite.center.x = v.x < mid.x ? clampf(Math.min(0.82, (v.x + 0.98) / w), 0, 1) : clampf(Math.max(0.18, 1 - (0.98 - v.x) / w), 0, 1);
+        }
+      }
+    }
     if (this.highlight) {
       this.highlight.t += dt;
       // (quieter while recorded spikes play: they are what to watch)
@@ -964,6 +1042,7 @@ export class BrainView {
     this._applyViewOffset();
     if (!this.userZoomed) this.zoom = this._fitDistance();
     this.lineDensity = clampf(Math.sqrt(w * h) / 700, 0.4, 1);
+    this._sizeRegionLabels();
     this.synapseLines.material.opacity = 0.055 * this.lineDensity;
     // The resting sample shrinks with the panel's area, in coarse steps.
     const cap = Math.max(1000, Math.round(5000 * this.lineDensity ** 2 / 500) * 500);

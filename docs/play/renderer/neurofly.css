@@ -867,6 +867,14 @@ body.mobile .brain-replay { bottom: auto; top: 58px; }
 .brain-replay.compact .rp-legend { font-size: 10.5px; }
 .chain .replay-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .chain .replay-row .note:empty { display: none; }
+/* glossary terms (glossary.js): a word that explains itself on a tap */
+button.term { all: unset; display: inline; cursor: help; color: inherit; border-bottom: 1px dotted currentColor; }
+button.term:hover { color: var(--accent); }
+button.term:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
+.gloss-pop { position: fixed; z-index: 1000; display: flex; flex-direction: column; gap: 3px; padding: 9px 11px; border-radius: 10px;
+  background: #0b1214f7; border: 1px solid #00ff4155; box-shadow: 0 12px 30px #000a; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.gloss-pop[hidden] { display: none; }
+.gloss-pop b { color: var(--accent); }
 /* the audio monitor (app.js ctx.listen) */
 .brain-listen { position: absolute; left: 10px; top: 52px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 14px;
   border: 1px solid #00ff4166; background: #0b1214e8; color: var(--ink); font-size: 11.5px; cursor: pointer; }
