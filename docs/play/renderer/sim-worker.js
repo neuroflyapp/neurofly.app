@@ -153,6 +153,7 @@ onmessage = (event) => {
           }
           case 'journal': result = loop.journal.snapshot(); break;
           case 'events': result = loop.events.slice(); break;
+          case 'replay': result = loop.replays?.get(a.kind, a.t) ?? null; break;
           case 'layout': result = loop.world.layout(); break;
           default: result = null;
         }

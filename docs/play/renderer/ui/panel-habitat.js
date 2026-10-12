@@ -350,6 +350,11 @@ export const habitatPanel = {
         return escape ? [t('Show the path of the last escape'), () => { ctx.openEvent?.(escape); ctx.showBrain?.(); }, null]
           : [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null];
       },
+      slowmo: () => {
+        const escape = [...(ctx.state.lastEvents ?? [])].reverse().find((e) => e.kind === 'takeoff');
+        return escape ? [t('Replay the last escape'), () => { ctx.openEvent?.(escape); ctx.replayEvent?.(escape); }, null]
+          : [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null];
+      },
       three: () => [t('Open the fly lab'), () => openTab('lab'), null],
       spread: () => [t('Open the fly lab'), () => openTab('lab'), null],
       atlas: () => [t('Open the big question'), () => openTab('question'), null],
@@ -1107,8 +1112,18 @@ export const habitatPanel = {
     }
 
     // What the fly just started, and the neurons that decided it, over her head.
-    let whisperState = null, whisperAt = 0;
-    const WHISPER_GAP_MS = 6000;
+    let whisperState = null, whisperAt = 0, replayOfferAt = -Infinity;
+    const WHISPER_GAP_MS = 6000, REPLAY_OFFER_GAP_MS = 180000;
+    // After an escape, once the player knows the causal path: its recorded
+    // half second, slowed down (a tappable line, at most every 3 minutes).
+    function offerReplay(now) {
+      if (now - replayOfferAt < REPLAY_OFFER_GAP_MS || !game.questDone('signal') || !ctx.replayEvent) return;
+      replayOfferAt = now;
+      overlay.pill(t('Replay the escape of {name}, 20× slower', { name: name() }), { iconName: 'play', tone: 'gold', onclick: () => {
+        const escape = [...(ctx.state.lastEvents ?? [])].reverse().find((e) => e.kind === 'takeoff');
+        if (escape) { ctx.openEvent?.(escape); ctx.replayEvent(escape); }
+      } });
+    }
     function whisper(snap) {
       if (!game.isBound(snap) || !snap.fly) return;
       const takeoff = (snap.events ?? []).some((e) => e.kind === 'takeoff');
@@ -1122,7 +1137,7 @@ export const habitatPanel = {
         walking: ['DNp09', r.fwd, 'fwd'], backward: ['MDN', r.mdn, 'mdn'], feeding: ['MN9', r.proboscis, 'proboscis'],
         'groom-head': ['DNg12', r.dng12, 'dng12'], 'groom-legs': ['DNg11', r.groom, 'groom'],
       }[st];
-      if (takeoff) overlay.whisper(t('Giant fiber spike: takeoff'), GROUP_COLORS.gf);
+      if (takeoff) { overlay.whisper(t('Giant fiber spike: takeoff'), GROUP_COLORS.gf); offerReplay(now); }
       else if (say && say[1] > 0.5) overlay.whisper(`${say[0]} · ${num(say[1], 0)} Hz`, GROUP_COLORS[say[2]]);
       else return;
       whisperAt = now;

@@ -14,7 +14,7 @@ import * as THREE from '../../node_modules/three/build/three.module.js';
 import { buildFlyModel, FLY_SCALE, SHADOWS_ENABLED } from '../../src/flymodel.js';
 import { World, DISPLAY_LAYER } from '../../src/world.js';
 import { applyPose, poseNodes } from '../../src/pose.js';
-import { clampf } from '../../src/util.js';
+import { clampf, seededRandom } from '../../src/util.js';
 import { circadianActivity } from '../../src/environment.js';
 import { sceneLightLevel, autoExposureGain } from '../../src/display.js';
 import { localMotionResidual } from '../../src/vision.js';
@@ -192,6 +192,7 @@ export class TerrariumView {
     this.world = new World(this.bounds, { layout, merge: true });
     this.scene.add(this.world.node);
     this._buildWeather();
+    this._buildMotes();
     this._buildMapOverlay();
     this._buildVision();
     this.flyViews = [];
@@ -298,6 +299,50 @@ export class TerrariumView {
     this.renderer = r;
     this.container.appendChild(r.domElement);
     r.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
+  }
+
+  // Dust motes drifting in the light, for the observer only: DISPLAY_LAYER
+  // alone and no shadow, so neither her eye nor the shadow map her eye sees
+  // contains them. One draw call; the vertex shader moves them (a fixed local
+  // stream places them, never the simulation's). Bright by day, faint at night.
+  _buildMotes() {
+    const N = 420, rand = seededRandom(0x6d07e5);
+    const pos = new Float32Array(N * 3), phase = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      pos[3 * i] = rand() - 0.5; pos[3 * i + 1] = rand() - 0.5;   // share of the arena
+      pos[3 * i + 2] = 3 + 46 * Math.pow(rand(), 1.4);            // height (walls are 52)
+      phase[i] = rand();
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('phase', new THREE.BufferAttribute(phase, 1));
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const cg = c.getContext('2d'), grad = cg.createRadialGradient(16, 16, 0, 16, 16, 15);
+    grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.35, 'rgba(255,255,255,0.55)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+    cg.fillStyle = grad; cg.fillRect(0, 0, 32, 32);
+    this.moteUniforms = { uTime: { value: 0 }, uHalf: { value: new THREE.Vector2(this.bounds.width * 0.94, this.bounds.height * 0.94) } };
+    const m = new THREE.PointsMaterial({ size: 4, sizeAttenuation: true, map: new THREE.CanvasTexture(c), color: 0xfff1d6,
+      transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending });
+    m.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, this.moteUniforms);
+      shader.vertexShader = shader.vertexShader
+        .replace('void main() {', 'uniform float uTime;\nuniform vec2 uHalf;\nattribute float phase;\nvarying float vGlint;\nvoid main() {')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+	float nfT = uTime + phase * 300.0;
+	transformed.xy = transformed.xy * uHalf + vec2( sin( nfT * 0.071 ) * 9.0 + sin( nfT * 0.23 ) * 2.0, cos( nfT * 0.053 ) * 9.0 + cos( nfT * 0.19 ) * 2.0 );
+	transformed.z += sin( nfT * 0.09 ) * 4.0;
+	vGlint = 0.35 + 0.65 * pow( 0.5 + 0.5 * sin( nfT * ( 0.5 + phase ) ), 3.0 );`);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('void main() {', 'varying float vGlint;\nvoid main() {')
+        .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.a *= vGlint;');
+    };
+    m.customProgramCacheKey = () => 'nf-motes';
+    this.motes = new THREE.Points(g, m);
+    this.motes.layers.set(DISPLAY_LAYER);
+    this.motes.castShadow = false;
+    this.motes.frustumCulled = false;
+    this.scene.add(this.motes);
   }
 
   _buildWeather() {
@@ -641,6 +686,7 @@ export class TerrariumView {
     this.hemi.groundColor.copy(DISPLAY_SOIL).multiplyScalar(0.4 + 0.6 * Math.min(1, sky.keyIntensity / 1.65));
     const relative = sceneLightLevel(this.ambientLight.intensity, this.key.intensity) / DAY_REFERENCE_LIGHT;
     this.nightBoost = clampf((0.6 - relative) / 0.4, 0, 1);
+    if (this.motes) this.motes.material.opacity = 0.5 * (1 - 0.8 * this.nightBoost);
     this.hemi.color.lerp(DISPLAY_MOON_TINT, 0.45 * this.nightBoost);
     this.autoLiftGain = autoExposureGain(relative);
     this._applyExposure();
@@ -749,7 +795,11 @@ export class TerrariumView {
     const f = this.snap?.fly;
     this.locator.visible = Boolean(f) && !this.snap?.dead && (this.cameraMode === 'overview' || this.cameraMode === 'overhead');
     if (this.locator.visible) this.locator.position.set(f.x, f.y, 0.5);
-    if (display) { this._lookFor('display'); this._displayAtmosphere(); this.world.animateDisplay(tSeconds); this.renderer.render(this.scene, this.camera); }
+    if (display) {
+      this._lookFor('display'); this._displayAtmosphere(); this.world.animateDisplay(tSeconds);
+      if (this.moteUniforms) this.moteUniforms.uTime.value = tSeconds;
+      this.renderer.render(this.scene, this.camera);
+    }
     // Her eye samples every EYE_SAMPLE_S of simulated time: the change
     // between two samples (her visual input) must not depend on how fast
     // this computer runs the simulation. A longer gap (a stalled page, a
@@ -1165,6 +1215,7 @@ export class TerrariumView {
     this.fitMapOverlay();
     this.fitShadowCamera();
     this.world.resize(this.bounds);
+    this.moteUniforms?.uHalf.value.set(this.bounds.width * 0.94, this.bounds.height * 0.94);
     return true;
   }
 

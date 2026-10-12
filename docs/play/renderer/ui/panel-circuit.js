@@ -6,6 +6,27 @@ import { h, icon } from './dom.js';
 import { t, num, int } from '../i18n.js';
 import { panelHead, card, slider, tag, kv } from './widgets.js';
 import { POPULATION_RATE, POPULATION_COLOR, POPULATION_BRAIN_GROUP, hexToRgb01 } from './labels.js';
+import { GROUP_COLORS } from '../view/brain.js';
+
+// Pathways from a sense to a behaviour, as the brain view names their
+// stages. "Try it" sends the stimulus, waits for the behaviour and replays
+// the recorded spikes around it (the Why panel's replay).
+const PATHWAYS = [
+  { key: 'escape', title: 'Eye → escape', stages: ['loom', 'gf'], event: 'takeoff',
+    text: 'Looming detectors (LC4, LPLC2) in both optic lobes converge on the two giant fibers; one giant-fiber spike launches the escape.',
+    busy: (s) => s?.fly?.state === 'flying', busyText: 'She is in the air. Try again once she has landed.',
+    run: (cmd) => { cmd('stim.loom', { strength: 0.9 }); setTimeout(() => cmd('stim.loom', { strength: 0 }), 600); } },
+  { key: 'taste', title: 'Sugar → proboscis', stages: ['sugar', 'tasteRelay', 'proboscis'], event: 'proboscis',
+    text: 'Sugar taste neurons on the labellum excite relay cells that drive the proboscis motor neurons.',
+    busy: (s) => (s?.fly?.proboscis ?? 0) > 0.3, busyText: 'Her proboscis is already out. Try again in a moment.',
+    run: (cmd) => cmd('taste.offer', { sugar: 1, bitter: 0, durationS: 2.5 }) },
+  { key: 'groom', title: 'Antenna → grooming', stages: ['joF', 'groomRelay', 'dng12'], event: 'headGrooming',
+    text: 'Touch neurons of the antenna (JO-F) reach the descending neuron DNg12 through relay cells; DNg12 drives head grooming.',
+    busy: (s) => s?.fly?.state === 'grooming' || s?.fly?.state === 'flying', busyText: 'She is busy (grooming or flying). Try again in a moment.',
+    run: (cmd) => cmd('antenna.dust', { amount: 1 }) },
+  { key: 'heat', title: 'Heat → relays', stages: ['hot', 'thermoRelay'], event: null,
+    text: 'Hot-sensing cells of the antenna and their relay neurons. Warmth changes where she walks; there is no single moment to replay.' },
+];
 
 const DRUGS = [
   { cls: 'exc', label: 'Excitatory synapses (acetylcholine)' },
@@ -120,9 +141,53 @@ export const circuitPanel = {
     const probeCard = card(t('Single neuron'), { iconName: 'target', tagEl: tag('measured') }, probeInput, h('div', { style: { marginTop: '8px' } }, probeOut));
     if (probeIndex !== null && probeIndex !== undefined) doProbe(`#${probeIndex}`);
 
+    // pathways: show one, or stimulate it and replay the spikes
+    let stopWatch = null;
+    function pathwayRow(pw) {
+      const status = h('div', { class: 'note pw-status' });
+      const show = h('button', { class: 'btn small', type: 'button', title: t('The pathway, drawn from its measured synapses') }, icon('target', 12), t('Show the path'));
+      show.addEventListener('click', () => { ctx.highlight({ groups: pw.stages, color: GROUP_COLORS[pw.stages[pw.stages.length - 1]] ?? [1, 1, 1], duration: 16, chain: true }); ctx.showBrain?.(); });
+      const buttons = [show];
+      if (pw.event) {
+        const go = h('button', { class: 'btn small primary', type: 'button', title: t('Sends the stimulus, waits for the behaviour and replays every spike around it, 20× slower') }, icon('play', 12), t('Stimulate, then slow motion'));
+        go.addEventListener('click', () => tryPathway(pw, status, go));
+        buttons.push(go);
+      }
+      return h('div', { class: 'pw-row' }, h('div', { class: 'pw-title' }, t(pw.title)), h('p', { class: 'note' }, t(pw.text)), h('div', { class: 'row' }, ...buttons), status);
+    }
+    function tryPathway(pw, status, btn) {
+      if (pw.busy?.(ctx.snap)) { status.textContent = t(pw.busyText); return; }
+      stopWatch?.();
+      const t0 = ctx.snap?.t ?? 0;
+      let timer = null, off = null;
+      const finish = (msg) => { off?.(); off = null; clearTimeout(timer); btn.disabled = false; status.textContent = msg; stopWatch = null; };
+      stopWatch = () => finish('');
+      btn.disabled = true;
+      status.textContent = t('Stimulus sent; waiting for her response…');
+      off = ctx.onFrame((s) => {
+        const e = (s.events ?? []).find((x) => x.kind === pw.event && x.t >= t0);
+        if (!e) return;
+        off(); off = null; clearTimeout(timer);
+        status.textContent = t('Recording the moments after it…');
+        let tries = 0;
+        const play = async () => {
+          ctx.openEvent?.(e);
+          const r = await ctx.replayEvent?.(e);
+          if (r === 'pending' && ++tries < 6) { setTimeout(play, 300); return; }
+          finish(r === 'ok' ? t('Replaying in the brain view: every spike, 20× slower.') : t('The recording is not ready; open the event in the Why panel.'));
+        };
+        setTimeout(play, 350);
+      });
+      timer = setTimeout(() => finish(t('No response this time: her state decides as well. Try again.')), 5000);
+      pw.run((name, args) => ctx.command(name, args));
+    }
+    const pathways = card(t('Pathways through the brain'), { iconName: 'circuit', tagEl: tag('measured', t('wiring')) },
+      h('p', { class: 'note', style: { marginTop: 0 } }, t('From a sense to a behaviour, along measured synapses. Show a path, or stimulate her and watch the spikes run along it in slow motion.')),
+      h('div', { class: 'pw-list' }, ...PATHWAYS.map(pathwayRow)));
+
     const el = h('div', {}, panelHead(t('Circuit'), t('Open the brain like a neuroscientist.'),
       t('Every population below is a set of real, identified {source} neurons. Switch them off or on, change the synapses pharmacologically, or inspect a single cell.', { source })),
-    genetics, conditions, typeCard, pharma, probeCard);
+    pathways, genetics, conditions, typeCard, pharma, probeCard);
 
     let probeT = 0;
     return {

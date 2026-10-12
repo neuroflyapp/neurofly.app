@@ -737,7 +737,8 @@ export class HabitatGame {
         const groups = Array.isArray(action.groups) ? action.groups : [];
         for (const q of QUESTS) {
           if (!this.questAvailable(q)) continue;
-          if ((q.kind === 'wiring' && action.what === 'wiring') || (q.kind === 'chain' && action.what === 'chain' && groups.includes(q.target))) {
+          if ((q.kind === 'wiring' && action.what === 'wiring') || (q.kind === 'chain' && action.what === 'chain' && groups.includes(q.target))
+            || (q.kind === 'replay' && action.what === 'replay')) {
             this._completeQuest(q, now, R);
           }
         }

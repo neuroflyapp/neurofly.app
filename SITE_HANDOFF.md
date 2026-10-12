@@ -34,6 +34,11 @@ wiring from the web build (`img/wiring-giant-fiber.jpg`,
 the app's own captions for the mixed model). Stylesheet version on the home
 page `20261012a`. Checks: 0 `docs/play` files differing, smoke-site at
 1440/768/390 px and the 10 static tests pass.
+Later on 12 October: app `b82ff87` (spike replay of explained events, 20x
+slower with a raster; Circuit "Pathways through the brain"; dust motes for
+the observer). Home page: a wide figure `.wiring-replay`
+(`img/replay-escape.jpg`) under the gallery; stylesheet `20261012b`. Same
+checks, all pass.
 
 ## 8 October 2026 — onboarding and scientific precision (latest)
 

@@ -309,6 +309,7 @@ export class BrainView {
     this.highlightCloud.visible = false;
     this.group.add(this.highlightCloud);
     this._buildWiring();
+    this._buildReplay();
   }
 
   // The wiring of highlighted cells: their strongest measured synapses as
@@ -349,6 +350,192 @@ export class BrainView {
     this.wiringCloud.visible = false;
     this.group.add(this.wiringCloud);
     this.wiring = null;
+  }
+
+  // ---- replay: every spike around an event, slowed down (observer only) ----
+  _buildReplay() {
+    this.REPLAY = 8192;
+    // normal blending: thousands of overlapping spikes summed to white discs
+    this.replayPoints = spritePoints(this.REPLAY, { round: true });
+    this.replayPoints.frustumCulled = false;
+    this.replayPoints.visible = false;
+    this.group.add(this.replayPoints);
+    this.replayTtl = new Float32Array(this.REPLAY);   // neural ms left
+    this.replayDur = new Float32Array(this.REPLAY);
+    this.replayPeak = new Float32Array(this.REPLAY);
+    this.replayNext = 0;
+    this.replay = null;
+  }
+
+  // Plays the recorded spikes `rec` (sim-worker 'replay': neurons, ms from the
+  // window's start, beforeMs, afterMs) at 1/speed of real time. Cells of the
+  // `stages` groups light in their colour, all other cells faintly; a raster
+  // of the stages and a playhead go in the caption. Returns what it shows.
+  playReplay(rec, { stages = [], speed = 20, label = '' } = {}) {
+    this.stopReplay();
+    if (!rec?.neurons?.length) return null;
+    const groups = stages.map((k) => this.groups.find((g) => g.key === k)).filter((g) => g?.indices?.length);
+    const stageOf = new Int8Array(this.n).fill(-1), rank = new Float32Array(this.n);
+    groups.forEach((g, si) => g.indices.forEach((i, q) => { if (i < this.n && stageOf[i] < 0) { stageOf[i] = si; rank[i] = (q + 0.5) / g.indices.length; } }));
+    const spanMs = rec.beforeMs + rec.afterMs;
+    const counts = groups.map(() => 0);
+    for (let q = 0; q < rec.neurons.length; q++) { const si = stageOf[rec.neurons[q]]; if (si >= 0) counts[si]++; }
+    this.replay = { rec, groups, stageOf, rank, counts, speed, label, spanMs, tMs: 0, next: 0, done: false, textT: 0, caption: !this.caption.hidden,
+      startW: performance.now() };
+    const need = (spanMs * speed) / 1000 + 20;   // and a while to look at the raster
+    if (this.highlight) this.highlight.until = Math.max(this.highlight.until, this.highlight.t + need);
+    if (this.wiring) this.wiring.until = Math.max(this.wiring.until, this.wiring.t + need);
+    this.replayTtl.fill(0);
+    this.replayPoints.geometry.attributes.pAlpha.array.fill(0);
+    this.replayPoints.geometry.attributes.pAlpha.needsUpdate = true;
+    this.replayPoints.visible = true;
+    this.flashPoints.visible = false;   // the live spikes would mix with the recorded ones
+    this.glowLines.visible = false;
+    this._replayCaption();
+    return { spikes: rec.neurons.length, stages: groups.map((g, si) => ({ label: g.label, spikes: counts[si] })) };
+  }
+
+  stopReplay() {
+    if (!this.replay) return;
+    if (this.replay.caption && this.wiring) this.caption.hidden = false;
+    this.replay.resize?.disconnect();
+    this.replay = null;
+    this.replayPoints.visible = false;
+    this.flashPoints.visible = true;
+    this.glowLines.visible = this.synapsesVisible !== false;
+    if (this.replayUi) { this.replayUi.remove(); this.replayUi = null; }
+  }
+
+  _replayCaption() {
+    const r = this.replay, rec = r.rec;
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const ui = el('div', `brain-replay${this.height < 560 ? ' compact' : ''}`);
+    const head = el('div', 'rp-head');
+    r.time = el('span', 'rp-time', '');
+    head.append(el('b', null, t('Replay')), el('span', null, t('{x}× slower', { x: r.speed })), r.time);
+    const btn = el('button', 'rp-btn', t('Stop'));
+    btn.type = 'button';
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (r.done) this.playReplay(rec, { stages: r.groups.map((g) => g.key), speed: r.speed, label: r.label });
+      else this.stopReplay();
+    });
+    r.btn = btn;
+    head.append(btn);
+    const plot = el('div', 'rp-plot');
+    const canvas = document.createElement('canvas');
+    const playhead = el('div', 'rp-playhead');
+    plot.append(canvas, playhead);
+    r.playhead = playhead;
+    const legend = el('div', 'rp-legend');
+    r.groups.forEach((g, si) => {
+      const item = el('span', null, `${t(g.label)} · ${r.counts[si].toLocaleString()}`);
+      const sw = el('i');
+      sw.style.background = `rgb(${g.color.map((c) => Math.round(c * 255)).join(',')})`;
+      item.prepend(sw);
+      legend.append(item);
+    });
+    legend.append(el('span', 'rp-note', t('{n} spikes of all simulated neurons in {ms} ms, exactly as computed; faint dots are the other cells.', { n: rec.neurons.length.toLocaleString(), ms: r.spanMs })));
+    ui.append(head, plot, legend);
+    this.container.appendChild(ui);
+    this.replayUi = ui;
+    this.caption.hidden = true;
+    // The raster: one band per stage (a row per cell), then all other cells
+    // as a rate; at most a fifth of the view high.
+    const w = Math.max(160, Math.round(plot.getBoundingClientRect().width || 300));
+    const room = clampf((this.height || 400) * 0.2, 40, 96) - 12;
+    const otherH = Math.round(clampf(room * 0.22, 8, 18)), gap = 2;
+    const raw = r.groups.map((g) => 6 + 2.2 * Math.sqrt(g.indices.length));
+    const fit = Math.min(1, (room - otherH - gap * r.groups.length) / Math.max(1, raw.reduce((a, b) => a + b, 0)));
+    const bands = raw.map((b) => Math.max(5, Math.round(b * fit)));
+    const hgt = bands.reduce((a, b) => a + b + gap, 0) + otherH + 12;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(hgt * dpr);
+    canvas.style.width = '100%'; canvas.style.height = `${hgt}px`;   // stretches with the panel
+    r.plotW = w;
+    // the playhead follows the plot's width (read by the observer, never per frame)
+    r.resize = new ResizeObserver(([entry]) => { if (entry.contentRect.width > 0) r.plotW = entry.contentRect.width; });
+    r.resize.observe(plot);
+    const g2 = canvas.getContext('2d');
+    g2.scale(dpr, dpr);
+    const x = (ms) => (ms / r.spanMs) * w;
+    let y = 0;
+    const tops = bands.map((b) => { const top = y; y += b + gap; return top; });
+    const binMs = 5, bins = new Float32Array(Math.ceil(r.spanMs / binMs) + 1);
+    const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`;
+    for (let q = 0; q < rec.neurons.length; q++) {
+      const i = rec.neurons[q], si = i >= 0 && i < this.n ? r.stageOf[i] : -1;
+      if (si < 0) { bins[Math.floor(rec.ms[q] / binMs)]++; continue; }
+      g2.fillStyle = rgba(r.groups[si].color, r.groups[si].indices.length > 40 ? 0.4 : 0.9);
+      g2.fillRect(x(rec.ms[q]), tops[si] + r.rank[i] * bands[si] - 0.5, 1, 1);
+    }
+    let peak = 1;
+    for (const b of bins) peak = Math.max(peak, b);
+    g2.fillStyle = 'rgba(190,205,215,0.45)';
+    for (let b = 0; b < bins.length; b++) {
+      const hb = (bins[b] / peak) * otherH;
+      g2.fillRect(x(b * binMs), y + otherH - hb, Math.max(1, x(binMs) - 0.5), hb);
+    }
+    // the moment of the event
+    const ex = x(rec.beforeMs);
+    g2.strokeStyle = 'rgba(255,211,107,0.9)'; g2.setLineDash([3, 3]); g2.lineWidth = 1;
+    g2.beginPath(); g2.moveTo(ex + 0.5, 0); g2.lineTo(ex + 0.5, y + otherH); g2.stroke(); g2.setLineDash([]);
+    g2.font = '10px system-ui, sans-serif'; g2.textBaseline = 'top';
+    const tag = r.label || t('event'), tagW = g2.measureText(tag).width, endTxt = `+${rec.afterMs} ms`;
+    g2.fillStyle = 'rgba(160,175,180,0.8)';
+    g2.textAlign = 'left'; g2.fillText(`−${rec.beforeMs} ms`, 0, y + otherH + 1);
+    if (ex + tagW / 2 + 6 < w - g2.measureText(endTxt).width) { g2.textAlign = 'right'; g2.fillText(endTxt, w, y + otherH + 1); }
+    g2.fillStyle = 'rgba(255,211,107,0.95)'; g2.textAlign = 'center';
+    g2.fillText(tag, Math.min(w - tagW / 2, ex), y + otherH + 1);
+    g2.fillStyle = 'rgba(160,175,180,0.8)'; g2.textAlign = 'left';
+    g2.fillText(t('Other neurons'), 2, y + 1);
+  }
+
+  _stepReplay(dt) {
+    const r = this.replay, rec = r.rec;
+    const geo = this.replayPoints.geometry.attributes;
+    const pos = geo.position.array, col = geo.color.array, size = geo.pSize.array, alpha = geo.pAlpha.array;
+    // Neural time follows the wall clock at 1/speed, whatever the frame rate.
+    const before = r.tMs;
+    if (!r.done) r.tMs = Math.min(r.spanMs, (performance.now() - r.startW) / r.speed);
+    const adv = r.done ? (dt * 1000) / r.speed : r.tMs - before;
+    if (!r.done) {
+      const p = this.positions;
+      while (r.next < rec.neurons.length && rec.ms[r.next] <= r.tMs) {
+        const i = rec.neurons[r.next++];
+        if (i < 0 || i >= this.n) continue;
+        const si = r.stageOf[i], k = this.replayNext;
+        this.replayNext = (k + 1) % this.REPLAY;
+        pos[3 * k] = p[3 * i]; pos[3 * k + 1] = p[3 * i + 1]; pos[3 * k + 2] = p[3 * i + 2];
+        const gf = this.isGF[i] === 1;
+        if (si >= 0) {
+          const c = r.groups[si].color;
+          col[3 * k] = c[0]; col[3 * k + 1] = c[1]; col[3 * k + 2] = c[2];
+          size[k] = this.flashSize * (gf ? 1.9 : 0.8);
+          this.replayPeak[k] = 0.95; this.replayDur[k] = this.replayTtl[k] = gf ? 60 : 30;
+        } else {
+          col[3 * k] = 0.62; col[3 * k + 1] = 0.7; col[3 * k + 2] = 0.82;
+          size[k] = this.flashSize * 0.5;
+          this.replayPeak[k] = 0.4; this.replayDur[k] = this.replayTtl[k] = 14;
+        }
+      }
+      geo.position.needsUpdate = true; geo.color.needsUpdate = true; geo.pSize.needsUpdate = true;
+      if (r.tMs >= r.spanMs) { r.done = true; r.btn.textContent = t('Replay again'); }
+    }
+    for (let k = 0; k < this.REPLAY; k++) {
+      if (this.replayTtl[k] <= 0) continue;
+      const left = this.replayTtl[k] -= adv;
+      alpha[k] = left <= 0 ? 0 : this.replayPeak[k] * (left / this.replayDur[k]);
+    }
+    geo.pAlpha.needsUpdate = true;
+    r.playhead.style.transform = `translateX(${((r.tMs / r.spanMs) * r.plotW).toFixed(1)}px)`;
+    r.textT -= dt;
+    if (r.textT <= 0) {
+      r.textT = 0.1;
+      const rel = Math.round(r.tMs - rec.beforeMs);
+      const txt = `${rel > 0 ? '+' : rel < 0 ? '−' : ''}${Math.abs(rel)} ms`;
+      if (r.time.textContent !== txt) r.time.textContent = txt;
+    }
   }
 
   // Shows the wiring of the cells `indices` (null clears it). Returns what it
@@ -519,6 +706,7 @@ export class BrainView {
   // Highlight a set of neurons (indices) or named groups (keys), e.g. the ones
   // a causal explanation names. `null` clears it.
   setHighlight(spec) {
+    this.stopReplay();
     if (!spec) { this.highlight = null; this.highlightCloud.visible = false; this.setWiring(null); return null; }
     const idx = [];
     for (const k of spec.groups || []) {
@@ -561,7 +749,7 @@ export class BrainView {
   // Spikes from the latest snapshot. A drawing budget per frame, never a
   // simulation limit; giant-fiber spikes always draw.
   addSpikes(indices) {
-    if (!indices) return;
+    if (!indices || this.replay) return;
     for (let k = 0; k < indices.length; k++) {
       const i = indices[k];
       if (i < 0 || i >= this.n) continue;
@@ -637,7 +825,7 @@ export class BrainView {
     if (!this.width || !this.height) { this.pending = 0; return; }
     // Full rate while being handled, 30 Hz otherwise: an observation surface,
     // and no simulated value depends on how often it is drawn.
-    if (!this.dragging && !this.hovering && this.pending < 1 / 30) return;
+    if (!this.dragging && !this.hovering && !this.replay && this.pending < 1 / 30) return;
     const dt = this.pending;
     this.pending = 0;
     this.flashBudget = 24;
@@ -684,9 +872,11 @@ export class BrainView {
       this.flashPoints.material.opacity = 1 - 0.75 * focus;
       this.synapseLines.material.opacity = 0.055 * (this.lineDensity ?? 1) * (1 - 0.9 * focus);
     }
+    if (this.replay) this._stepReplay(dt);
     if (this.highlight) {
       this.highlight.t += dt;
-      this.highlightCloud.material.opacity = 0.55 + 0.4 * Math.sin(this.highlight.t * 5);
+      // (quieter while recorded spikes play: they are what to watch)
+      this.highlightCloud.material.opacity = this.replay ? 0.22 : 0.55 + 0.4 * Math.sin(this.highlight.t * 5);
       if (this.highlight.t > this.highlight.until) this.setHighlight(null);
     }
     if (this.glowLines.visible) {

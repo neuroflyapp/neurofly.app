@@ -128,6 +128,36 @@ export function buildInspector(ctx) {
     return { groups, color: GROUP_COLORS[key] ?? [1, 1, 1], duration: 16, chain: groups.length > 1 };
   }
 
+  // The event's recorded spikes, slowed down in the brain view. Resolves to
+  // 'ok', 'pending' (its aftermath is still being simulated) or 'gone'.
+  const REPLAY_SPEED = 20;
+  async function replayEvent(e) {
+    const rec = await ctx.request('replay', { kind: e.kind, t: e.t });
+    if (!rec) return 'gone';
+    if (rec.pending) return 'pending';
+    const spec = highlightFor(e);
+    ctx.highlight(spec);
+    ctx.showBrain?.();
+    ctx.replay?.(rec, { stages: spec.groups, speed: REPLAY_SPEED, label: t(EVENT_INFO[e.kind]?.label ?? e.kind) });
+    return 'ok';
+  }
+  ctx.replayEvent = replayEvent;
+
+  function replayRow(e) {
+    const note = h('div', { class: 'note' });
+    const btn = h('button', { class: 'btn small replay-btn', type: 'button', title: t('Every spike of the simulated brain in the half second before and the moments after, as computed') },
+      icon('play', 13), t('Replay the spikes, {x}× slower', { x: REPLAY_SPEED }));
+    btn.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      btn.disabled = true;
+      const r = await replayEvent(e);
+      btn.disabled = false;
+      note.textContent = r === 'gone' ? t('Only the latest six events keep their spikes.')
+        : r === 'pending' ? t('Still recording the moments after it; try again in a moment.') : '';
+    });
+    return h('div', { class: 'step replay-row' }, btn, note);
+  }
+
   function renderEvents() {
     if (!els.list) return;
     if (!events.length) {
@@ -153,7 +183,7 @@ export function buildInspector(ctx) {
       const card = h('div', { class: `event ${open ? 'open' : ''}` },
         h('div', { class: 'event-head' }, h('span', { class: 'glyph' }, icon(info.icon, 16)), h('b', {}, t(info.label)), h('small', {}, when)),
         h('div', { class: 'event-sub' }, e.trigger ? t(TRIGGER_INFO[e.trigger.channel] ?? e.trigger.label) : t('No external trigger')),
-        open ? h('div', { class: 'chain' }, ...chainFor(e)) : null);
+        open ? h('div', { class: 'chain' }, ...chainFor(e), e.kind !== 'death' ? replayRow(e) : null) : null);
       card.addEventListener('click', () => {
         openId = open ? null : e._id;
         ctx.highlight(open ? null : highlightFor(e));

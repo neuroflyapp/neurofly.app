@@ -28,6 +28,7 @@ import { LearningSession } from './learning-session.js';
 import { ExperimentJournal } from './experiment-journal.js';
 import { makeExperimentManifest } from './experiment-manifest.js';
 import { plasticityChangesCSV } from './plasticity-export.js';
+import { SpikeRecorder, ReplayStore } from './spike-record.js';
 import { recordingPackageJSON } from './recording-package.js';
 import { InputHistory, explain, behaviourGroup, TRACE_SHARE } from './causal.js';
 import { extractPose, poseNodes } from './pose.js';
@@ -228,6 +229,13 @@ export class ClosedLoop {
     this.sim = new LIFSim(this.data.circuit, this.spikeBus, this.data.locomotor, {
       seed: this.neuralSeed, plasticity: { enabled: this.plasticityEnabled },
     });
+    // Every spike around an explained event, for its replay (observer only;
+    // with the drawing bus, i.e. in the live app).
+    if (this.useSpikeBus) {
+      this.replays ??= new ReplayStore(new SpikeRecorder());
+      this.replays.reset();
+      this.sim.spikeTap = this.replays.recorder;
+    }
     this.signalBuilder.reset();
     this.msAccumulator = 0;
     this.neuralRun++;
@@ -632,6 +640,7 @@ export class ClosedLoop {
     this.spatialMap.reset();
     this.individual++;
     this.events = [];
+    this.replays?.reset();
     this.journalEvent('respawn', { body: this.bodySnapshot(), environment: this.environmentSnapshot(),
       previousRunDroppedSimulationSeconds });
   }
@@ -1020,6 +1029,7 @@ export class ClosedLoop {
     if (steps > 0) {
       const t0 = performance.now();
       sim.step(steps);
+      this.replays?.update(sim.simMs);
       this.perf.simulated += steps / 1000;
       this.perf.neural = (this.perf.neural || 0) + (performance.now() - t0) / 1000;
       this.perf.spikes += sim.lastStepSpikes;
@@ -1099,7 +1109,7 @@ export class ClosedLoop {
     this._eventCooldown[kind] = this.simTime;
     const e = explain(kind, { sim: this.sim, now: this.simTime, history: this.history, rates: this.sim.rates(), extra });
     if (e && !e.trigger) e.trigger = this._geneticTrigger(kind, e);
-    if (e) this._emit(e);
+    if (e) { this.replays?.mark(kind, e.t, this.sim.simMs); this._emit(e); }
   }
 
   // Behaviour driven by virtual genetics (an opsin or TrpA1 line activating a

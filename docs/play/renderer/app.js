@@ -107,6 +107,12 @@ const ctx = {
       return { ok: false };
     }
   },
+  // Plays an event's recorded spikes in the brain view (BrainView.playReplay).
+  replay(rec, opts) {
+    const shown = this.views.brain?.playReplay(rec, opts) ?? null;
+    if (shown) window.dispatchEvent(new CustomEvent('nf:connectome', { detail: { what: 'replay', groups: opts?.stages ?? [] } }));
+    return shown;
+  },
   highlight(spec) {
     const shown = this.views.brain?.setHighlight(spec) ?? null;
     // What the connectome just showed (the Habitat's quests listen).

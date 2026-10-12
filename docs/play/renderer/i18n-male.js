@@ -165,4 +165,25 @@ export const MALE = {
   "Swipe fast at her": [
     "Swipe fast at him",
     "Schnell auf ihn zu wischen"],
+  "She is in the air. Try again once she has landed.": [
+    "He is in the air. Try again once he has landed.",
+    "Er ist in der Luft. Nochmals versuchen, sobald er gelandet ist."],
+  "Her proboscis is already out. Try again in a moment.": [
+    "His proboscis is already out. Try again in a moment.",
+    "Sein Rüssel ist schon ausgefahren. Gleich nochmals versuchen."],
+  "She is busy (grooming or flying). Try again in a moment.": [
+    "He is busy (grooming or flying). Try again in a moment.",
+    "Er ist beschäftigt (putzt sich oder fliegt). Gleich nochmals versuchen."],
+  "Hot-sensing cells of the antenna and their relay neurons. Warmth changes where she walks; there is no single moment to replay.": [
+    "Hot-sensing cells of the antenna and their relay neurons. Warmth changes where he walks; there is no single moment to replay.",
+    "Wärmefühlende Zellen des Fühlers und ihre Relaisneuronen. Wärme verändert, wo er läuft; es gibt keinen einzelnen Moment zum Abspielen."],
+  "Stimulus sent; waiting for her response…": [
+    "Stimulus sent; waiting for his response…",
+    "Reiz gesendet; warte auf seine Antwort …"],
+  "No response this time: her state decides as well. Try again.": [
+    "No response this time: his state decides as well. Try again.",
+    "Diesmal keine Antwort: Sein Zustand entscheidet mit. Nochmals versuchen."],
+  "From a sense to a behaviour, along measured synapses. Show a path, or stimulate her and watch the spikes run along it in slow motion.": [
+    "From a sense to a behaviour, along measured synapses. Show a path, or stimulate him and watch the spikes run along it in slow motion.",
+    "Von einem Sinn zu einem Verhalten, entlang gemessener Synapsen. Zeige einen Pfad, oder reize ihn und sieh in Zeitlupe, wie die Spikes ihm entlang laufen."],
 };

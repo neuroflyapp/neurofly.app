@@ -352,6 +352,7 @@ export class LIFSim {
     }
     this.legFeedback = []; // per-leg proprioception from the body, handed to the cord
     this.spikeBus = spikeBus; // where drawn spikes go (null: nowhere)
+    this.spikeTap = null;     // gets every spike, read-only (spike-record.js)
 
     // Identity and soma position of every neuron (FlyWire frame; a neuron
     // without a position stays at the origin).
@@ -1170,7 +1171,7 @@ export class LIFSim {
       this.activeStims.push(pulse);
     }
 
-    const { n, v, refr, baseline: base, thresholds, random, _spiked: spiked, spikeBus: bus } = this;
+    const { n, v, refr, baseline: base, thresholds, random, _spiked: spiked, spikeBus: bus, spikeTap: tap } = this;
     const decay = this.decay, refractoryMs = this.refractoryMs;
     const noiseKick = this.noiseKick, loomGain = this.loomGain, pNoise = this.pNoise;
     let stepSpikes = 0;
@@ -1480,6 +1481,7 @@ export class LIFSim {
           for (let s = 0; s < nSpiked; s++) if (popCode[spiked[s]] === POP.GF && s % stride !== 0) bus.pushOne(spiked[s]);
         }
       }
+      if (tap) tap.record(now, spiked, nSpiked);
     }
     if (cord) cord.updateMotorCommands();   // the legs read them once per step
     this.lastStepSpikes = stepSpikes;
