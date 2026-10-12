@@ -221,6 +221,8 @@ select, input[type=text], input[type=search], input[type=number] { width: 100%; 
 .why-toast .eyebrow { display: flex; align-items: center; gap: 6px; }
 .why-toast b { display: block; margin-top: 3px; font-size: 13px; }
 .why-toast span { color: var(--muted); font-size: 11.5px; }
+.why-toast .why-slowmo { display: inline-flex; margin-top: 7px; }
+.hud-tr .xray-btn.on { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px #00ff4133; }
 @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
 
 /* ---- dock ---- */
@@ -851,6 +853,9 @@ body.mobile .brain-replay { bottom: auto; top: 58px; }
 .brain-replay .rp-time { font: 600 12px/1 var(--mono); color: #ffd36b; min-width: 62px; }
 .brain-replay .rp-btn { margin-left: auto; padding: 3px 9px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); font-size: 11px; cursor: pointer; }
 .brain-replay .rp-btn:hover { border-color: var(--accent); }
+.brain-replay .rp-sound { margin-left: auto; }
+.brain-replay .rp-sound + .rp-btn { margin-left: 0; }
+.brain-replay .rp-sound.on { color: var(--accent); border-color: var(--accent); }
 .brain-replay .rp-plot { position: relative; width: 100%; }
 .brain-replay .rp-plot canvas { display: block; }
 .brain-replay .rp-playhead { position: absolute; left: 0; top: 0; bottom: 12px; width: 1.5px; background: #ffffffcc; box-shadow: 0 0 6px #00ff41; pointer-events: none; will-change: transform; }
@@ -862,6 +867,15 @@ body.mobile .brain-replay { bottom: auto; top: 58px; }
 .brain-replay.compact .rp-legend { font-size: 10.5px; }
 .chain .replay-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .chain .replay-row .note:empty { display: none; }
+/* the audio monitor (app.js ctx.listen) */
+.brain-listen { position: absolute; left: 10px; top: 52px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 14px;
+  border: 1px solid #00ff4166; background: #0b1214e8; color: var(--ink); font-size: 11.5px; cursor: pointer; }
+.brain-listen[hidden] { display: none; }
+.brain-listen .icon:first-child { color: var(--accent); animation: listen-pulse 1.2s ease-in-out infinite; }
+.brain-listen small { color: var(--ink-3); }
+@keyframes listen-pulse { 50% { opacity: .45; } }
+body.mobile .brain-listen { top: auto; bottom: 34px; }
+.pop-row .acts button.listen.on { color: var(--accent); border-color: var(--accent); }
 /* Circuit: pathways from a sense to a behaviour */
 .pw-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .pw-row { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); display: flex; flex-direction: column; gap: 5px; }

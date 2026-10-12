@@ -92,9 +92,16 @@ export const ANIMAL_RATINGS = Object.freeze({
   'motivational-tradeoffs': 'H', 'flexible-self-protection': 'VL', 'associative-learning': 'VH', 'analgesia-preference': 'VL',
 });
 
-const MB_RE = /^(KC|MBON|PAM|PPL|APL|DPM)/;
-const MB_LEARNING_RE = /^(KC|PAM|PPL)/;
-const CX_RE = /^(EPG|PEG|PEN|PFN|PFL|PFR|PFG|hDelta|vDelta|FB\d|ER\d|ExR|EL)/;
+export const MB_RE = /^(KC|MBON|PAM|PPL|APL|DPM)/;
+export const MB_LEARNING_RE = /^(KC|PAM|PPL)/;
+export const CX_RE = /^(EPG|PEG|PEN|PFN|PFL|PFR|PFG|hDelta|vDelta|FB\d|ER\d|ExR|EL)/;
+
+// Indices of the simulated neurons whose cell type matches `re`.
+export function cellsOfTypes(circuit, re) {
+  const out = [];
+  (circuit?.neurons || []).forEach((n, i) => { if (n.cellType && re.test(n.cellType)) out.push(i); });
+  return out;
+}
 
 function countTypes(circuit, re) {
   let total = 0;

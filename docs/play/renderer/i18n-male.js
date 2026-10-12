@@ -177,6 +177,9 @@ export const MALE = {
   "Hot-sensing cells of the antenna and their relay neurons. Warmth changes where she walks; there is no single moment to replay.": [
     "Hot-sensing cells of the antenna and their relay neurons. Warmth changes where he walks; there is no single moment to replay.",
     "Wärmefühlende Zellen des Fühlers und ihre Relaisneuronen. Wärme verändert, wo er läuft; es gibt keinen einzelnen Moment zum Abspielen."],
+  "X-ray: her brain above her, lit by her spikes": [
+    "X-ray: his brain above him, lit by his spikes",
+    "Röntgenblick: sein Gehirn über ihm, erleuchtet von seinen Spikes"],
   "Stimulus sent; waiting for her response…": [
     "Stimulus sent; waiting for his response…",
     "Reiz gesendet; warte auf seine Antwort …"],

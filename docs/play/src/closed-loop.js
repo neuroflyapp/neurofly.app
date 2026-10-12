@@ -472,6 +472,7 @@ export class ClosedLoop {
       }
       case 'stim.loom': this.loomOverride = clampf(a.strength ?? 0.6, 0, 1); this.history.noteStimulation(this.simTime, 'looming stimulus', ['loomL', 'loomR']); return true;
       case 'stim.cells': return this.stim(a.indices, a.strength ?? 0.25, a.durationMs ?? 400, a.label ?? 'brain-view stimulation');
+      case 'listen.set': return this._setListen(a);
       case 'taste.offer': {
         const d = clampf(a.durationS ?? 2, 0.1, 20);
         this.tasteOffer = { sugar: clampf(a.sugar ?? 0, 0, 1), bitter: clampf(a.bitter ?? 0, 0, 1), until: this.simTime + d };
@@ -1334,6 +1335,32 @@ export class ClosedLoop {
     return p.wall > 1 || !p.last ? snap : p.last;
   }
 
+  // ---- listening to neurons (observer only: reads the spike record) ---------------------
+  // The cells whose spikes each snapshot carries for the renderer's audio
+  // monitor; null stops it. Nothing here touches the network.
+  _setListen(a) {
+    const idx = a?.population ? this.resolvePopulation(a.population)?.indices : a?.indices;
+    if (!this.replays || !idx?.length) { this.listen = null; return !idx; }
+    const mask = new Uint8Array(this.sim.n);
+    let count = 0;
+    for (const i of idx) if (i >= 0 && i < mask.length && !mask[i]) { mask[i] = 1; count++; }
+    this.listen = count ? { mask, count, lastMs: this.sim.simMs } : null;
+    return count > 0;
+  }
+
+  _listenSpikes() {
+    const L = this.listen;
+    if (!L || !this.replays) return null;
+    const now = this.sim.simMs;
+    if (now < L.lastMs || now - L.lastMs > 1000) L.lastMs = Math.max(0, now - 1);   // a new run, or a long gap
+    if (now === L.lastMs) return { spanMs: 0, ms: new Uint16Array(0), count: L.count };
+    const w = this.replays.recorder.window(L.lastMs + 1, now), out = [];
+    for (let q = 0; q < w.neurons.length; q++) if (L.mask[w.neurons[q]]) out.push(w.ms[q]);
+    const res = { spanMs: now - L.lastMs, ms: Uint16Array.from(out), count: L.count };
+    L.lastMs = now;
+    return res;
+  }
+
   // ---- what the renderer and the panels need, once per displayed frame ------------------
   snapshot({ includeMap = false, mapField = 'occupancy' } = {}) {
     const sim = this.sim, fly = this.fly;
@@ -1377,6 +1404,7 @@ export class ClosedLoop {
       hierarchy: { cordFwd: cord(['DNp09']), cordSteer: cord(['DNa01', 'DNa02']), cordBack: cord(['MDN']),
         vncSens: loc ? loc.meanRate('sensory') : 0, vncMotor: loc ? loc.meanRate('motor') : 0, brainAscend: sim.rateAscend },
       spikes: this.spikeBus ? this.spikeBus.drain() : null,
+      listen: this._listenSpikes(),
       trace: this.pendingTrace.splice(0),
       events: this.pendingEvents.splice(0),
       recording: { active: this.recording, rows: this.recorder.count },

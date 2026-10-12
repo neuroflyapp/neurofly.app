@@ -39,6 +39,10 @@ slower with a raster; Circuit "Pathways through the brain"; dust motes for
 the observer). Home page: a wide figure `.wiring-replay`
 (`img/replay-escape.jpg`) under the gallery; stylesheet `20261012b`. Same
 checks, all pass.
+13 October: app `f9813b7` (sentience criteria shown in the brain, audio
+monitor for spikes, replay sound, x-ray of her brain above her in the
+terrarium, slow motion from the why-toast). Home page unchanged; 0 play files
+differing, web smoke passed.
 
 ## 8 October 2026 — onboarding and scientific precision (latest)
 

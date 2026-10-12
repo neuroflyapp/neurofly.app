@@ -13,7 +13,7 @@ import { BEHAVIOURS, NEURONS, QUESTS, CHAPTERS, DAILY, STOCKS, CRITERIA, RANKS, 
 import { assessSentience } from '../../src/sentience.js';
 import { HabitatOverlay, HabitatSound, composePhoto } from './habitat-fx.js';
 import { median } from '../../src/stats.js';
-import { LEVEL, ANIMAL_TEXT, modelText } from './panel-sentience.js';
+import { LEVEL, ANIMAL_TEXT, modelText, criterionInBrain, showCriterionInBrain } from './panel-sentience.js';
 import { GROUP_COLORS } from '../view/brain.js';
 import { HabitatStorage } from '../../src/habitat-storage.js';
 
@@ -350,6 +350,7 @@ export const habitatPanel = {
         return escape ? [t('Show the path of the last escape'), () => { ctx.openEvent?.(escape); ctx.showBrain?.(); }, null]
           : [t('Cast a shadow'), () => ctx.command('stim.loom', { strength: 0.8 }), null];
       },
+      eavesdrop: () => [t('Open the journal'), () => openTab('journal'), null],
       slowmo: () => {
         const escape = [...(ctx.state.lastEvents ?? [])].reverse().find((e) => e.kind === 'takeoff');
         return escape ? [t('Replay the last escape'), () => { ctx.openEvent?.(escape); ctx.replayEvent?.(escape); }, null]
@@ -668,7 +669,9 @@ export const habitatPanel = {
         wiringBlock(n),
         h('div', { class: 'hab-small' }, t('Data: these cells and their wiring come from the connectome. Simulation: their activity.')),
         cite(n.ref),
-        n.highlight ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight([n.highlight], n.label) }, icon('brain', 14), t('Show the wiring in the brain')) : null);
+        n.highlight ? h('button', { type: 'button', class: 'btn small', onclick: () => highlight([n.highlight], n.label) }, icon('brain', 14), t('Show the wiring in the brain')) : null,
+        n.highlight ? h('button', { type: 'button', class: 'btn small', title: t('Its spikes as clicks, like an electrode in the lab'),
+          onclick: () => ctx.listen(ctx.listening?.key === n.highlight ? null : { group: n.highlight, key: n.highlight, label: n.label }) }, icon('sound', 14), t('Listen')) : null);
     }
 
     // ---- fly lab tab -----------------------------------------------------------------------
@@ -890,7 +893,11 @@ export const habitatPanel = {
             open ? h('div', { class: 'hab-crit-detail' },
               h('p', {}, h('b', {}, `${t('Real flies')} · Gibbons 2022: `), t(ANIMAL_TEXT[c.id] ?? '')),
               h('p', {}, h('b', {}, `${t('This model')}: `), modelText(a)),
-              h('p', { class: 'hab-small' }, t('The two answer different questions: the first grades evidence about real flies, the second lists mechanisms in a simulation. Neither measures feeling.'))) : null,
+              h('p', { class: 'hab-small' }, t('The two answer different questions: the first grades evidence about real flies, the second lists mechanisms in a simulation. Neither measures feeling.')),
+              criterionInBrain(ctx, c.id) ? h('span', { class: 'btn small', role: 'button', tabindex: '0',
+                onclick: (ev) => { ev.stopPropagation(); showCriterionInBrain(ctx, criterionInBrain(ctx, c.id)); },
+                onkeydown: (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); showCriterionInBrain(ctx, criterionInBrain(ctx, c.id)); } } },
+                icon('brain', 14), t('Show in the brain')) : null) : null,
             action)));
       }
       const all = n === CRITERIA.length;
@@ -1152,6 +1159,8 @@ export const habitatPanel = {
     // Looking at the connectome counts for the quests that teach it.
     const onConnectome = (e) => { const r = game.act({ type: 'saw', what: e.detail?.what, groups: e.detail?.groups }, Date.now(), ctx.snap); handleRewards(r.rewards); if (r.rewards.length) { stateVersion++; saveGame(); refresh(); } };
     window.addEventListener('nf:connectome', onConnectome);
+    const onListen = (e) => { if (e.detail) onConnectome({ detail: { what: 'listen', groups: e.detail.key ? [e.detail.key] : [] } }); };
+    window.addEventListener('nf:listen', onListen);
     const onLeave = () => saveGame();
     window.addEventListener('pagehide', onLeave);
     document.addEventListener('visibilitychange', onLeave);
@@ -1176,6 +1185,7 @@ export const habitatPanel = {
         document.removeEventListener('keydown', onKey);
         window.removeEventListener('pagehide', onLeave);
         window.removeEventListener('nf:connectome', onConnectome);
+        window.removeEventListener('nf:listen', onListen);
         document.removeEventListener('visibilitychange', onLeave);
         // The red light belongs to the game: off when the player leaves.
         if (game.rt.lightOn) act({ type: 'light', on: false });

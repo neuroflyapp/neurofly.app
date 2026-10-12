@@ -5,7 +5,19 @@
 import { h, icon } from './dom.js';
 import { t, int } from '../i18n.js';
 import { panelHead, card, tag, link } from './widgets.js';
-import { assessSentience, SENTIENCE_RESEARCH_SOURCES } from '../../src/sentience.js';
+import { assessSentience, SENTIENCE_RESEARCH_SOURCES, cellsOfTypes, CX_RE, MB_RE, MB_LEARNING_RE } from '../../src/sentience.js';
+import { GROUP_COLORS } from '../view/brain.js';
+
+// What each criterion refers to in the running circuit, for the brain view:
+// the cells with their strongest measured partners, or a causal path.
+const SHOW_IN_BRAIN = {
+  nociception: { groups: ['hot', 'cold', 'bitter'], wiring: true, label: 'Heat, cold and bitter sensors', color: 'hot' },
+  'sensory-integration': { types: [CX_RE, MB_RE], wiring: true, label: 'Central complex and mushroom body' },
+  'integrated-nociception': { groups: ['hot', 'thermoRelay'], chain: true, color: 'thermoRelay' },
+  'motivational-tradeoffs': { groups: ['proboscis'], wiring: true, label: 'Proboscis motor neurons, where sugar and bitter converge', color: 'proboscis' },
+  'flexible-self-protection': { groups: ['joF', 'groomRelay', 'dng12'], chain: true, color: 'dng12' },
+  'associative-learning': { types: [MB_LEARNING_RE], wiring: true, label: 'Mushroom-body learning cells (Kenyon cells, PAM/PPL)' },
+};
 import { runExperiment } from './panel-experiments.js';
 import { PROTOCOLS } from '../../src/experiments.js';
 
@@ -45,6 +57,21 @@ export function modelText(c) {
   }
 }
 
+// A criterion's brain view only when its cells are in the running circuit
+// (the mixed model carries no mushroom-body learning cells, for example).
+export function criterionInBrain(ctx, id) {
+  const spec = SHOW_IN_BRAIN[id];
+  return spec && (!spec.types || spec.types.some((re) => cellsOfTypes(ctx.data.circuit, re).length > 0)) ? spec : null;
+}
+
+export function showCriterionInBrain(ctx, spec) {
+  const indices = spec.types ? [...new Set(spec.types.flatMap((re) => cellsOfTypes(ctx.data.circuit, re)))] : undefined;
+  if (spec.types && !indices.length) { ctx.toast(t('None of these cells is in the simulated circuit.')); return; }
+  ctx.highlight({ groups: spec.groups, indices, chain: spec.chain, wiring: spec.wiring, label: spec.label ? t(spec.label) : undefined,
+    color: GROUP_COLORS[spec.color] ?? [1, 1, 1], duration: 18 });
+  ctx.showBrain?.();
+}
+
 export const sentiencePanel = {
   id: 'sentience', icon: 'sentience', title: 'Sentience', short: 'Sentience',
   build(ctx) {
@@ -75,6 +102,9 @@ export const sentiencePanel = {
         : t('Run the {n} linked experiments below to test the model\'s side yourself.', { n: linked.length });
     }
 
+    const showable = (id) => criterionInBrain(ctx, id);
+    const showInBrain = (spec) => showCriterionInBrain(ctx, spec);
+
     function render() {
       renderTested();
       list.replaceChildren(...audit.criteria.map((c) => {
@@ -92,9 +122,11 @@ export const sentiencePanel = {
               h('span', { class: `level ${lvlCls}` }, t(lvlText))), h('div', {}, t(ANIMAL_TEXT[c.id]))),
             h('div', { class: 'crit-col' }, h('div', { class: 'k' }, t('This model'), c.anatomy ? tag('measured', t('full connectome')) : null,
               h('span', { class: `level ${stCls}` }, t(stText))), h('div', {}, modelText(c)))),
-          protocol ? h('div', { class: 'row run' },
-            h('button', { class: 'btn small', type: 'button', onclick: () => { runExperiment(ctx, protocol.id, {}); ctx.shell.select('experiments'); } },
-              icon('play', 13), t('Test it: {name}', { name: t(protocol.title) })), chip) : null);
+          protocol || showable(c.id) ? h('div', { class: 'row run' },
+            showable(c.id) ? h('button', { class: 'btn small', type: 'button', title: t('The cells this criterion is about, with their measured wiring'), onclick: () => showInBrain(showable(c.id)) },
+              icon('target', 13), t('Show in the brain')) : null,
+            protocol ? h('button', { class: 'btn small', type: 'button', onclick: () => { runExperiment(ctx, protocol.id, {}); ctx.shell.select('experiments'); } },
+              icon('play', 13), t('Test it: {name}', { name: t(protocol.title) })) : null, chip) : null);
       }), h('div', { class: 'crit crit-felt' },
         h('div', { class: 'crit-head' }, h('span', { class: 'crit-num' }, '?'),
           h('div', {}, h('b', {}, t('Felt experience')), h('small', {}, t('Does she feel anything?')))),

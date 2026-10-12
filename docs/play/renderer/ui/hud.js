@@ -29,7 +29,18 @@ export function buildHud(ctx) {
       const mode = ctx.views.terrarium.resetCamera();
       setText(camLabel,t(cameraModeLabel(mode)));
     } }, '↺');
-    const tr = h('div', { class: 'hud-tr' }, camBtn, zoomIn, zoomOut, reset);
+    // X-ray: her brain floating above her, lit by her spikes (observer only).
+    const xray = h('button', { class: `btn small icon-only xray-btn${ctx.views.terrarium.xray?.visible ? ' on' : ''}`, type: 'button',
+      title: t('X-ray: her brain above her, lit by her spikes'), 'aria-label': t('X-ray: her brain above her, lit by her spikes'),
+      'aria-pressed': String(Boolean(ctx.views.terrarium.xray?.visible)) }, icon('brain', 15));
+    xray.addEventListener('click', () => {
+      const on = ctx.views.terrarium.setXray(!ctx.views.terrarium.xray?.visible, ctx.views.brain?.xrayData());
+      xray.classList.toggle('on', on);
+      xray.setAttribute('aria-pressed', String(on));
+      try { localStorage.setItem('neurocause.xray', on ? '1' : '0'); } catch { /* a preference only */ }
+    });
+    // (last: tests and habits address the camera controls by position)
+    const tr = h('div', { class: 'hud-tr' }, camBtn, zoomIn, zoomOut, reset, xray);
     const br = h('div', { class: 'hud-br' }, ctx.touch ? t('Drag the fly · swipe at her to startle · two fingers turn and zoom')
       : t('Drag the fly · right-drag to orbit · Shift+right-drag to pan · wheel to zoom'));
     const toast = h('div', { class: 'why-toast', hidden: true, onclick: () => { if (lastShown) ctx.openEvent?.(lastShown); } });
@@ -79,15 +90,28 @@ export function buildHud(ctx) {
     for (const e of snap.events) showEvent(e);
   });
 
+  // Behaviours whose half second is worth replaying from the toast.
+  const SLOW_MOTION = new Set(['takeoff', 'proboscis', 'feeding', 'headGrooming', 'backward']);
+  async function slowMotion(e) {
+    ctx.openEvent?.(e);
+    for (let tries = 0; tries < 6; tries++) {
+      const r = await ctx.replayEvent?.(e);
+      if (r !== 'pending') return;
+      await new Promise((res) => setTimeout(res, 300));   // its aftermath is still being simulated
+    }
+  }
+
   function showEvent(e) {
     const info = EVENT_INFO[e.kind];
     if (!info) return;
     lastShown = e;
     const trig = e.trigger ? t(TRIGGER_INFO[e.trigger.channel] ?? e.trigger.label) : t('No external trigger — her own network activity');
-    els.toast.replaceChildren(
+    els.toast.replaceChildren(...[
       h('div', { class: 'eyebrow' }, icon('why', 13), t('Why?')),
       h('b', {}, t(info.label)),
-      h('span', {}, `${trig}${e.trigger?.latencyMs != null ? ` · ${e.trigger.latencyMs <= 8 ? '≤ 8' : e.trigger.latencyMs} ms` : ''} — ${ctx.touch ? t('tap for the full chain') : t('click for the full chain')}`));
+      h('span', {}, `${trig}${e.trigger?.latencyMs != null ? ` · ${e.trigger.latencyMs <= 8 ? '≤ 8' : e.trigger.latencyMs} ms` : ''} — ${ctx.touch ? t('tap for the full chain') : t('click for the full chain')}`),
+      SLOW_MOTION.has(e.kind) && ctx.replayEvent ? h('button', { class: 'btn small why-slowmo', type: 'button', title: t('Every spike of the simulated brain around this moment, 20× slower'),
+        onclick: (ev) => { ev.stopPropagation(); slowMotion(e); } }, icon('play', 12), t('Slow motion')) : null].filter(Boolean));
     els.toast.hidden = false;
     toastTimer = 6;
   }

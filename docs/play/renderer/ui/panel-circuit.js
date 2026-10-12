@@ -67,12 +67,20 @@ export const circuitPanel = {
       const sil = h('button', { type: 'button', class: 'silence', title: t('Silence: hold these neurons at rest, like expressing Kir2.1') }, t('Silence'));
       const act = h('button', { type: 'button', title: t('Activate: tonic depolarising drive, like CsChrimson under red light') }, t('Activate'));
       const hl = h('button', { type: 'button', title: t('Show them in the 3D connectome') }, icon('target', 12));
+      const ls = h('button', { type: 'button', class: 'listen', title: t('Listen to their spikes') }, icon('sound', 12));
+      ls.addEventListener('click', async () => {
+        if (ctx.listening?.key === key) { ctx.listen(null); return; }
+        ctx.spikeAudio.start();   // inside the click: browsers unlock audio only there
+        const group = POPULATION_BRAIN_GROUP[key];
+        const indices = group ? null : await ctx.request('populationIndices', { population: key });
+        ctx.listen(group ? { group, key, label: t(label) } : { indices, key, label: t(label) });
+      });
       sil.addEventListener('click', () => setGenetic(key, 'silence', !isOn(key, 'silence')));
       act.addEventListener('click', () => setGenetic(key, 'activate', !isOn(key, 'activate')));
       hl.addEventListener('click', () => highlight(key));
       const row = h('div', { class: 'pop-row' }, h('span', { class: 'sw', style: { background: color } }),
-        h('span', {}, t(label), ' ', h('small', {}, `· ${int(count)}`)), hz, h('span', { class: 'acts' }, hl, sil, act));
-      rows.set(key, { row, hz, sil, act });
+        h('span', {}, t(label), ' ', h('small', {}, `· ${int(count)}`)), hz, h('span', { class: 'acts' }, ls, hl, sil, act));
+      rows.set(key, { row, hz, sil, act, ls });
       return row;
     }
 
@@ -134,7 +142,8 @@ export const circuitPanel = {
         h('div', { class: 'note' }, h('b', {}, t('Strongest outputs by type: ')), r.topOutputs.map((x) => `${x.type} ${x.weight > 0 ? '+' : ''}${num(x.weight * 1000, 1)}`).join(' · ') || '—'),
         h('div', { class: 'row', style: { marginTop: '8px' } },
           h('button', { class: 'btn small', type: 'button', onclick: () => ctx.command('stim.cells', { indices: [r.index], strength: 1.2, durationMs: 5, label: `neuron #${r.index}` }) }, t('Make it spike')),
-          h('button', { class: 'btn small', type: 'button', onclick: () => ctx.highlight({ indices: [r.index], color: [1, 1, 1], duration: 14, wiring: true, label: `${r.type || r.superClass} #${r.index}` }) }, t('Show the wiring in the brain'))),
+          h('button', { class: 'btn small', type: 'button', onclick: () => ctx.highlight({ indices: [r.index], color: [1, 1, 1], duration: 14, wiring: true, label: `${r.type || r.superClass} #${r.index}` }) }, t('Show the wiring in the brain')),
+          h('button', { class: 'btn small', type: 'button', title: t('Its spikes as clicks, like an electrode in the lab'), onclick: () => ctx.listen({ indices: [r.index], key: `#${r.index}`, label: `${r.type || r.superClass} #${r.index}` }) }, icon('sound', 13), t('Listen to it'))),
         h('p', { class: 'note' }, t('Weights in thousandths of the spike threshold per spike (signed by transmitter). Membrane in model units.')));
     }
     probeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doProbe(probeInput.value); });
@@ -198,6 +207,7 @@ export const circuitPanel = {
           r.hz.textContent = rk ? `${num(snap.rates[rk] ?? 0, 1)} Hz` : '';
           r.sil.classList.toggle('on', isOn(key, 'silence'));
           r.act.classList.toggle('on', isOn(key, 'activate'));
+          r.ls.classList.toggle('on', ctx.listening?.key === key);
         }
         active.replaceChildren(...(snap.genetics.length ? snap.genetics.map((g) => h('span', { class: 'chip accent' }, `${g.mode === 'silence' ? t('silenced') : t('activated')}: ${t(g.label)} (${g.count})`))
           : [h('span', { class: 'note' }, t('None — the connectome is intact.'))]));

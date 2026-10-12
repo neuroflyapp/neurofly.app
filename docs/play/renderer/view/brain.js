@@ -63,7 +63,7 @@ const SUPER_CLASS_LABELS = {
 // Normal alpha compositing preserves anatomical colour and fine structure in
 // dense central regions. Additive blending saturated thousands of overlapping
 // somata into a white patch, hiding the measured positions and live flashes.
-function spritePoints(count, { round = true, blending = THREE.NormalBlending } = {}) {
+export function spritePoints(count, { round = true, blending = THREE.NormalBlending } = {}) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
@@ -99,6 +99,8 @@ function spriteTexture(kind) {
   g.fillStyle = grad; g.beginPath(); g.arc(32, 32, 31, 0, Math.PI * 2); g.fill();
   return new THREE.CanvasTexture(c);
 }
+
+const RING_PEAK = 0.55;   // the giant fiber's expanding ring, at its brightest
 
 export class BrainView {
   constructor(container, { points, circuit, onPick }) {
@@ -352,6 +354,19 @@ export class BrainView {
     this.wiring = null;
   }
 
+  // Per neuron (index order): position, a dimmed population colour, giant
+  // fiber flags and the cloud's radius, for the terrarium's x-ray (xray.js).
+  xrayData() {
+    const n = this.n, colors = new Float32Array(3 * n);
+    for (const g of this.groups) {
+      const c = g.tier === 'named' ? g.color : g.color.map((v) => v * 0.8);
+      for (const i of g.indices ?? []) if (i < n) colors.set(c, 3 * i);
+    }
+    let r = 0;
+    for (let i = 0; i < n; i++) r = Math.max(r, Math.hypot(this.positions[3 * i], this.positions[3 * i + 1]));
+    return { positions: this.positions.slice(0, 3 * n), colors, isGF: this.isGF, radius: r };
+  }
+
   // ---- replay: every spike around an event, slowed down (observer only) ----
   _buildReplay() {
     this.REPLAY = 8192;
@@ -413,6 +428,19 @@ export class BrainView {
     const head = el('div', 'rp-head');
     r.time = el('span', 'rp-time', '');
     head.append(el('b', null, t('Replay')), el('span', null, t('{x}× slower', { x: r.speed })), r.time);
+    // sound: the stages' spikes as clicks, slowed like the picture (app.js wires the audio)
+    if (this.onReplaySound) {
+      const snd = el('button', `rp-btn rp-sound${this.replaySound ? ' on' : ''}`, this.replaySound ? t('Sound on') : t('Sound off'));
+      snd.type = 'button';
+      snd.title = t('Hear the spikes of the highlighted cells as clicks, slowed down like the picture');
+      snd.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        this.replaySound = !this.replaySound && this.onReplaySound() !== false;
+        snd.classList.toggle('on', this.replaySound);
+        snd.textContent = this.replaySound ? t('Sound on') : t('Sound off');
+      });
+      head.append(snd);
+    }
     const btn = el('button', 'rp-btn', t('Stop'));
     btn.type = 'button';
     btn.addEventListener('click', (ev) => {
@@ -497,6 +525,8 @@ export class BrainView {
     const pos = geo.position.array, col = geo.color.array, size = geo.pSize.array, alpha = geo.pAlpha.array;
     // Neural time follows the wall clock at 1/speed, whatever the frame rate.
     const before = r.tMs;
+    const sound = this.replaySound && this.onReplayClicks && !r.done ? { times: [], amps: [] } : null;
+    r.amps ??= r.groups.map((g) => 0.7 / Math.sqrt(Math.max(1, g.indices.length / 3)));
     if (!r.done) r.tMs = Math.min(r.spanMs, (performance.now() - r.startW) / r.speed);
     const adv = r.done ? (dt * 1000) / r.speed : r.tMs - before;
     if (!r.done) {
@@ -505,6 +535,11 @@ export class BrainView {
         const i = rec.neurons[r.next++];
         if (i < 0 || i >= this.n) continue;
         const si = r.stageOf[i], k = this.replayNext;
+        if (sound && si >= 0) {
+          // slowed like the picture; spikes of one simulated millisecond spread over its slowed span
+          sound.times.push((rec.ms[r.next - 1] + ((r.next * 0.618) % 1) - before) * r.speed);
+          sound.amps.push(this.isGF[i] === 1 ? 0.9 : r.amps[si]);
+        }
         this.replayNext = (k + 1) % this.REPLAY;
         pos[3 * k] = p[3 * i]; pos[3 * k + 1] = p[3 * i + 1]; pos[3 * k + 2] = p[3 * i + 2];
         const gf = this.isGF[i] === 1;
@@ -520,6 +555,7 @@ export class BrainView {
         }
       }
       geo.position.needsUpdate = true; geo.color.needsUpdate = true; geo.pSize.needsUpdate = true;
+      if (sound) this.onReplayClicks((r.tMs - before) * r.speed, sound.times, sound.amps);
       if (r.tMs >= r.spanMs) { r.done = true; r.btn.textContent = t('Replay again'); }
     }
     for (let k = 0; k < this.REPLAY; k++) {
@@ -790,10 +826,13 @@ export class BrainView {
   }
 
   flashRing(x, y, z) {
+    // One ring at a time: a giant fiber firing at 80 Hz restarted it every
+    // frame into a solid white ball that hid the cells around it.
+    if (this.ringT > 0) return;
     this.ring.position.set(x, y, z);
     this.ring.visible = true;
     this.ring.scale.set(0.5, 0.5, 0.5);
-    this.ring.material.opacity = 1;
+    this.ring.material.opacity = RING_PEAK;
     this.ringT = 0.55;
   }
 
@@ -853,7 +892,7 @@ export class BrainView {
       const q = Math.max(0, this.ringT / 0.55);
       const s = 0.5 + 0.9 * (1 - q);
       this.ring.scale.set(s, s, s);
-      this.ring.material.opacity = q;
+      this.ring.material.opacity = RING_PEAK * q;
       if (this.ringT <= 0) this.ring.visible = false;
     }
     if (this.wiring) {

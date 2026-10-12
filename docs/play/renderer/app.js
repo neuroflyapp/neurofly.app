@@ -26,6 +26,7 @@ import { AdaptiveRenderQuality, DisplayPacer } from '../src/performance.js';
 import { createWebApi } from './platform/web-api.js';
 import { setupMobile, wantsMobileLayout } from './ui/mobile.js';
 import { ensureTermsAccepted } from './ui/terms.js';
+import { SpikeAudio } from './ui/spike-audio.js';
 
 // Electron's preload bridge; in the Android app and in a browser the web
 // bridge does the same work in web workers (platform/web-api.js).
@@ -107,6 +108,23 @@ const ctx = {
       return { ok: false };
     }
   },
+  // Listen to neurons: their exact spikes as clicks (spike-audio.js). `spec`
+  // { indices | group, label }, or null to stop. Call it from a click.
+  listening: null,
+  listen(spec) {
+    if (spec?.group) spec = { ...spec, indices: this.views.brain?.groups.find((g) => g.key === spec.group)?.indices };
+    if (!spec?.indices?.length || !this.spikeAudio.start()) {
+      this.listening = null;
+      this.command('listen.set', null);
+      this.spikeAudio.stop();
+    } else {
+      this.listening = { label: spec.label ?? '', count: spec.indices.length, key: spec.key ?? spec.group ?? null };
+      this.command('listen.set', { indices: Array.from(spec.indices) });
+    }
+    this.renderListening?.();
+    window.dispatchEvent(new CustomEvent('nf:listen', { detail: this.listening }));
+    return this.listening;
+  },
   // Plays an event's recorded spikes in the brain view (BrainView.playReplay).
   replay(rec, opts) {
     const shown = this.views.brain?.playReplay(rec, opts) ?? null;
@@ -123,6 +141,7 @@ const ctx = {
   },
   // Touch screen: the hints speak of fingers, not of a mouse.
   touch: matchMedia('(pointer: coarse)').matches,
+  spikeAudio: new SpikeAudio(),
   // A picture of what is on screen (snapshots outside Electron).
   capturePicture() { return (this.mobile?.brain ? this.views.brain : this.views.terrarium)?.capturePNG?.() ?? null; },
   openExternalLink(url) { return api.openExternal?.(url); },
@@ -202,6 +221,25 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
     },
   });
 
+  // The x-ray as the viewer left it (a per-viewer preference).
+  try { if (localStorage.getItem('neurocause.xray') === '1') ctx.views.terrarium.setXray(true, ctx.views.brain.xrayData()); } catch { /* off */ }
+  // A replay's sound: its stages' spikes as clicks (the button in the replay).
+  ctx.views.brain.onReplaySound = () => ctx.spikeAudio.start();
+  ctx.views.brain.onReplayClicks = (spanMs, times, amps) => ctx.spikeAudio.play(spanMs, times, 0, amps);
+  // What the audio monitor is listening to, over the brain view (a tap stops it).
+  const listenChip = h('button', { class: 'brain-listen', type: 'button', hidden: true, title: t('Stop listening') });
+  listenChip.addEventListener('click', () => ctx.listen(null));
+  document.getElementById('brain').append(listenChip);
+  let listenHinted = false;
+  ctx.renderListening = () => {
+    const L = ctx.listening;
+    listenChip.hidden = !L;
+    if (!L) return;
+    listenChip.replaceChildren(icon('sound', 14), h('span', {}, t('Listening: {label}', { label: L.label })),
+      h('small', {}, L.count === 1 ? t('1 cell') : t('{n} cells', { n: L.count })), icon('close', 12));
+    if (!listenHinted) { listenHinted = true; ctx.toast(t('Each click is one spike of these cells, exactly as simulated.')); }
+  };
+
   mark('views');
   // ---- layout: shell, panels, dock, inspector, HUD ----
   // Mount the complete interface before preparing the GPU. The shell can
@@ -238,6 +276,8 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
     ctx.snap = snap;
     ctx.views.terrarium.applySnapshot(snap);
     ctx.views.brain.addSpikes(snap.spikes);
+    // (a replay with sound has the speaker meanwhile: both would share one timeline)
+    if (snap.listen && ctx.listening && !(ctx.views.brain.replay && ctx.views.brain.replaySound)) ctx.spikeAudio.feed(snap.listen);
     ctx.views.brain.setFear(snap.rates);
     if (snap.map) ctx.views.terrarium.paintMap(snap.map);
     if (snap.events.length) {

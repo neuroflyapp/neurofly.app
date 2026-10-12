@@ -19,6 +19,7 @@ import { circadianActivity } from '../../src/environment.js';
 import { sceneLightLevel, autoExposureGain } from '../../src/display.js';
 import { localMotionResidual } from '../../src/vision.js';
 import { enhanceFlyLook } from './fly-look.js';
+import { BrainXray } from './xray.js';
 
 const VISION_W = 64, VISION_H = 24;
 const VISION_EXPOSURE = 1;
@@ -692,9 +693,18 @@ export class TerrariumView {
     this._applyExposure();
   }
 
+  // Her brain above her, lit by her spikes (xray.js; observer only). `data`
+  // from BrainView.xrayData() the first time it is switched on.
+  setXray(on, data = null) {
+    if (on && !this.xray && data) this.xray = new BrainXray(this.scene, data);
+    if (this.xray) this.xray.visible = on;
+    return Boolean(this.xray?.visible);
+  }
+
   // ---- snapshots ------------------------------------------------------------------------
   applySnapshot(snap) {
     this.snap = snap;
+    this.xray?.addSpikes(snap.spikes);
     this._syncEyeRun();
     // flies
     while (this.flyViews.length < snap.poses.length) {
@@ -796,6 +806,7 @@ export class TerrariumView {
     this.locator.visible = Boolean(f) && !this.snap?.dead && (this.cameraMode === 'overview' || this.cameraMode === 'overhead');
     if (this.locator.visible) this.locator.position.set(f.x, f.y, 0.5);
     if (display) {
+      this.xray?.update(dt, this.snap?.dead ? null : this.snap?.fly, this.camera);
       this._lookFor('display'); this._displayAtmosphere(); this.world.animateDisplay(tSeconds);
       if (this.moteUniforms) this.moteUniforms.uTime.value = tSeconds;
       this.renderer.render(this.scene, this.camera);
