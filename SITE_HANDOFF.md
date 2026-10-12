@@ -25,6 +25,15 @@ Then `e4847ec` (garden placing from above on phones; a hint when dust meets a
 meal). Every rebuild: 0 files differing from the index, web smoke test passed.
 10 October: `eac2de5` (faster drawing, the measured wiring shown in the brain
 view and on the neuron cards, the deciding neurons over the fly).
+12 October: app `f17e043` (predictions in the Habitat, the observed fly's finer
+look, soil detail and moonlight for the observer only, two connectome quests,
+each lab protocol's circuit in the brain, round wiring sprites). The home
+page's How it works gains `.wiring-gallery`: three screenshots of measured
+wiring from the web build (`img/wiring-giant-fiber.jpg`,
+`wiring-escape-path.jpg`, `wiring-taste-path.jpg`; their synapse numbers are
+the app's own captions for the mixed model). Stylesheet version on the home
+page `20261012a`. Checks: 0 `docs/play` files differing, smoke-site at
+1440/768/390 px and the 10 static tests pass.
 
 ## 8 October 2026 — onboarding and scientific precision (latest)
 
