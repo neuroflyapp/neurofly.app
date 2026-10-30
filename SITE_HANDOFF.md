@@ -21,8 +21,18 @@ those records** or verification lapses. The sitemap
 `https://neuro-cause.com/sitemap.xml` is submitted for neuro-cause.com; none for
 neurofly.app, which only redirects. Google's change of address neurofly.app ->
 neuro-cause.com runs since 30 October (the owner confirmed it; it needs the 301s
-kept for at least 180 days). Bing Webmaster Tools and the Clarity account: see
-the next entry when done.
+kept for at least 180 days).
+
+Bing Webmaster Tools (same Google account, signed in with Google): neuro-cause.com
+and neurofly.app imported from Search Console, sitemap of neuro-cause.com
+submitted by hand (the import had found none yet).
+
+Clarity: project `ypl7e33gz2` moved to the owner's main account (added as
+administrator, invitation accepted, the old `contact@neuro-cause.com` Microsoft
+account left the team). Same project ID: nothing changed on the site. The old
+Microsoft account no longer holds a Clarity project or a Bing site; closing it
+is the owner's step and does not touch the mailbox contact@neuro-cause.com
+(iCloud).
 
 ## 13 October 2026, end of day
 
