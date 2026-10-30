@@ -26,6 +26,10 @@ kept for at least 180 days).
 Bing Webmaster Tools (same Google account, signed in with Google): neuro-cause.com
 and neurofly.app imported from Search Console, sitemap of neuro-cause.com
 submitted by hand (the import had found none yet).
+Bing's Site Move tool no longer exists in the console (no menu entry on 30
+October; its old addresses show "No pages found"; forum reports since 2021), so
+the move to Bing rests on the path-preserving 301s of neurofly.app and the
+submitted sitemap. Keep those 301s.
 
 Clarity: project `ypl7e33gz2` moved to the owner's main account (added as
 administrator, invitation accepted, the old `contact@neuro-cause.com` Microsoft
