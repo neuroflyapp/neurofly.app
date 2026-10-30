@@ -31,17 +31,26 @@ export function buildShell(ctx, panels) {
   const speedSeg = h('div', { class: 'seg', role: 'group' });
   const pauseBtn = h('button', { class: 'btn m-keep', type: 'button' });
   const recordText = h('span');
-  const recordBtn = h('button', { class: 'btn m-keep', type: 'button' }, icon('record', 14), recordText);
+  const recordBtn = h('button', { class: 'btn m-keep tb-record', type: 'button' }, icon('record', 14), recordText);
   const snapBtn = h('button', { class: 'btn ghost icon-only', type: 'button' }, icon('camera'));
   const focusStimBtn = h('button', { id: 'focusStim', class: 'btn', type: 'button' }, icon('loom', 16), h('span', {}, t('Looming threat')));
   const focusBtn = h('button', { id: 'focusMode', class: 'btn ghost icon-only', type: 'button', 'aria-pressed': 'false' }, icon('expand'));
   const langBtn = h('button', { class: 'btn ghost small', type: 'button' });
-  const inspectorBtn = h('button', { class: 'btn ghost icon-only', type: 'button' }, icon('layers'));
+  const inspectorBtn = h('button', { class: 'btn ghost icon-only tb-inspector', type: 'button' }, icon('layers'));
+  // The browser version: a calm Explore layout or the full Studio (explore.js).
+  const layoutBtn = h('button', { class: 'btn ghost small tb-layout', type: 'button' });
+  layoutBtn.addEventListener('click', () => ctx.setLayout?.(ctx.layout === 'explore' ? 'studio' : 'explore'));
   const helpBtn = h('button', { class: 'btn ghost icon-only', type: 'button' }, icon('help'));
   status.append(pill, session);
-  actions.append(speedSeg, pauseBtn, recordBtn, snapBtn, langBtn, inspectorBtn, focusStimBtn, focusBtn, helpBtn);
+  actions.append(speedSeg, pauseBtn, recordBtn, snapBtn, langBtn, inspectorBtn, focusStimBtn, focusBtn, layoutBtn, helpBtn);
 
   function labelTop() {
+    layoutBtn.hidden = !ctx.layout;
+    if (ctx.layout) {
+      layoutBtn.replaceChildren(icon(ctx.layout === 'explore' ? 'grid' : 'spark', 14), h('span', {}, ctx.layout === 'explore' ? t('Studio') : t('Explore')));
+      layoutBtn.title = ctx.layout === 'explore' ? t('All the tools: measurement traces, speed, recording, data and model') : t('Back to the simple view');
+      layoutBtn.setAttribute('aria-pressed', String(ctx.layout === 'studio'));
+    }
     speedSeg.replaceChildren(...speeds.map((s) => h('button', { type: 'button', 'aria-pressed': String((ctx.snap?.speed ?? 1) === s),
       title: t('Simulation speed: {s}× real time. Faster runs need a faster CPU; the model itself is unchanged.', { s }),
       onclick: () => ctx.command('speed', { factor: s }) }, `${s}×`)));
@@ -111,8 +120,17 @@ export function buildShell(ctx, panels) {
   };
 
   // ---- rail and panels ----
+  // Explore (browser): the game second, the researchers' workspaces in the Studio.
+  const STUDIO_ONLY = new Set(['data', 'model', 'specimens']);
+  const railPanels = () => {
+    if (ctx.layout !== 'explore') return panels;
+    const list = panels.filter((p) => !STUDIO_ONLY.has(p.id));
+    const game = list.find((p) => p.id === 'habitat');
+    return game ? [list[0], game, ...list.slice(1).filter((p) => p !== game)] : list;
+  };
   function renderRail() {
-    rail.replaceChildren(...panels.map((p, i) => {
+    rail.replaceChildren(...railPanels().map((p) => {
+      const i = panels.indexOf(p);
       const b = h('button', { type: 'button', role: 'tab', 'aria-selected': String(p.id === active), title: `${t(p.title)} (${i + 1})`,
         onclick: () => select(p.id) }, icon(p.icon, 22), h('span', {}, t(p.short ?? p.title)));
       return b;
@@ -207,13 +225,21 @@ export function buildShell(ctx, panels) {
       h('p', { class: 'note' }, t('Wiring and synapse counts are measured; neuron dynamics, senses and body are models. Every tag in the app says which is which.')),
       h('div', { class: 'row', style: { marginTop: '16px' } }, h('button', { class: 'btn primary' }, t('Start exploring')))));
   }
-  helpBtn.addEventListener('click', () => { renderHelp(); help.showModal(); });
-  ctx.showHelp = () => { renderHelp(); help.showModal(); };
+  const openHelp = () => {
+    renderHelp();
+    if (!help.open) help.showModal();
+  };
+  // Browser visitors get a short, action-led orientation first. The complete
+  // control reference remains available from the same button.
+  helpBtn.addEventListener('click', () => { if (!ctx.showBrowserGuide?.()) openHelp(); });
+  ctx.showHelp = openHelp;
   let firstRun = true;
-  try { firstRun = !localStorage.getItem('neurofly.seenHelp'); localStorage.setItem('neurofly.seenHelp', '1'); } catch { /* optional */ }
+  const browserExperience = ctx.api?.platform === 'web';
+  const firstRunKey = browserExperience ? 'neurocause.webGuide.v1' : 'neurofly.seenHelp';
+  try { firstRun = !localStorage.getItem(firstRunKey); localStorage.setItem(firstRunKey, '1'); } catch { /* optional */ }
   // Straight into the game (a "play" link): the Habitat's own welcome and
   // goals introduce it; the quick guide stays one tap away.
-  if (firstRun && active !== 'habitat') setTimeout(() => { renderHelp(); help.showModal(); }, 1400);
+  const offerFirstRunGuide = firstRun && active !== 'habitat';
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.body.classList.contains('focus-mode')) { setFocus(false); return; }
@@ -228,6 +254,10 @@ export function buildShell(ctx, panels) {
   mount();
   return {
     select,
+    showFirstRunGuide() {
+      if (!offerFirstRunGuide) return;
+      if (!ctx.showBrowserGuide?.()) openHelp();
+    },
     rebuild() { labelTop(); renderRail(); mount(); },
     get active() { return active; },
   };

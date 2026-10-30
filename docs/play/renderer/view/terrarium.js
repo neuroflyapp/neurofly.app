@@ -153,13 +153,14 @@ export function mapColor(g, out, o) {
 }
 
 export class TerrariumView {
-  constructor(container, { layout, onPointer, onCommand, onVision, onTap, requestLayout = null, minArenaSide = 0 }) {
+  constructor(container, { layout, onPointer, onCommand, onVision, onTap, onInteraction = null, requestLayout = null, minArenaSide = 0 }) {
     this.requestLayout = requestLayout;   // () => Promise<layout>: the simulation's world after it added or removed objects
     this.container = container;
     this.onPointer = onPointer;
     this.onCommand = onCommand;
     this.onVision = onVision;
     this.onTap = onTap;
+    this.onInteraction = onInteraction;
     this.minArenaSide = minArenaSide;
     this.pane = { width: Math.max(100, container.clientWidth), height: Math.max(100, container.clientHeight) };
     this.bounds = arenaBounds(this.pane.width, this.pane.height, minArenaSide);
@@ -1176,6 +1177,8 @@ export class TerrariumView {
       if (Math.hypot(f.x - p.x, f.y - p.y) < FLY_GRAB_RADIUS) {
         this.drag = { kind: 'fly' };
         this.onCommand('drag.start', { kind: 'fly', x: p.x, y: p.y });
+        this.dragLast = p;
+        this.onInteraction?.({ type: 'fly-grab', clientX: e.clientX, clientY: e.clientY, world: p });
         return;
       }
       let best = null, bestD = Infinity;
@@ -1194,6 +1197,7 @@ export class TerrariumView {
       if (best) {
         this.drag = best;
         this.onCommand('drag.start', best);
+        this.onInteraction?.({ type: 'object-grab', clientX: e.clientX, clientY: e.clientY });
       }
     });
     window.addEventListener('pointermove', (e) => {
@@ -1245,6 +1249,7 @@ export class TerrariumView {
           if (o) { o.pos.x = p.x; o.pos.y = p.y; o.mesh.position.x = p.x; o.mesh.position.y = p.y; }
         }
         this.onCommand('drag.move', { x: p.x, y: p.y });
+        this.dragLast = p;
       }
     });
     el.addEventListener('pointerleave', () => { if (!this.drag) this.onPointer?.(null); });
@@ -1263,8 +1268,15 @@ export class TerrariumView {
       if (lift(e)) return;
       if (this.drag?.kind === 'gesture') return;
       if (e.button === 2 || e.button === 1) { if (this.drag?.kind === 'camera' || this.drag?.kind === 'pan') this.drag = null; return; }
-      if (this.drag && this.drag.kind !== 'camera' && this.drag.kind !== 'pan') this.onCommand('drag.end', {});
-      else if (!this.drag && this.downPoint && e.target === el) this.onTap?.(this.downPoint);
+      if (this.drag && this.drag.kind !== 'camera' && this.drag.kind !== 'pan') {
+        const kind = this.drag.kind;
+        this.onCommand('drag.end', {});
+        this.onInteraction?.({ type: kind === 'fly' ? 'fly-release' : 'object-release', clientX: e.clientX, clientY: e.clientY,
+          world: this.dragLast ?? this.downPoint, start: this.downPoint });
+      } else if (!this.drag && this.downPoint && e.target === el) {
+        this.onTap?.(this.downPoint);
+        this.onInteraction?.({ type: 'ground-tap', clientX: e.clientX, clientY: e.clientY, world: this.downPoint });
+      }
       this.drag = null;
       this.downPoint = null;
     });
@@ -1318,6 +1330,18 @@ export class TerrariumView {
   }
 
   // head position of the brain-carrying fly on screen, for anchoring labels
+  // Her body on screen: centre and the radius in pixels of `units` world
+  // units around her (the browser tour's spotlight).
+  flyScreenCircle(units = 30) {
+    const f = this.snap?.fly;
+    if (!f) return null;
+    const c = new THREE.Vector3(f.x, f.y, (f.z || 0) + 4);
+    const side = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).multiplyScalar(units).add(c);
+    const a = c.project(this.camera), b = side.project(this.camera);
+    return { x: (a.x + 1) / 2 * this.pane.width, y: (1 - a.y) / 2 * this.pane.height,
+      r: Math.hypot((b.x - a.x) / 2 * this.pane.width, (b.y - a.y) / 2 * this.pane.height), visible: a.z < 1 };
+  }
+
   flyScreenPosition() {
     const f = this.snap?.fly;
     if (!f) return null;

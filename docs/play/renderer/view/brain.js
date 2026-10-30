@@ -833,7 +833,15 @@ export class BrainView {
       }
       return c;
     }
-    if (!spec.wiring) { this.setWiring(null); return null; }
+    if (!spec.wiring) {
+      this.setWiring(null);
+      // a short note on what is lit (the browser's touch feedback)
+      if (spec.note) {
+        this.caption.replaceChildren(Object.assign(document.createElement('b'), { textContent: t('Lit up') }), document.createTextNode(` ${spec.note}`));
+        this.caption.hidden = false;
+      }
+      return spec.note ? { note: spec.note } : null;
+    }
     const w = this.setWiring(idx, { duration: spec.duration ?? Infinity });
     if (w && spec.label) {
       this.caption.replaceChildren(

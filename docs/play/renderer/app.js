@@ -27,6 +27,7 @@ import { createWebApi } from './platform/web-api.js';
 import { setupMobile, wantsMobileLayout } from './ui/mobile.js';
 import { ensureTermsAccepted } from './ui/terms.js';
 import { SpikeAudio } from './ui/spike-audio.js';
+import { setupExplore } from './ui/explore.js';
 
 // Electron's preload bridge; in the Android app and in a browser the web
 // bridge does the same work in web workers (platform/web-api.js).
@@ -159,13 +160,19 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   const bootTimings = ctx.bootTimings = {};
   const mark = (name) => { bootTimings[name] = Math.round(performance.now()); };
   mark('script');
-  // Nothing starts before the software terms are accepted (ui/terms.js);
-  // declining quits the app.
-  boot('Waiting for the software terms…', 0.03);
-  await ensureTermsAccepted({
-    openExternal: (url) => api.openExternal?.(url),
-    quit: () => (api.quitApp ? api.quitApp() : window.close()),
-  });
+  // The installed applications retain their explicit software-terms gate.
+  // The public browser experience has its legal pages in the surrounding
+  // website and must not make a visitor accept an app-only dialog before they
+  // can see the model; it receives its own explanatory guide after boot.
+  if (api.platform === 'web') {
+    boot('Preparing an interactive fly…', 0.03);
+  } else {
+    boot('Waiting for the software terms…', 0.03);
+    await ensureTermsAccepted({
+      openExternal: (url) => api.openExternal?.(url),
+      quit: () => (api.quitApp ? api.quitApp() : window.close()),
+    });
+  }
   mark('terms');
   boot('Loading the connectome…', 0.08);
   startBootFacts();
@@ -208,6 +215,9 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
     onCommand: (name, args) => client.command(name, args),
     onVision: (v) => client.input({ vision: v }),
     onTap: (p) => client.command('tap', p),
+    // UI-only acknowledgement: it never changes the simulation or the
+    // fly's sensory stream, but makes a browser interaction legible.
+    onInteraction: (detail) => ctx.explore?.interaction?.(detail),
     requestLayout: () => client.request('layout'),
     minArenaSide: minArena(),
   });
@@ -245,6 +255,10 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   // Mount the complete interface before preparing the GPU. The shell can
   // change the arena's size; warming the old size then resizing after Ready
   // would dispose warmed world materials and compile them again live.
+  // The browser version: Explore layout, tour and touch feedback (explore.js),
+  // set up before the shell so its first render already uses the layout.
+  // Desktop and Android keep the Studio and its quick guide.
+  ctx.explore = setupExplore(ctx);
   const shell = buildShell(ctx, panels);
   ctx.shell = shell;
   const dock = buildDock(ctx);
@@ -381,6 +395,9 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   client.command('pause', { paused: false });
   setTimeout(() => document.getElementById('boot').classList.add('done'), 250);
   setTimeout(() => document.getElementById('boot').remove(), 900);
+  // The guide opens only after the boot screen is gone. A deep link straight
+  // into Habitat keeps that game's own welcome as its first introduction.
+  setTimeout(() => shell.showFirstRunGuide?.(), 1150);
   console.info(`NeuroCause: ${data.circuit.neurons.length} brain neurons, ${data.locomotor?.neurons?.length ?? 0} nerve-cord neurons; simulation in a worker at 120 Hz`);
 
   // language switch rebuilds the interface in place; the simulation continues
@@ -390,6 +407,7 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
     dock.rebuild();
     inspector.rebuild();
     hud.rebuild();
+    ctx.explore?.rebuild?.();
     ctx.views.brain?.relabelRegions?.();
     ctx.relabelMobile?.();
   };

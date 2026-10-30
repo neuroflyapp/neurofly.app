@@ -46,6 +46,8 @@ export function setupMobile(ctx, { shell, panels }) {
   ctx.mobile = state;
   // Panels can bring up the connectome on a phone (e.g. "Show in the brain").
   ctx.showBrain = () => { if (state.active && !state.brain) setBrain(true); };
+  // (the browser tour opens what a bar item would open)
+  ctx.mobileShow = (kind) => { if (state.active) show(kind); };
 
   const relayout = () => setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
 
@@ -138,6 +140,7 @@ export function setupMobile(ctx, { shell, panels }) {
         h('button', { class: 'btn', type: 'button', onclick: () => ctx.save('saveSnapshot', undefined, t('Picture saved.')) }, icon('camera', 16), t('Picture')),
         h('button', { class: 'btn', type: 'button', onclick: () => { ctx.relabel(getLanguage() === 'de' ? 'en' : 'de'); } }, icon('globe', 16), getLanguage() === 'de' ? 'English' : 'Deutsch'),
         h('button', { class: 'btn', type: 'button', onclick: () => { closeSheet(); ctx.showHelp?.(); } }, icon('help', 16), t('Quick guide')),
+        ctx.showBrowserGuide ? h('button', { class: 'btn', type: 'button', onclick: () => { closeSheet(); ctx.showBrowserGuide(); } }, icon('spark', 16), t('Start the tour')) : null,
         h('button', { class: 'btn', type: 'button', onclick: () => ctx.openExternalLink?.('https://neuro-cause.com') }, icon('link', 16), 'neuro-cause.com')),
       // The app and web builds carry their licence texts (licenses/); the
       // desktop app ships them as files next to the program instead.

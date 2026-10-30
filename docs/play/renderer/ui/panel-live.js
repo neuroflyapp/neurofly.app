@@ -34,16 +34,18 @@ export const livePanel = {
       h('div', { style: { marginTop: '12px' } }, ...Object.values(meters).map((m) => m.el)));
 
     const cmd = (name, args) => ctx.command(name, args);
+    // (data-try: the browser tour points at a tile)
+    const tile = (id, ...args) => { const el = action(...args); el.dataset.try = id; return el; };
     const tryIt = card(t('Try it'), { iconName: 'spark' },
       h('div', { class: 'grid2' },
-        action('loom', t('Looming threat'), t('An object rushes at her eyes'), () => cmd('stim.loom', { strength: 0.8 })),
-        action('wind', t('Air puff'), t('A sudden gust at her antennae'), () => cmd('stim.burst', { channel: 'puff', level: 0.8, durationS: 0.3, label: t('air puff') })),
-        action('sound', t('Buzz'), t('Near-field sound — hearing neurons'), () => cmd('stim.burst', { channel: 'sound', level: 0.8, durationS: 0.6, label: t('sound') })),
-        action('groom', t('Dust her antennae'), t('Watch her clean her head'), () => cmd('antenna.dust', { amount: 1 })),
-        action('drop', t('Taste sugar'), t('Sugar on her mouthparts'), () => cmd('taste.offer', { sugar: 0.8, bitter: 0, durationS: 2.5 })),
-        action('drop', t('Taste bitter'), t('Bitter on her mouthparts'), () => cmd('taste.offer', { sugar: 0, bitter: 0.9, durationS: 2.5 })),
-        action('drop', t('Sugar drop'), t('A drop in front of her'), () => cmd('food.add', { kind: 'sugar', conc: 0.8 })),
-        action('drop', t('Sugar + bitter drop'), t('Will she still eat?'), () => cmd('food.add', { kind: 'mixed', conc: 0.8, bitter: 0.6 }))),
+        tile('loom', 'loom', t('Looming threat'), t('An object rushes at her eyes'), () => cmd('stim.loom', { strength: 0.8 })),
+        tile('puff', 'wind', t('Air puff'), t('A sudden gust at her antennae'), () => cmd('stim.burst', { channel: 'puff', level: 0.8, durationS: 0.3, label: t('air puff') })),
+        tile('sound', 'sound', t('Buzz'), t('Near-field sound — hearing neurons'), () => cmd('stim.burst', { channel: 'sound', level: 0.8, durationS: 0.6, label: t('sound') })),
+        tile('dust', 'groom', t('Dust her antennae'), t('Watch her clean her head'), () => cmd('antenna.dust', { amount: 1 })),
+        tile('sugar', 'drop', t('Taste sugar'), t('Sugar on her mouthparts'), () => cmd('taste.offer', { sugar: 0.8, bitter: 0, durationS: 2.5 })),
+        tile('bitter', 'drop', t('Taste bitter'), t('Bitter on her mouthparts'), () => cmd('taste.offer', { sugar: 0, bitter: 0.9, durationS: 2.5 })),
+        tile('drop', 'drop', t('Sugar drop'), t('A drop in front of her'), () => cmd('food.add', { kind: 'sugar', conc: 0.8 })),
+        tile('mixed', 'drop', t('Sugar + bitter drop'), t('Will she still eat?'), () => cmd('food.add', { kind: 'mixed', conc: 0.8, bitter: 0.6 }))),
       h('p', { class: 'note' }, t('Buttons stimulate mapped sensory populations. Responses depend on retained wiring and model assumptions; the explanation panel shows the modeled causal pathway.')));
 
     const bright = slider({ label: t('View brightness'), min: 0.5, max: 2.5, step: 0.05, value: ctx.views.terrarium.viewBrightness, format: (v) => `${num(v, 2)}×`,
@@ -81,7 +83,12 @@ export const livePanel = {
         t('{n} mapped brain neurons and {m} nerve-cord neurons of the same female fly (BANC) decide what she does — 120 times a second, on a CPU core of their own.', counts)],
     }[ctx.data.provenance?.flyModel] || [t('A fly, running on her connectome.'),
       t('{n} real FlyWire neurons and {m} nerve-cord neurons decide what she does — 120 times a second, on a CPU core of their own.', counts)];
-    const el = h('div', {}, panelHead(t('Live'), ...heading), now, tryIt, view);
+    // The browser's Explore layout: things to do first, the readouts below;
+    // camera and map controls live in the Studio layout (and on the terrarium).
+    tryIt.classList.add('live-try');
+    const el = ctx.layout === 'explore'
+      ? h('div', {}, panelHead(t('Live'), ...heading), tryIt, now)
+      : h('div', {}, panelHead(t('Live'), ...heading), now, tryIt, view);
 
     return {
       el,

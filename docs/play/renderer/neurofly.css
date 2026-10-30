@@ -373,6 +373,73 @@ dialog dl { display: grid; grid-template-columns: 170px 1fr; gap: 9px 14px; font
 dialog dt { color: var(--accent); font-family: var(--mono); font-size: 11.5px; }
 dialog dd { margin: 0; color: var(--ink-2); }
 
+/* ---- the browser version (ui/explore.js) ---- */
+/* Explore: the calm layout; the Studio brings back every research tool */
+body.explore:not(.mobile) #dock { display: none; }
+body.explore #runStatus .session { display: none; }
+body.explore:not(.mobile) #topActions > .seg,
+body.explore:not(.mobile) #topActions > .tb-record,
+body.explore:not(.mobile) #topActions > .tb-inspector { display: none; }
+#topActions > .tb-layout { border: 1px solid var(--line-2); }
+body.explore #topActions > .tb-layout { color: var(--ink); }
+body.explore .live-try > .note { display: none; }
+body.explore .live-try { border-color: #00ff4140; }
+body.mobile #topActions > .tb-layout { display: none; }
+/* a ripple where the terrarium was touched */
+.tap-ripple { position: absolute; z-index: 3; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2px solid var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; box-shadow: 0 0 0 5px #00ff4124, 0 0 22px #00ff4180; }
+.tap-ripple.on { animation: tap-ripple 1s ease-out; }
+@keyframes tap-ripple { 0% { opacity: 1; transform: scale(.5); } 70% { opacity: .8; transform: scale(3.4); } 100% { opacity: 0; transform: scale(4); } }
+/* what the fly sensed and what it did, at the fly */
+.react { position: absolute; left: 0; top: 0; z-index: 4; width: max-content; max-width: min(310px, calc(100% - 24px)); padding: 9px 12px 10px; border-radius: 14px;
+  background: #0b1412f2; border: 1px solid #00ff4166; box-shadow: 0 12px 34px #000b, 0 0 24px #00ff4122; color: var(--ink); pointer-events: none;
+  font-size: 12.5px; line-height: 1.4; transition: transform .1s linear; animation: react-in .3s cubic-bezier(.2, 1.4, .4, 1); }
+.react-sense { display: flex; align-items: center; gap: 7px; }
+.react-sense .icon { color: var(--accent); flex: 0 0 auto; }
+.react-note { margin: 2px 0 0 22px; color: var(--ink-3); font-size: 11.5px; }
+.react-result { display: flex; align-items: flex-start; gap: 7px; margin-top: 7px; padding-top: 7px; border-top: 1px solid #ffffff16; color: #ffd36b; font-weight: 600; }
+.react-result:empty { display: none; }
+.react-result .icon { flex: 0 0 auto; margin-top: 2px; }
+.react-result.none { color: var(--ink-2); font-weight: 500; }
+.react-result.none .icon { color: var(--ink-3); }
+.react.settled { border-color: #ffd36b66; }
+.react-brain { pointer-events: auto; display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 5px 9px; border-radius: 8px; border: 1px solid #00ff4155; background: #00ff4112; color: var(--ink); font-size: 11.5px; cursor: pointer; }
+@keyframes react-in { from { opacity: 0; scale: .9; } }
+/* the tour: a spotlight on the real control, a card beside it */
+.tour-spot { position: fixed; z-index: 900; border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 200vmax #040807a8, 0 0 0 2px var(--accent), 0 0 34px #00ff4166; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease, border-radius .3s; }
+.tour-spot.round { border-radius: 50%; }
+body.tour-dim::after { content: ''; position: fixed; inset: 0; z-index: 899; background: #040807b0; pointer-events: none; }
+.tour-card { position: fixed; left: 0; top: 0; z-index: 901; width: min(360px, calc(100vw - 28px)); padding: 15px 18px 17px; border-radius: 16px;
+  background: linear-gradient(160deg, #142c22 0%, #0b1211 72%); border: 1px solid #00ff4166; box-shadow: 0 24px 60px #000c; color: var(--ink);
+  transition: transform .3s cubic-bezier(.2, .9, .3, 1); }
+.tour-card h3 { margin: 8px 0 6px; font-size: 19px; letter-spacing: -.2px; }
+.tour-card p { margin: 0 0 13px; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.tour-top { display: flex; align-items: center; justify-content: space-between; min-height: 20px; }
+.tour-kicker { font: 600 10.5px/1 var(--mono); letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.tour-dots { display: flex; gap: 5px; }
+.tour-dots i { width: 20px; height: 4px; border-radius: 2px; background: #ffffff22; }
+.tour-dots i.done { background: #00ff4188; }
+.tour-dots i.now { background: var(--accent); }
+.tour-skip { all: unset; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; color: var(--ink-3); cursor: pointer; }
+.tour-skip:hover, .tour-skip:focus-visible { color: var(--ink); background: #ffffff12; }
+.tour-status { display: flex; align-items: flex-start; gap: 7px; margin: -3px 0 13px; padding: 8px 10px; border-radius: 10px; background: #ffffff0b; color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
+.tour-status.ok { border: 1px solid #00ff4150; background: #00ff4114; color: var(--ink); }
+.tour-status.ok .icon { color: var(--accent); flex: 0 0 auto; margin-top: 2px; }
+.tour-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tour-card.success { animation: tour-pop .55s ease; }
+@keyframes tour-pop { 40% { box-shadow: 0 24px 60px #000c, 0 0 0 4px #00ff4170; } }
+.tour-foot { margin: 13px 0 0 !important; font-size: 11px !important; line-height: 1.5 !important; color: var(--ink-3) !important; }
+.tour-foot a, .tour-link { color: var(--ink-2); }
+.tour-link { all: unset; cursor: pointer; text-decoration: underline; color: var(--ink-2); }
+/* the slow-motion step: the connectome view takes half the width */
+body.tour-brain:not(.mobile) #inspector { flex-basis: 50%; transition: flex-basis .35s ease; }
+body.tour-brain:not(.mobile) #why { display: none; }
+body.tour-brain:not(.mobile) #brain { flex: 1 1 auto; }
+body.mobile .tour-card { width: calc(100vw - 20px); padding: 14px 16px 15px; }
+body.mobile .tour-card h3 { font-size: 17px; }
+body.mobile .hud-tr .hud-zoom { display: none; }   /* two fingers zoom on a phone; the buttons covered the status */
+@media (prefers-reduced-motion: reduce) { .tap-ripple.on, .react, .tour-card.success { animation: none; } .tour-spot, .tour-card { transition: none; } }
+
 @media (max-width: 1320px) { #inspector { flex-basis: 320px; } #panel { flex-basis: 320px; } }
 @media (max-width: 1150px) { .session { display: none; } #dock { flex-basis: 200px; } }
 @media (max-height: 760px) { #dock { flex-basis: 190px; } #topbar { flex-basis: 50px; } }

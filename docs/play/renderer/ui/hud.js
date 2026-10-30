@@ -23,8 +23,8 @@ export function buildHud(ctx) {
       setText(camLabel,t(cameraModeLabel(mode)));
     } }, icon('camera', 15), camLabel);
     camBtn.title = t('Cycle through overview, follow, close and overhead cameras');
-    const zoomIn = h('button', { class: 'btn small icon-only', type: 'button', title: t('Zoom in'), onclick: () => ctx.views.terrarium.setZoom(ctx.views.terrarium.orbit.zoom - 0.15) }, '+');
-    const zoomOut = h('button', { class: 'btn small icon-only', type: 'button', title: t('Zoom out'), onclick: () => ctx.views.terrarium.setZoom(ctx.views.terrarium.orbit.zoom + 0.15) }, '–');
+    const zoomIn = h('button', { class: 'btn small icon-only hud-zoom', type: 'button', title: t('Zoom in'), onclick: () => ctx.views.terrarium.setZoom(ctx.views.terrarium.orbit.zoom - 0.15) }, '+');
+    const zoomOut = h('button', { class: 'btn small icon-only hud-zoom', type: 'button', title: t('Zoom out'), onclick: () => ctx.views.terrarium.setZoom(ctx.views.terrarium.orbit.zoom + 0.15) }, '–');
     const reset = h('button', { class: 'btn small icon-only', type: 'button', title: t('Reset camera'), 'aria-label': t('Reset camera'), onclick: () => {
       const mode = ctx.views.terrarium.resetCamera();
       setText(camLabel,t(cameraModeLabel(mode)));
