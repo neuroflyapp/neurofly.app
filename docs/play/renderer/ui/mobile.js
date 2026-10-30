@@ -226,6 +226,6 @@ export function setupMobile(ctx, { shell, panels }) {
   apply();
   // A link may open a workspace directly (?workspace=habitat): on a phone, its sheet.
   const asked = new URLSearchParams(location.search).get('workspace');
-  if (state.active && asked && asked !== 'live' && panels.some((p) => p.id === asked)) show(asked);
+  if (state.active && asked && asked !== 'live' && panels.some((p) => p.id === asked) && !ctx.explore?.firstVisit) show(asked);
   return { apply, close: closeSheet, show };
 }

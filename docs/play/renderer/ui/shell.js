@@ -14,6 +14,9 @@ export function buildShell(ctx, panels) {
   // A link may open a workspace directly (the website's "play" links: ?workspace=habitat).
   const asked = new URLSearchParams(location.search).get('workspace');
   if (panels.some((p) => p.id === asked)) active = asked;
+  // A first browser visit starts with the tour in Live (explore.js opens the
+  // linked workspace after it).
+  if (ctx.explore?.firstVisit) active = panels[0].id;
   if (!panels.some((p) => p.id === active)) active = panels[0].id;
 
   // ---- top bar ----
@@ -229,14 +232,12 @@ export function buildShell(ctx, panels) {
     renderHelp();
     if (!help.open) help.showModal();
   };
-  // Browser visitors get a short, action-led orientation first. The complete
-  // control reference remains available from the same button.
+  // In the browser this button starts the tour; the complete control
+  // reference stays one click away from its first card.
   helpBtn.addEventListener('click', () => { if (!ctx.showBrowserGuide?.()) openHelp(); });
   ctx.showHelp = openHelp;
   let firstRun = true;
-  const browserExperience = ctx.api?.platform === 'web';
-  const firstRunKey = browserExperience ? 'neurocause.webGuide.v1' : 'neurofly.seenHelp';
-  try { firstRun = !localStorage.getItem(firstRunKey); localStorage.setItem(firstRunKey, '1'); } catch { /* optional */ }
+  try { firstRun = !localStorage.getItem('neurofly.seenHelp'); localStorage.setItem('neurofly.seenHelp', '1'); } catch { /* optional */ }
   // Straight into the game (a "play" link): the Habitat's own welcome and
   // goals introduce it; the quick guide stays one tap away.
   const offerFirstRunGuide = firstRun && active !== 'habitat';
@@ -255,8 +256,8 @@ export function buildShell(ctx, panels) {
   return {
     select,
     showFirstRunGuide() {
-      if (!offerFirstRunGuide) return;
-      if (!ctx.showBrowserGuide?.()) openHelp();
+      if (ctx.explore) ctx.explore.maybeStartTour();   // the browser: the tour, for someone new
+      else if (offerFirstRunGuide) openHelp();
     },
     rebuild() { labelTop(); renderRail(); mount(); },
     get active() { return active; },

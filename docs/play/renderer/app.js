@@ -258,7 +258,7 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   // The browser version: Explore layout, tour and touch feedback (explore.js),
   // set up before the shell so its first render already uses the layout.
   // Desktop and Android keep the Studio and its quick guide.
-  ctx.explore = setupExplore(ctx);
+  ctx.explore = setupExplore(ctx, panels);
   const shell = buildShell(ctx, panels);
   ctx.shell = shell;
   const dock = buildDock(ctx);
@@ -395,8 +395,7 @@ const panels = [livePanel, stimulatePanel, circuitPanel, experimentsPanel, senti
   client.command('pause', { paused: false });
   setTimeout(() => document.getElementById('boot').classList.add('done'), 250);
   setTimeout(() => document.getElementById('boot').remove(), 900);
-  // The guide opens only after the boot screen is gone. A deep link straight
-  // into Habitat keeps that game's own welcome as its first introduction.
+  // The first-run guide opens only after the boot screen is gone.
   setTimeout(() => shell.showFirstRunGuide?.(), 1150);
   console.info(`NeuroCause: ${data.circuit.neurons.length} brain neurons, ${data.locomotor?.neurons?.length ?? 0} nerve-cord neurons; simulation in a worker at 120 Hz`);
 

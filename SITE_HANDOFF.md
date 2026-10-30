@@ -4,7 +4,9 @@
 
 `docs/play/` = private app master (see the commit message), byte-identical to
 the index. The browser version no longer shows the acceptance dialog and opens
-in a calm Explore layout with a hands-on tour and an answer to every touch
+in a calm Explore layout with a hands-on tour (first for everyone new, also on
+the play links that name a workspace, which then opens after it; app 4a0cb6c) and an
+answer to every touch
 (details: app `windows/DEVELOPMENT_HANDOFF.md`). **No new program or APK
 release**: downloads, SHA-256 values and "New in 2.5" still describe 2.5.0.
 Texts changed with it: the home page (terms apply on use in the browser; first

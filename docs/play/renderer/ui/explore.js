@@ -10,8 +10,10 @@
 import { h, icon } from './dom.js';
 import { t } from '../i18n.js';
 import { GROUP_COLORS } from '../view/brain.js';
+import { SAVE_KEY, LEGACY_KEY } from '../../src/habitat-game.js';
 
 const LAYOUT_KEY = 'neurocause.webLayout';
+const TOUR_KEY = 'neurocause.webGuide.v2';
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* a convenience only */ } },
@@ -56,8 +58,15 @@ const RESULTS = {
   feeding: 'Drinking.',
 };
 
-export function setupExplore(ctx) {
+export function setupExplore(ctx, panels = []) {
   if (ctx.api?.platform !== 'web') return null;
+  // Someone new gets the tour first, whichever link brought them (the website's
+  // links open a workspace): it runs in Live, where its controls are, and the
+  // linked workspace opens after it. A Habitat save means they have been here.
+  const params = new URLSearchParams(location.search);
+  const firstVisit = params.get('tour') === '1' || (!store.get(TOUR_KEY) && !store.get(SAVE_KEY) && !store.get(LEGACY_KEY));
+  const asked = params.get('workspace');
+  const after = { to: firstVisit && asked !== 'live' && panels.some((p) => p.id === asked) ? asked : null };
   document.body.classList.add('browser-experience');
   const terrarium = document.getElementById('terrarium');
   const touch = () => ctx.touch || document.body.classList.contains('mobile');
@@ -202,15 +211,20 @@ export function setupExplore(ctx) {
   }
 
   // ---- the tour: do it, see it, understand it ----
-  const tour = buildTour(ctx, { touch });
+  const tour = buildTour(ctx, { touch, after });
 
   // The help button opens the tour's start; the full reference stays in it.
   ctx.showBrowserGuide = () => { tour.start(); return true; };
-  return { interaction, rebuild() { tour.relabel(); } };
+  return {
+    firstVisit,
+    interaction,
+    maybeStartTour() { if (firstVisit) { store.set(TOUR_KEY, '1'); tour.start(); } },
+    rebuild() { tour.relabel(); },
+  };
 }
 
 // ---- tour -------------------------------------------------------------------------------
-function buildTour(ctx, { touch }) {
+function buildTour(ctx, { touch, after }) {
   const spot = h('div', { class: 'tour-spot', hidden: true, 'aria-hidden': 'true' });
   const card = h('div', { class: 'tour-card', role: 'dialog', 'aria-modal': 'false', hidden: true });
   document.body.append(spot, card);
@@ -265,7 +279,10 @@ function buildTour(ctx, { touch }) {
     { id: 'more', target: mobile() ? 'nav' : 'rail', count: true,
       title: () => t('Now it is your turn'),
       text: () => t('Habitat: look after the fly like a pet. Stimulate: wind, sound, heat. Circuit: switch neurons off. Lab: experiments from the literature. Feel: can a fly feel anything? "Studio" at the top shows every tool.'),
-      buttons: () => [[t('Play the Habitat'), () => { finish(); ctx.shell?.select('habitat'); if (mobile()) ctx.mobileShow?.('habitat'); }, 'primary'], [t('Done'), finish, 'ghost']] },
+      // a link's workspace is where this ends; otherwise the game is one tap away
+      buttons: () => (after.to
+        ? [[after.to === 'habitat' ? t('Play the Habitat') : after.to === 'experiments' ? t('Open the Lab') : t('Next'), finish, 'primary']]
+        : [[t('Play the Habitat'), () => { after.to = 'habitat'; finish(); }, 'primary'], [t('Done'), finish, 'ghost']]) },
   ];
   const counted = STEPS.filter((s) => s.count);
 
@@ -291,7 +308,9 @@ function buildTour(ctx, { touch }) {
     return r.width > 0 ? { left: r.left - 6, top: r.top - 6, width: r.width + 12, height: r.height + 12 } : null;
   }
 
-  function place() {
+  // moveCard false: only the spotlight follows the fly; a button that wandered
+  // along with it would slip away under the pointer.
+  function place(moveCard = true) {
     if (!step) return;
     const r = step.target ? targetRect(step.target) : null;
     spot.hidden = !r;
@@ -300,6 +319,7 @@ function buildTour(ctx, { touch }) {
       spot.classList.toggle('round', Boolean(r.round));
       Object.assign(spot.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
     }
+    if (!moveCard) return;
     // the card beside the target, never over it; on phones docked at an edge
     const W = window.innerWidth, H = window.innerHeight, cw = card.offsetWidth, ch = card.offsetHeight, m = 14;
     let x, y;
@@ -354,8 +374,8 @@ function buildTour(ctx, { touch }) {
     document.body.classList.add('touring');
     render();
     step.enter?.();
-    requestAnimationFrame(place);
-    if (step.target === 'fly') track = setInterval(place, 120);      // she moves
+    requestAnimationFrame(() => place());
+    if (step.target === 'fly') track = setInterval(() => place(false), 120);      // the fly moves
     else for (const ms of [120, 400, 750]) setTimeout(place, ms);    // while a sheet or the brain opens
     if (step.wait) {
       offFrame = ctx.onFrame((snap) => {
@@ -392,6 +412,10 @@ function buildTour(ctx, { touch }) {
     track = null; offFrame = null; step = null; index = -1;
     card.hidden = true; spot.hidden = true;
     document.body.classList.remove('touring', 'tour-dim');
+    // however the tour ended, the workspace the link asked for opens now
+    const to = after.to;
+    after.to = null;
+    if (to) { if (ctx.mobile?.active) ctx.mobileShow?.(to); else ctx.shell?.select(to); }
   }
 
   window.addEventListener('resize', () => { if (step) place(); });
