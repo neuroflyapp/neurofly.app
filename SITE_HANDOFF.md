@@ -12,7 +12,17 @@ steps), the privacy notice (no accepted-terms record in the browser, effective
 30 October). The tour's foot links `software-terms.html` and `privacy.html`.
 `/play/` now has a description, canonical, Open Graph tags and a noscript text
 (from `tools/build-web.mjs`); content pages got more descriptive titles; the
-sitemap's dates follow. Search engine registration: see below when done.
+sitemap's dates follow.
+
+Search engines (30 October, the owner's main Google account): `neuro-cause.com`
+and `neurofly.app` are Search Console **domain properties**, verified by the
+`google-site-verification` TXT records Google set through Cloudflare: **keep
+those records** or verification lapses. The sitemap
+`https://neuro-cause.com/sitemap.xml` is submitted for neuro-cause.com; none for
+neurofly.app, which only redirects. Google's change of address neurofly.app ->
+neuro-cause.com runs since 30 October (the owner confirmed it; it needs the 301s
+kept for at least 180 days). Bing Webmaster Tools and the Clarity account: see
+the next entry when done.
 
 ## 13 October 2026, end of day
 
